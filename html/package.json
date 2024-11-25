@@ -1,0 +1,53 @@
+{
+  "name": "workflow",
+  "version": "1.0.0",
+  "main": "gulpfile.js",
+  "scripts": {
+    "start": "gulp server",
+    "build": "gulp build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^9.7.4",
+    "browser-sync": "^2.26.13",
+    "css-mqpacker": "^7.0.0",
+    "cssnano": "^4.1.10",
+    "del": "^5.1.0",
+    "fs": "0.0.1-security",
+    "gulp": "^4.0.2",
+    "gulp-beautify": "^3.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-data": "^1.3.1",
+    "gulp-file-include": "^2.2.2",
+    "gulp-merge-json": "^2.1.0",
+    "gulp-minify": "^3.1.0",
+    "gulp-nunjucks-render": "^2.2.3",
+    "gulp-postcss": "^8.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-server-livereload": "^1.9.2",
+    "gulp-yaml": "^2.0.4",
+    "require-dir": "^1.2.0",
+    "rollup-stream": "^1.24.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DefineDepth/stukramHTML.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DefineDepth/stukramHTML/issues"
+  },
+  "homepage": "https://github.com/DefineDepth/stukramHTML#readme",
+  "description": "",
+  "dependencies": {
+    "gulp-iconfont": "^11.0.1",
+    "gulp-iconfont-css": "^3.0.0",
+    "gulp-purgecss": "^4.1.3",
+    "gulp-sass": "^5.1.0",
+    "http-server": "^0.12.3",
+    "node-sass": "^7.0.1",
+    "swiper": "^8.3.2",
+    "webpack-stream": "^7.0.0"
+  }
+}
