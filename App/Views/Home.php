@@ -621,17 +621,108 @@ foreach ($module_status as $m) {
               <h2 class="text-30 sm:text-24 lh-15 mt-20">Your Travel Journey Starts Here</h2>
               <p class="text-dark-1 mt-5">Sign up and we'll send the best deals to you</p>
 
-              <div class="single-field -w-410 d-flex x-gap-10 flex-wrap y-gap-20 pt-30">
-                <div class="col-auto">
-                  <input class="col-12 bg-white h-60" type="text" placeholder="Your Email">
-                </div>
+              <div class="row my-3">
 
-                <div class="col-auto">
-                  <button class="button -md h-60 -blue-1 bg-yellow-1 text-dark-1">Subscribe</button>
-                </div>
+
+
+
+
+              <div class="col-6">
+                                 <div class="form-floating">
+                                    <input type="text" placeholder=" " name="name" value="" class=" bg-white h-60 newsletter_name form-control">
+                                    <label for=""><?=T::name?></label>
+                                 </div>
+                              </div>
+                              <div class="col-6">
+                                 <div class="form-floating">
+                                    <input type="bg-white h-60 text" placeholder=" " name="email" value="" class=" bg-white h-60 newsletter_name form-control">
+                                    <label for=""><?=T::email?></label>
+                                 </div>
+                              </div>
+                              <div class="col-12 col-md-6">
+
+                                 <button class="mt-3 subscribe button -md h-60 -blue-1 bg-yellow-1 text-dark-1"><?=T::signup?> <?=T::newsletter?></button>
+
+                                 <div class="loading_button" style="display:none">
+                                    <button style="height:58px !important"
+                                       class="loading_button btn btn-outline-primary w-100 h-100"
+                                       type="button" disabled>
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    </button>
+                                 </div>
+                              </div>
+
+
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+
+    <script>
+                  $('.subscribe').on('click', function() {
+
+                     // GETTING VALUES
+                     var newsletter_name = $('.newsletter_name').val();
+                     var newsletter_email = $('.newsletter_email').val();
+
+                     // VALIDATION
+                     if (newsletter_name == ""){
+                        alert("<?=T::please_add_your?> <?=T::name?>");
+
+                        } else {
+
+                        // VALIDATION
+                        if (newsletter_email == ""){
+                              alert("<?=T::please_add_your?> <?=T::email?>");
+
+                              } else {
+
+                              // LOADING ANIMATION
+                              $('.subscribe').hide();
+                              $('.loading_button').show();
+
+                              var form = new FormData();
+
+                              form.append("name", newsletter_name);
+                              form.append("email", newsletter_email);
+
+                              var settings = {
+                                 "url": "<?=api_url?>newsletter-subscribe",
+                                 "method": "POST",
+                                 "timeout": 0,
+                                 "processData": false,
+                                 "mimeType": "multipart/form-data",
+                                 "contentType": false,
+                                 "data": form
+                              };
+
+                              $.ajax(settings).done(function(response) {
+                                 var data = JSON.parse(response);
+                                 console.log(data.status);
+
+                                 // FAILED
+                                 if (data.status==false){
+                                    alert("<?=T::email?> <?=T::exist_please_use_different?>");
+
+                                    // LOADING ANIMATION
+                                    $('.subscribe').show();
+                                    $('.loading_button').hide();
+                                 }
+
+                                 // SUCCESS
+                                 if (data.status==true){
+                                    alert('<?=T::successfully_subscribed_newsletter?>');
+
+                                    // LOADING ANIMATION
+                                    $('.subscribe').show();
+                                    $('.loading_button').hide();
+
+                                 }
+                              });
+                        }
+                     }
+                  });
+               </script>
