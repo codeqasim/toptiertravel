@@ -402,11 +402,6 @@ class="hero-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 10" preserv
 </svg>  -->
 
 
-    
-
-
-
-
 <?php
 
 // Define the types of modules and their corresponding view paths

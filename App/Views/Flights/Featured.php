@@ -6,7 +6,7 @@
       <div class="row">
          <div class="col-lg-12">
             <div class="section-heading text-end">
-               <div class="text-start">
+               <div class="text-start mb-3">
                <h4 class="mt-1 mb-0"><strong><?=T::flights_featured_flights?></strong></h4>
                <p><?=T::these_alluring_destinations_are_picked_just_for_you?></p>
                </div>
@@ -72,7 +72,8 @@
                               </script> -->
 
                               <div class="col-xl-4 col-12">
-                              <a class=" hover-primary rounded-3 d-flex p-3 px-4 fadeout" href="<?=root?>flights/<?=strtolower($flights->origin_code)?>/<?=strtolower($flights->destination_code)?>/oneway/economy/<?php $d=strtotime("+5 Days"); echo date("d-m-Y", $d);?>/1/0/0">
+                              <a style="    padding-left: 24px !important;
+    padding-right: 24px !important;" class=" hover-primary rounded-3 d-flex p-3 px-5 fadeout" href="<?=root?>flights/<?=strtolower($flights->origin_code)?>/<?=strtolower($flights->destination_code)?>/oneway/economy/<?php $d=strtotime("+5 Days"); echo date("d-m-Y", $d);?>/1/0/0">
 
                               <div class="col-5 d-flex flex-column">
                                  <p class="m-0 text-hover"><strong><?=$flights->origin?></strong></p>
