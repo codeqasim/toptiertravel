@@ -20,7 +20,7 @@
       </div>
       <div class="col-6 col-lg-2">
          <div class="form-floating">
-            <input type="text" class="checkin form-control" id="checkin" placeholder="checkin" value="<?php if(isset($_SESSION['hotels_checkin'])){ echo $_SESSION['hotels_checkin']; } else { $d=strtotime("+3 Days"); echo date("d-m-Y", $d); } ?>">
+            <input type="text" class="checkin form-control border" id="checkin" placeholder="checkin" value="<?php if(isset($_SESSION['hotels_checkin'])){ echo $_SESSION['hotels_checkin']; } else { $d=strtotime("+3 Days"); echo date("d-m-Y", $d); } ?>">
             <label for="checkin">
                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -34,7 +34,7 @@
       </div>
       <div class="col-6 col-lg-2">
          <div class="form-floating">
-            <input type="text" class="checkout form-control" id="checkout" placeholder="" value="<?php if(isset($_SESSION['hotels_checkout'])){ echo $_SESSION['hotels_checkout']; } else { $d=strtotime("+4 Days"); echo date("d-m-Y", $d); } ?>">
+            <input type="text" class="checkout form-control border" id="checkout" placeholder="" value="<?php if(isset($_SESSION['hotels_checkout'])){ echo $_SESSION['hotels_checkout']; } else { $d=strtotime("+4 Days"); echo date("d-m-Y", $d); } ?>">
             <label for="checkout">
                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -50,7 +50,7 @@
          <div class="input-box">
             <div class="form-group">
                <div class="dropdown dropdown-contain">
-                  <a class="dropdown-toggle dropdown-btn travellers d-flex align-items-center" href="#" role="button"
+                  <a class="dropdown-toggle dropdown-btn travellers d-flex align-items-center border" href="#" role="button"
                      data-toggle="dropdown" aria-expanded="false">
                      <p class="m-0 d-flex align-items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -60,7 +60,7 @@
                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                         <?=T::travellers?> <span class="guest_hotels"></span>
-                        <span><?=T::hotels_rooms?> <span class="roomTotal">0</span></span>
+                        <span class="d-none"><?=T::hotels_rooms?> <span class="roomTotal">0</span></span>
                      </p>
                   </a>
                   <div class="dropdown-menu dropdown-menu-wrap w-100 p-3 rounded-3">
