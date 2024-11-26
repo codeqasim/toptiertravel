@@ -313,6 +313,13 @@
 
 <script src="<?=root?>assets/js/app.js"></script>
 <script src="<?=root?>assets/js/bootstrap-select.js"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAAz77U5XQuEME6TpftaMdX0bBelQxXRlM"></script>
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
+<script src="<?=root?>assets/js/vendors.js"></script>
+<script src="<?=root?>assets/js/main.js"></script>
+
 <?php
    // CHECK IF USER LOGGED AS A ADMIN
    // if(isset($_SESSION['phptravels_backend_user'])){
