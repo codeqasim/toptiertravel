@@ -486,3 +486,152 @@ foreach ($module_status as $m) {
 <!-- <script>
    AOS.init();
 </script> -->
+
+
+<section class="layout-pt-md layout-pb-md">
+      <div class="container">
+        <div class="row justify-center text-center">
+          <div class="col-auto">
+            <div class="sectionTitle -md">
+              <h2 class="sectionTitle__title">Why Choose Us</h2>
+              <p class=" sectionTitle__text mt-5 sm:mt-0">These popular destinations have a lot to offer</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="row y-gap-40 justify-between pt-50">
+
+          <div class="col-lg-3 col-sm-6">
+
+            <div class="featureIcon -type-1 ">
+              <div class="d-flex justify-center">
+                <img src="#" data-src="<?=root?>assets/img/featureIcons/1/1.svg" alt="image" class="js-lazy">
+              </div>
+
+              <div class="text-center mt-30">
+                <h4 class="text-18 fw-500">Best Price Guarantee</h4>
+                <p class="text-15 mt-10">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="col-lg-3 col-sm-6">
+
+            <div class="featureIcon -type-1 ">
+              <div class="d-flex justify-center">
+                <img src="#" data-src="<?=root?>assets/img/featureIcons/1/2.svg" alt="image" class="js-lazy">
+              </div>
+
+              <div class="text-center mt-30">
+                <h4 class="text-18 fw-500">Easy & Quick Booking</h4>
+                <p class="text-15 mt-10">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="col-lg-3 col-sm-6">
+
+            <div class="featureIcon -type-1 ">
+              <div class="d-flex justify-center">
+                <img src="#" data-src="<?=root?>assets/img/featureIcons/1/3.svg" alt="image" class="js-lazy">
+              </div>
+
+              <div class="text-center mt-30">
+                <h4 class="text-18 fw-500">Customer Care 24/7</h4>
+                <p class="text-15 mt-10">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="section-bg rounded-4 overflow-hidden">
+      <div class="section-bg__item -left-100 -right-100 bg-blue-2"></div>
+
+      <div class="section-bg__item col-4 -right-100 lg:d-none">
+        <img src="<?=root?>assets/img/hb.jpg" alt="image">
+      </div>
+
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-6 col-lg-8 p-5">
+            <div class="pt-120 pb-120 lg:pt-80 lg:pb-80">
+              <h2 class="text-30 fw-600">Our Vission</h2>
+              <p class="mt-5">IF YOU CAN DREAM IT, WE CAN MAKE IT HAPPEN</p>
+
+              <div class="overflow-hidden pt-60 lg:pt-40 js-section-slider" data-slider-cols="base-1">
+                <div class="swiper-wrapper">
+
+                  <div class="swiper-slide">
+                    <div class="testimonials -type-2">
+                      <img src="<?=root?>assets/img/misc/quote.svg" alt="quote" class="mb-35">
+                      <div class="text-22 md:text-18 fw-600 text-dark-1">"Trust in our expertise to turn your travel dreams into a seamless reality. With meticulous planning & attention to detail, we ensure that every aspect of your journey exceeds your wildest expectations.
+
+"</div>
+
+                      <!-- <div class="d-flex items-center mt-35">
+                        <img src="<?=root?>assets/img/happy.jpg" alt="image" class="size-80">
+                        <div class="ml-20">
+                          <h5 class="text-15 lh-11 fw-500">Ali Tufan</h5>
+                          <div class="text-14 lh-11 mt-5">Product Manager, Apple Inc</div>
+                        </div>
+                      </div> -->
+                    </div>
+                  </div>
+
+                  <div class="swiper-slide">
+                    <div class="testimonials -type-2">
+                      <img src="img/misc/quote.svg" alt="quote" class="mb-35">
+                      <div class="text-22 md:text-18 fw-600 text-dark-1">"Our family was traveling via bullet train between cities in Japan with our luggage - the location for this hotel made that so easy. Agoda price was fantastic."</div>
+
+                      <div class="d-flex items-center mt-35">
+                        <img src="<?=root?>assets/img/avatars/testimonials/1.png" alt="image" class="size-70">
+                        <div class="ml-20">
+                          <h5 class="text-15 lh-11 fw-500">Ali Tufan</h5>
+                          <div class="text-14 lh-11 mt-5">Product Manager, Apple Inc</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section data-anim="slide-up delay-1" class="layout-pt-md layout-pb-md">
+      <div class="container">
+        <div class="row ml-0 mr-0 items-center justify-between">
+          <div class="col-xl-5 px-0">
+            <img class="col-12 h-400" src="<?=root?>assets/img/dep.jpg" alt="image">
+          </div>
+
+          <div class="col px-0">
+            <div class="d-flex justify-center flex-column h-400 px-80 py-40 md:px-30 bg-green-1">
+              <div class="icon-newsletter text-60 sm:text-40 text-dark-1"></div>
+              <h2 class="text-30 sm:text-24 lh-15 mt-20">Your Travel Journey Starts Here</h2>
+              <p class="text-dark-1 mt-5">Sign up and we'll send the best deals to you</p>
+
+              <div class="single-field -w-410 d-flex x-gap-10 flex-wrap y-gap-20 pt-30">
+                <div class="col-auto">
+                  <input class="col-12 bg-white h-60" type="text" placeholder="Your Email">
+                </div>
+
+                <div class="col-auto">
+                  <button class="button -md h-60 -blue-1 bg-yellow-1 text-dark-1">Subscribe</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
