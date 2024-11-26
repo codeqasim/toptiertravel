@@ -8,7 +8,7 @@
                   <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>
                </svg>
             </div>
-            <select id="hotels_city" name="city" class="hotels_select2 form-control" required>
+            <select id="hotels_city" name="city" class="hotels_select2 form-control border-0" required>
                <?php if(isset($_SESSION['hotels_location'])){ ?>
                <option value="<?=$_SESSION['hotels_location']; ?>"><?= str_replace("-", " ", $_SESSION['hotels_location']); ?></option>
                <?php } else { ?>
@@ -20,7 +20,7 @@
       </div>
       <div class="col-6 col-lg-2">
          <div class="form-floating">
-            <input type="text" class="checkin form-control border" id="checkin" placeholder="checkin" value="<?php if(isset($_SESSION['hotels_checkin'])){ echo $_SESSION['hotels_checkin']; } else { $d=strtotime("+3 Days"); echo date("d-m-Y", $d); } ?>">
+            <input type="text" class="checkin form-control border-0" id="checkin" placeholder="checkin" value="<?php if(isset($_SESSION['hotels_checkin'])){ echo $_SESSION['hotels_checkin']; } else { $d=strtotime("+3 Days"); echo date("d-m-Y", $d); } ?>">
             <label for="checkin">
                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -34,7 +34,7 @@
       </div>
       <div class="col-6 col-lg-2">
          <div class="form-floating">
-            <input type="text" class="checkout form-control border" id="checkout" placeholder="" value="<?php if(isset($_SESSION['hotels_checkout'])){ echo $_SESSION['hotels_checkout']; } else { $d=strtotime("+4 Days"); echo date("d-m-Y", $d); } ?>">
+            <input type="text" class="checkout form-control border-0" id="checkout" placeholder="" value="<?php if(isset($_SESSION['hotels_checkout'])){ echo $_SESSION['hotels_checkout']; } else { $d=strtotime("+4 Days"); echo date("d-m-Y", $d); } ?>">
             <label for="checkout">
                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -50,7 +50,7 @@
          <div class="input-box">
             <div class="form-group">
                <div class="dropdown dropdown-contain">
-                  <a class="dropdown-toggle dropdown-btn travellers d-flex align-items-center border" href="#" role="button"
+                  <a class="dropdown-toggle dropdown-btn travellers d-flex align-items-center border-0" href="#" role="button"
                      data-toggle="dropdown" aria-expanded="false">
                      <p class="m-0 d-flex align-items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -180,10 +180,11 @@
          </div>
       </div>
       <div class="col-lg-1">
-         <button style="height:64px" type="submit" class="search_button w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full">
+         <button style="height: 64px; border-radius: 30px;" type="submit" class="search_button w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full">
             <svg style="fill:currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" class="c8LPF-icon" role="img" height="24" cleanup="">
                <path d="M174.973 150.594l-29.406-29.406c5.794-9.945 9.171-21.482 9.171-33.819C154.737 50.164 124.573 20 87.368 20S20 50.164 20 87.368s30.164 67.368 67.368 67.368c12.345 0 23.874-3.377 33.827-9.171l29.406 29.406c6.703 6.703 17.667 6.703 24.371 0c6.704-6.702 6.704-17.674.001-24.377zM36.842 87.36c0-27.857 22.669-50.526 50.526-50.526s50.526 22.669 50.526 50.526s-22.669 50.526-50.526 50.526s-50.526-22.669-50.526-50.526z"></path>
             </svg>
+
          </button>
          <div class="loading_button" style="display:none">
             <button style="height:64px" class="loading_button gap-2 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full" type="button" disabled>

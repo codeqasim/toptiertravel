@@ -479,7 +479,7 @@ i.flag.zw:before,i.flag.zimbabwe:before{background-position:-108px -390px}
 
 
 .select2custom .select2-container--default .select2-selection--single .select2-selection__rendered { padding: 10px 16px; }
-.input-items .select2-selection { letter-spacing: 0.5px; letter-spacing: 0px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; border-bottom-left-radius: 6px; width: 100%; border: 1px solid #c3c3c3; outline: 0; color: #000; font-size: 16px; padding: 24px 29px; height: 64px; }
+.input-items .select2-selection { letter-spacing: 0.5px; letter-spacing: 0px; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom-right-radius: 6px; border-bottom-left-radius: 6px; width: 100%; border: 1px solid transparent; outline: 0; color: #000; font-size: 16px; padding: 24px 29px; height: 64px; }
 /* .select2-container--default .select2-selection--single .select2-selection__rendered { display: block; justify-content: space-between; align-items: center; padding-right: 40px; }
 .select2-container--default .select2-selection--single .select2-selection__rendered small { float: right; } */
 /*============================================================================================*/
