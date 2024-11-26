@@ -1,107 +1,80 @@
-<!-- slick  -->
-<?php $featured_hotels=(app()->featured_hotels) ?>
+<!-- slick -->
+<?php $featured_hotels = app()->featured_hotels; ?>
 
 <!-- ================================
     START HOTEL AREA
 ================================= -->
-<section data-aos="fade-up" class="hotel-area section-bg section-padding overflow-hidden padding-right-100px padding-left-100px pb-2 mt-5">
-    <div class="container">
-        <div style="" class="">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-heading text-start">
-                        <h5 class="mt-1 mb-0"><strong><?=T::hotels_featured_hotels?></strong></h5>
-                        <p><?=T::these_alluring_destinations_are_picked_just_for_you?></p>
-                        <div class="mb-4"></div>
-                    </div>
+<section class="layout-pt-md layout-pb-md">
+    <div data-anim-wrap class="container mt-5 pt-5">
+        <div data-anim-child="slide-up delay-1" class="mt-5 pt-5 row justify-center text-center">
+            <div class="col-auto mt-5 pt-5">
+                <div class="sectionTitle -md mt-5 pt-5">
+                    <h2 class="sectionTitle__title mt-5 pt-5"><?= T::hotels_featured_hotels ?></h2>
+                    <p class="sectionTitle__text mt-5 sm:mt-0"><?= T::these_alluring_destinations_are_picked_just_for_you ?></p>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-lg-9">
-                    <div class="hotel-card-wrap">
-                        <div class="row featured--hotels-slick">
-                        <?php
-                        foreach ($featured_hotels as $hotels){
+        </div>
 
-                            (isset($_SESSION['hotels_nationality']))?$nationality=$_SESSION['hotels_nationality']:$nationality="US";
-                            (isset($_SESSION['supplier_name']))?$supplier_name=$_SESSION['supplier_name']:$supplier_name="hotels";
+        <div class="row y-gap-30 pt-40 sm:pt-20">
+            <?php
+            foreach ($featured_hotels as $hotels) {
+                $nationality = $_SESSION['hotels_nationality'] ?? "US";
+                $supplier_name = $_SESSION['supplier_name'] ?? "hotels";
 
-                            $payload = [
-                                "nationality" => $nationality,
-                                "supplier_name" => "hotels"
-                            ];
+                $payload = [
+                    "nationality" => $nationality,
+                    "supplier_name" => $supplier_name
+                ];
 
-                            $hash=base64_encode(json_encode($payload));
+                $hash = base64_encode(json_encode($payload));
 
-                            $link = root.'hotel/'.$hotels->id.'/'.
-                            clean_var($hotels->name).'/'.
-                            date('d-m-Y',strtotime('+3 day')).'/'.date('d-m-Y',strtotime('+4 day')).'/1/2/0/'.$nationality.'/hotels';
-
-                        {
-                        ?>
-                        <div class="col-md-4 mb-3 px-1">
-                        <div class="rounded border p-2">
-                                <div class="card-img">
-                                    <a href="<?=$link?>" class="d-block fadeout">
-                                    <img src="./uploads/<?=$hotels->img?>" class="w-100 rounded-2" alt="hotel-img" style="height:200px">
-                                    </a>
-                                </div>
-                                <div class="p-3">
-
-                                <div class="mb-0">
-                                        <span class="d-flex mt-1">
-                                        <?php for ($i = 1; $i <= $hotels->stars; $i++) { ?>
-                                        <?=star()?>
-                                        <?php } ?>
-                                        </span>
-                                    </div>
-
-                                    <h6 class="mb-0 mt-2 lenght-cover"><a href="<?=$link?>"><strong><?=$hotels->name?></strong></a></h6>
-                                    <p class="card-meta mb-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="10" r="3"></circle>
-                                    <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"></path>
-                                    </svg>
-                                    <strong><?=$hotels->city?></strong> <small><?=$hotels->country?></small></p>
-                                    <hr>
-                                    <div class="card-price d-flex align-items-center justify-content-between">
-                                        <p class="mb-0">
-                                            <span class="price__num"><?=currency?> <strong> <?=$hotels->price?> </strong></span>
-                                            <!-- <span class="price__text"><?=T::price?></span> -->
-                                        </p>
-                                        <!-- <a href="<?=$link?>" class="btn btn-outline-dark fadeout"><?=T::details?> -->
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                                    </a>
-                                    </div>
+                $link = root . 'hotel/' . $hotels->id . '/' .
+                    clean_var($hotels->name) . '/' .
+                    date('d-m-Y', strtotime('+3 day')) . '/' .
+                    date('d-m-Y', strtotime('+4 day')) . '/1/2/0/' .
+                    $nationality . '/hotels';
+            ?>
+                <div data-anim-child="slide-up delay-2" class="col-xl-3 col-lg-3 col-sm-6">
+                    <a href="<?=$link?>" class="rentalCard -type-1 rounded-4">
+                        <div class="rentalCard__image">
+                            <div class="cardImage ratio ratio-1:1">
+                                <div class="cardImage__content">
+                                    <img class="rounded-4 col-12" src="./uploads/<?= $hotels->img ?>" alt="image">
                                 </div>
                             </div>
-                            </div>
-                            <?php } } ?>
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-12 col-md-12">
-                <div class="shadow-sm rounded card-item p-2">
-                        <div class="card-img">
-                            <a href="<?=root?>hotels" class="d-block" tabindex="0">
-                            <img src="<?=root?>assets/img/featured_hotels.png" class="w-100" alt="hotel-img" style="min-height:374px">
-                            <div class="pt-5" style="border-bottom-right-radius: 6px; border-bottom-left-radius: 6px; position: absolute; width: 100%; z-index: 9; display: block; padding: 25px 20px 5px; color: #fff; left: 0; bottom: 0; height: 164px; background: transparent; background: linear-gradient(to bottom,transparent,var(--theme-bg)); box-sizing: border-box;">
-                            <h6 class="strong text-center"><strong><?=T::discover_great_deals?></strong></h6>
-                            <span class="btn btn-block btn-outline-light w-100">
-                                <?=T::view_more?>
-                            </span>
+                        <div class="rentalCard__content mt-10">
+                            <div class="text-14 text-light-1 lh-14 mb-5">
+                                <strong><?= $hotels->city ?></strong>
+                                <small><?= $hotels->country ?></small>
                             </div>
-                            </a>
+                            <h4 class="rentalCard__title text-dark-1 text-18 lh-16 fw-500">
+                                <span><?= $hotels->name ?></span>
+                            </h4>
+                            <div class="d-flex items-center mt-20">
+                                <div class="flex-center bg-blue-1 rounded-4 size-30 text-12 fw-600 text-white">
+                                    <?= $hotels->stars . ".0" ?>
+                                </div>
+                                <div class="text-14 text-dark-1 fw-500 ml-10">Exceptional</div>
+                                <div class="text-14 text-light-1 ml-10"><?= rand(33, 300) ?> reviews</div>
+                            </div>
+                            <div class="mt-5">
+                                <div class="text-light-1">
+                                    <span class="fw-500 text-dark-1"><?= currency ?> <?= $hotels->price ?></span> / per night
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
-            </div>
+            <?php } ?>
         </div>
     </div>
 </section>
 
 <style>
     @media screen and (max-width: 425px) {
-        .hotel-area > .container > :first-child { padding: 20px !important }
+        .hotel-area > .container > :first-child {
+            padding: 20px !important;
+        }
     }
 </style>

@@ -580,6 +580,8 @@ const previous = 'Previous';
 const dropoff = 'Drop-off';
 const pickup = 'Pick-up';
 const time = 'Time';
+const rate = 'Rate';
+const comment = 'Comments';
 public static function __callStatic($string, $args) {
     return vsprintf(constant("self::" . $string), $args);
 }
