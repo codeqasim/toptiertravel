@@ -1,0 +1,11 @@
+app/logs/*
+admin/cache/*
+.idea
+.vscode
+.git
+app/cache/*
+cache/**
+**/.DS_Store
+db/*
+composer.lock
+app.json
