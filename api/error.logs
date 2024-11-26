@@ -1,3 +1,33 @@
 [06-Sep-2024 13:24:31 Europe/Berlin] PHP Warning:  Undefined array key "nicename" in D:\server\htdocs\v9\api\routes\Visa.php on line 47
 [06-Sep-2024 13:24:39 Europe/Berlin] PHP Warning:  Attempt to read property "nicename" on array in D:\server\htdocs\v9\api\routes\Visa.php on line 47
 [06-Sep-2024 13:24:53 Europe/Berlin] PHP Warning:  Attempt to read property "nicename" on array in D:\server\htdocs\v9\api\routes\Visa.php on line 47
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:33:56 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:00 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
