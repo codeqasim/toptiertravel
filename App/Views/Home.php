@@ -609,7 +609,7 @@ foreach ($module_status as $m) {
     </section>
 
     <section data-anim="slide-up delay-1" class="layout-pt-md layout-pb-md">
-      <div class="container">
+      <div class="container p-0">
         <div class="row ml-0 mr-0 items-center justify-between">
           <div class="col-xl-5 px-0">
             <img class="col-12 h-400" src="<?=root?>assets/img/dep.jpg" alt="image">
