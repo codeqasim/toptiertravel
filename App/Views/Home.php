@@ -635,7 +635,7 @@ foreach ($module_status as $m) {
                               </div>
                               <div class="col-6">
                                  <div class="form-floating">
-                                    <input type="bg-white h-60 text" placeholder=" " name="email" value="" class=" bg-white h-60 newsletter_name form-control">
+                                    <input type="bg-white h-60 text" placeholder=" " name="email" value="" class=" bg-white h-60 newsletter_email form-control">
                                     <label for=""><?=T::email?></label>
                                  </div>
                               </div>
