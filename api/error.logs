@@ -31,3 +31,13 @@
 [26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
 [26-Nov-2024 10:34:20 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
 [26-Nov-2024 10:34:20 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Undefined array key 0 in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Trying to access array offset on value of type null in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
+[26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461

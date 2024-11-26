@@ -45,8 +45,8 @@ $module_status = array_intersect_key($modules, $temp_module);
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="assets/css/vendors.css">
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="<?=root?>assets/css/vendors.css">
+    <link rel="stylesheet" href="<?=root?>assets/css/main.css">
 
 </head>
 
@@ -337,36 +337,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
 
     <script>
-    // HEADER NAVBAR
-    let resize = true;
-    $(window).scroll(function() {
-        var nav = $('#navbarMain');
-        var top = 50;
-        if ($(window).scrollTop() >= top && resize) {
-            $("header").addClass('swap_navbar');
-        } else if(resize) {
-            $("header").removeClass('swap_navbar');
-        }
-    });
-
-    $(window).on("load", (function() {
-        if($(window).innerWidth() + 10 < 769) {
-            $("header").addClass('swap_navbar');
-            resize = false;
-        }
-        else {
-            $("header").removeClass('swap_navbar');
-            resize = true;
-        }
-    }));
-
-    $(window).on("load", (function() {
-    var scroll = $(window).scrollTop();
-    if (scroll > 20 ) {
-        $("header").addClass('swap_navbar');
-    }
-    }) )
-
+    
     // Check if website is being executed from localhost
     <?php if ($_SERVER['HTTP_HOST'] !== 'localhost') { ?>
         setTimeout(function() {
