@@ -2,7 +2,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 
 </main>
-<section data-aos="fade-up" class="footer-area">
+<section data-aos="fade-up" class="footer-area mt-3">
 <div class="container">
       <div class="">
          <div class="row g-0">
