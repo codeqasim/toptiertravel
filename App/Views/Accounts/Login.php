@@ -35,25 +35,6 @@
               </form>
             </div>
 
-            <!-- <div class="col-12 text-center pt-30">
-              <div>or sign in with</div>
-              <button class="button col-12 -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
-                <i class="icon-facebook text-15 mr-10"></i>
-                Facebook
-              </button>
-              <button class="button col-12 -outline-red-1 text-red-1 py-15 rounded-8 mt-15">
-                <i class="icon-google text-15 mr-10"></i>
-                Google
-              </button>
-              <button class="button col-12 -outline-dark-2 text-dark-2 py-15 rounded-8 mt-15">
-                <i class="icon-apple text-15 mr-10"></i>
-                Apple
-              </button>
-            </div> -->
-
-            <!-- <div class="col-12 text-center px-30">
-              <div>By creating an account, you agree to our <a href="#" class="text-blue-1">Terms of Service</a> and <a href="#" class="text-blue-1">Privacy Statement</a>.</div>
-            </div> -->
           </div>
         </div>
       </div>
