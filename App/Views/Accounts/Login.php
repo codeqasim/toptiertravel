@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row justify-center">
       <div class="col-xl-6 col-lg-7 col-md-9">
-        <div class="px-50 py-50 sm:px-20 sm:py-20 bg-white shadow-4 rounded-4">
+        <div class="px-50 py-50 sm:px-20 sm:py-20 bg-white shadow-4 rounded-1">
           <div class="row y-gap-20">
             <div class="col-12">
               <h1 class="text-22 fw-500">Welcome back</h1>
