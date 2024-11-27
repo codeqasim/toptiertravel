@@ -64,7 +64,7 @@
         <form method="POST" action="./" id="forget_pass">
           <div class="modal-body">
             <div class="form-floating mb-3">
-              <input type="email" class="form-control" id="reset_mail" placeholder="name@example.com" required>
+              <input  type="email" class="form-control bg-light" id="reset_mail" placeholder="name@example.com" required>
               <label for="reset_mail"><?=T::email?> <?=T::address?></label>
             </div>
           </div>

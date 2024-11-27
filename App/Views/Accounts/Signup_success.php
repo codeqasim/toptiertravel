@@ -1,3 +1,4 @@
+<section class="layout-pt-lg layout-pb-lg bg-blue-2">
 <div class="contaier mt-5 mb-5">
 <div class="col-md-4 mx-auto">
 <div class="rounded border p-3 text-center pt-5 pb-5 bg-light">
@@ -9,3 +10,4 @@
 </div>
 </div>
 </div>
+</section>
