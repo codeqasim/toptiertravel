@@ -57,7 +57,7 @@
   <div class="modal fade" id="reset" tabindex="1" aria-labelledby="modal" aria-modal="true" role="dialog">
     <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header bg-light">
+        <div class="modal-header bg-light"> 
           <h5 class="modal-title" id="modal"><?=T::reset?> <?=T::password?></h5>
           <button type="button" class="btn-close waves-effect" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>

@@ -11010,17 +11010,17 @@ div[data-slider] > input[type=range]::-ms-tooltip {
 }
 
 table.table th {
-  padding: 25px 40px;
+  /* padding: 25px 40px; */
   line-height: 1;
-  font-weight: 500;
+  /* font-weight: 500; */
 }
 
 table.table th:first-child {
-  border-radius: 8px 0 0 8px;
+  /* border-radius: 8px 0 0 8px; */
 }
 
 table.table th:last-child {
-  border-radius: 0 8px 8px 0;
+  /* border-radius: 0 8px 8px 0; */
 }
 
 table.table tbody > tr + tr {

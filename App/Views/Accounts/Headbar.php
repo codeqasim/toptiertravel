@@ -66,94 +66,61 @@ foreach($visa_bookings as $visa){
 $pending_bookings = count($pending_flights) + count($pending_hotels) + count($pending_tours) + count($pending_cars) + count($pending_visa);
 
 ?>
-
-<div class="mt-3">
-    <div class="card p-3">
-        
-        <!-- <div class="row align-items-center">
-            <div class="col-lg-6">
-                <div class="breadcrumb-content">
-                    <div class="section-heading">
-                         <h6 class="mb-0 font-size-30"><?=T::hi?>, <span style="text-transform:capitalize"><strong><?=$_SESSION['phptravels_client']->first_name?> <?=$_SESSION['phptravels_client']->last_name?></strong></span> <?=T::welcomeback?></h6> 
-                    </div>
-                </div> 
-            </div> 
-            <div class="col-lg-6">
-                <div class="breadcrumb-list text-right">
-                    <p style="font-weight:bold;color:#fff" id="ct"></p>
-                </div>< 
-            </div> 
-        </div>  -->
-
-        <div class="row g-3">
-
-        <div class="col-lg-4 responsive-column-m user_wallet icon-layout-2 dashboard-icon-box">
-        <div class="p-4 rounded-2" style="background:#ecf8f1">
-            <div class="info-icon icon-element flex-shrink-0 mx-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+<div class="col-xl-4 col-md-6">
+            <div class="py-30 px-30 rounded-1 bg-white shadow-3">
+              <div class="row y-gap-20 justify-between items-center">
+                <div class="col-auto">
+                  <div class="fw-500 lh-14">Wallet Balance</div>
+                  <h1 class=""><small><?=$dashboard_details->balance?></small> <strong><?=$dashboard_details->currency?></strong> </h1>
+                  <p class="mb-0"><small>Total <?=T::walletbalance?></small></p>
+                </div>
+                <div class="col-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                     <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
                     <line x1="6" y1="6" x2="6.01" y2="6"></line>
                     <line x1="6" y1="18" x2="6.01" y2="18"></line>
                 </svg>
-            </div>
-            <!-- end info-icon-->
-            <p class="mb-0"><small><?=T::walletbalance?></small></p>
-            <h1 class=""><small><?=$dashboard_details->balance?></small> <strong><?=$dashboard_details->currency?></strong> </h1>
-        </div>
-        
-        </div>
-        <!-- end col-lg-3 -->
-
-        <div class="col-lg-4 responsive-column-m user_wallet icon-layout-2 dashboard-icon-box">
-        <div class="p-4 rounded-2" style="background:#ebf8fe">
-            <div class="info-icon icon-element flex-shrink-0 mx-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/></svg>
-            </div>
-            <!-- end info-icon-->
-            <p class="mb-0"><small><?=T::totalbookings?></small></p>
-            <h1 class=""><strong><?=$total_bookings?></strong> </h1>
-        </div>
-         
-        </div>
-        <!-- end col-lg-3 -->
-
-        <div class="col-lg-4 responsive-column-m user_wallet icon-layout-2 dashboard-icon-box">
-        <div class="p-4 rounded-2" style="background:#f1eeff">
-            <div class="info-icon icon-element flex-shrink-0 mx-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            </div>
-            <!-- end info-icon-->
-            <p class="mb-0"><small><?=T::pendinginvoices?></small></p>
-            <h1 class=""><strong><?=$pending_bookings?></strong> </h1>
-        </div>
-         
-        </div>
-        <!-- end col-lg-3 -->
-
-            <!-- <div class="col-lg-6 responsive-column-m">
-            <div class="icon-box icon-layout-2 dashboard-icon-box bg-white p-4 rounded-1 mb-0">
-                    <div class="d-flex">
-                    <div class="info-icon icon-element flex-shrink-0 mx-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon><line x1="3" y1="22" x2="21" y2="22"></line></svg>
-                        </div> 
-                        <div class="d-flex align-items-center">
-                            <div>
-                            <p class="mb-0"><small><?=T::reviews?></small></p>
-                            <h5 class="info__title"><strong><?=$dashboard_details->reviews?></strong></h5>
-                            </div>
-                            </div>
-                    </div>
                 </div>
-            </div>  -->
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-4 col-md-6">
+            <div class="py-30 px-30 rounded-1 bg-white shadow-3">
+              <div class="row y-gap-20 justify-between items-center">
+                <div class="col-auto">
+                  <div class="fw-500 lh-14">Bookings</div>
+                  <h1 class=""><strong><?=$total_bookings?></strong> </h1>
+                  <p class="mb-0"><small><?=T::totalbookings?></small></p>
+                </div>
 
-
-        </div> 
-    </div>
-</div><!-- end dashboard-bread -->
+                <div class="col-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/></svg>
+            
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-4 col-md-6">
+            <div class="py-30 px-30 rounded-1 bg-white shadow-3">
+              <div class="row y-gap-20 justify-between items-center">
+                <div class="col-auto">
+                  <div class="fw-500 lh-14">Pending Invoices</div>
+                  <h1 class=""><strong><?=$pending_bookings?></strong> </h1>
+                  <p class="mb-0"><small><?=T::pendinginvoices?></small></p>
+                </div>
+                <div class="col-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
 <style>
 .icon-box .info-icon::before { background-color: rgb(230 230 230); }
 .icon-box .info-icon { color: #fff; border-radius: 50%; background: rgb(255 255 255 / 91%); }
 .info-icon svg { stroke: #000 !important; height: 26px; width: 26px; }
 </style>
+
