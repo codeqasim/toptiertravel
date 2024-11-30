@@ -23,14 +23,26 @@
                   <label class="lh-1 text-14 text-light-1" for="password"><?=T::password?></label>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 mb-2">
                   <a href="#" class="text-14 fw-500 text-blue-1 underline" data-bs-toggle="modal" data-bs-target="#reset"><?=T::reset?> <?=T::password?></a>
                 </div>
-
+          
                 <div class="col-12">
-                  <button id="submitBTN" type="submit" class="button py-20 -dark-1 bg-blue-1 text-white w-100">
-                    Sign In <div class="icon-arrow-top-right ml-15"></div>
-                  </button>
+                <div class="login_button rounded">
+                            <button id="submitBTN" type="submit" class="button py-20 -dark-1 bg-blue-1 text-white w-100">
+                                <?=T::login?> <div class="icon-arrow-top-right ml-15"></div></button>
+                        </div>
+                        <div class="loading_button rounded" style="display:none;background:#051036;">
+                            <button class="loading_button py-20 w-100 btn btn-m rounded-sm font-700 text-uppercase btn-full" type="button" disabled>
+                                <span class="text-white spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            </button>
+                            <script>
+                            $("#login").submit(function() {
+                                $('.login_button').hide();
+                                $('.loading_button').show();
+                            })
+                            </script>
+                        </div>
                 </div>
               </form>
             </div>

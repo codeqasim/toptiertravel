@@ -70,44 +70,28 @@
                             
                             <div class="col-12">
                                 <div class="d-flex">
-                                    <!-- <div class="form-checkbox mt-5">
-                                        <input type="checkbox" class="agree" name="agree">
-                                        <div class="form-checkbox__mark">
-                                            <div class="form-checkbox__icon icon-check"></div>
-                                        </div>
-                                    </div> -->
                                     <div class="text-15 lh-15 text-light-1 ml-10">By signup I agree to terms and policy</div>
                                 </div>
                             </div>
                             
                             <div class="col-12">
                                 <div class="signup_button">
+                                    <!-- Button with spinner animation inside -->
                                     <button id="submitBTN" disabled class="button py-20 -dark-1 bg-blue-1 text-white w-100">
                                         Sign Up
                                         <div class="icon-arrow-top-right ml-15"></div>
                                     </button>
                                 </div>
-                                <div class="loading_button" style="display:none">
-                                    <button class="loading_button gap-2 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full" type="button" disabled>
-                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+                                <!-- Loading button with spinner (hidden by default) -->
+                                <div class="loading_button rounded" style="display:none;background:#051036;">
+                                    <button class="loading_button py-20 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full" type="button" disabled>
+                                        <span class="text-white spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <!-- <div class="row y-gap-20 pt-30">
-                            <div class="col-12">
-                                <div class="text-center px-30">Or sign in with</div>
-                                <button class="button col-12 -outline-blue-1 text-blue-1 py-15 rounded-8 mt-10">
-                                    <i class="icon-apple text-15 mr-10"></i> Facebook
-                                </button>
-                                <button class="button col-12 -outline-red-1 text-red-1 py-15 rounded-8 mt-15">
-                                    <i class="icon-apple text-15 mr-10"></i> Google
-                                </button>
-                                <button class="button col-12 -outline-dark-2 text-dark-2 py-15 rounded-8 mt-15">
-                                    <i class="icon-apple text-15 mr-10"></i> Apple
-                                </button>
-                            </div>
-                        </div> -->
+
                         <input type="hidden" name="form_token" value="<?=$_SESSION["form_token"]?>">
                     </form>
                 </div>
@@ -115,3 +99,22 @@
         </div>
     </div>
 </section>
+
+<script>
+    // Enable submit button after captcha verification
+    var correctCaptcha = function(response) {
+        $('#submitBTN').prop('disabled', false);
+    };
+
+    // Handle form submission and show the loading spinner
+    $("#signup").submit(function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        $('.signup_button').hide(); // Hide original submit button
+        $('.loading_button').show(); // Show loading spinner button
+
+        // Perform the form submission with Ajax or any other logic
+        // For now we just submit the form for demo purposes
+        this.submit();
+    });
+</script>
