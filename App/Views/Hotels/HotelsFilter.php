@@ -109,7 +109,7 @@
                     </a>
                 </div>
                 <div id="sortFilter" class="collapse show" data-bs-parent="#Filter">
-                    <div class="card-body px-3 py-3">
+                    <div class="card-body py-3">
 
                         <div class="row g-2">
                             <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 px-5 py-3">
