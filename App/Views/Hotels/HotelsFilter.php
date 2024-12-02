@@ -112,14 +112,14 @@
                     <div class="card-body py-3">
 
                         <div class="row g-2">
-                            <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 px-5 py-3">
+                            <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 " style="padding:1rem 2rem !important;">
                                     <input type="radio" class="" id="desc" name="sortOrder" default="false" value="desc">
                                     <label class="form-check-label w-100 fw-semibold" for="desc">
                                     <?=T::highest_to_lower?>
                                 </label>
                                 </div>
 
-                                <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 px-5 py-3">
+                                <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3" style="padding:1rem 2rem !important;">
                                     <input type="radio" class="" id="asc" name="sortOrder" default="true" value="asc" checked>
                                     <label class="form-check-label w-100 fw-semibold" for="asc">
                                     <?=T::lowest_to_higher?>
