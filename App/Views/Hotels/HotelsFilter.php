@@ -1,4 +1,11 @@
 <!-- <div class="hotels--filter-wrapper offcanvas-body"> -->
+<style>
+
+input:not([type="range"]){
+    height: 1em !important;
+    width: 1em !important;
+}
+    </style>
 <div class="">
         <div id="hotelsFilter">
             <!-- STAR RATING  -->
