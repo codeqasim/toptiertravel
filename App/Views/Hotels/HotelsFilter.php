@@ -1,8 +1,8 @@
 <!-- <div class="hotels--filter-wrapper offcanvas-body"> -->
-<div class="sticky-top">
+<div class="">
         <div id="hotelsFilter">
             <!-- STAR RATING  -->
-            <div class="card mb-2" id="starsRating">
+            <div class="sidebar__item" id="starsRating">
                 <div class="card-header bg-white">
                     <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#starsFilter">
                     <?=T::star?> <?=T::rating?>
@@ -38,7 +38,7 @@
                         <ul class="list-group">
                             <li class="list-group-item border-0 rounded-3 p-1">
                                 <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input type="radio" class="form-check-input" id="starRating1" name="starRating" value="1">
+                                    <input type="radio" class="" id="starRating1" name="starRating" value="1">
                                     <label class="form-check-label w-100 fw-semibold" for="starRating1">
                                         1 <?=stars(1,4)?>
                                     </label>
@@ -46,7 +46,7 @@
                             </li>
                             <li class="list-group-item border-0 rounded-3 p-1">
                                 <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input type="radio" class="form-check-input" id="starRating2" name="starRating" value="2">
+                                    <input type="radio" class="" id="starRating2" name="starRating" value="2">
                                     <label class="form-check-label w-100 fw-semibold" for="starRating2">
                                         2 <?=stars(2,3)?>
                                     </label>
@@ -54,7 +54,7 @@
                             </li>
                             <li class="list-group-item border-0 rounded-3 p-1">
                                 <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input type="radio" class="form-check-input" id="starRating3" name="starRating" value="3">
+                                    <input type="radio" class="" id="starRating3" name="starRating" value="3">
                                     <label class="form-check-label w-100 fw-semibold" for="starRating3">
                                         3 <?=stars(3,2)?>
                                     </label>
@@ -62,7 +62,7 @@
                             </li>
                             <li class="list-group-item border-0 rounded-3 p-1">
                                 <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input type="radio" class="form-check-input" id="starRating4" name="starRating" value="4">
+                                    <input type="radio" class="" id="starRating4" name="starRating" value="4">
                                     <label class="form-check-label w-100 fw-semibold" for="starRating4">
                                         4 <?=stars(4,1)?>
                                     </label>
@@ -70,7 +70,7 @@
                             </li>
                             <li class="list-group-item border-0 rounded-3 p-1">
                                 <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input type="radio" class="form-check-input" id="starRating5" name="starRating" value="5">
+                                    <input type="radio" class="" id="starRating5" name="starRating" value="5">
                                     <label class="form-check-label w-100 fw-semibold" for="starRating5">
                                         5 <?=stars(5,0)?>
                                     </label>
@@ -82,7 +82,7 @@
             </div>
 
             <!-- PRICE RANGE  -->
-            <div class="card mb-2" id="priceRange">
+            <div class="sidebar__item" id="priceRange">
             <div class="card-header bg-white">
             <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#rangeFilter">
                     <?=T::pricerange?>
@@ -99,7 +99,7 @@
             </div>
 
             <!-- SORT ORDER  -->
-            <div class="card mb-2" id="sortOrder">
+            <div class="sidebar__item" id="sortOrder">
             <div class="card-header bg-white">
             <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#sortFilter">
                     <?=T::price?> <?=T::sort_by?>
@@ -113,14 +113,14 @@
 
                         <div class="row g-2">
                             <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 px-5 py-3">
-                                    <input type="radio" class="form-check-input" id="desc" name="sortOrder" default="false" value="desc">
+                                    <input type="radio" class="" id="desc" name="sortOrder" default="false" value="desc">
                                     <label class="form-check-label w-100 fw-semibold" for="desc">
                                     <?=T::highest_to_lower?>
                                 </label>
                                 </div>
 
                                 <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 px-5 py-3">
-                                    <input type="radio" class="form-check-input" id="asc" name="sortOrder" default="true" value="asc" checked>
+                                    <input type="radio" class="" id="asc" name="sortOrder" default="true" value="asc" checked>
                                     <label class="form-check-label w-100 fw-semibold" for="asc">
                                     <?=T::lowest_to_higher?>
                                 </label>
@@ -142,3 +142,4 @@
 
         </div>
     </div>
+</style>

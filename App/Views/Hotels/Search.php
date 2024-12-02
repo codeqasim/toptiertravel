@@ -1,5 +1,5 @@
 <form id="hotels-search" class="content m-0 search_box">
-   <div class="row mb-0 pt-1 g-2">
+   <div class="row mb-0 g-2">
       <div class="col-lg-4">
          <div class="input-items">
             <div style="position: absolute; z-index: 10; margin-top: 16px; margin-left: 12px;">
@@ -449,3 +449,4 @@ ol {
    $('.select_').select2({ placeholder: { id: '1', text: 'Select Category' } });
 
 </script>
+
