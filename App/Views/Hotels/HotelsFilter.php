@@ -1,16 +1,11 @@
-<!-- <div class="hotels--filter-wrapper offcanvas-body"> -->
 <div class="">
     <div id="hotelsFilter">
         <!-- STAR RATING  -->
         <div class="sidebar__item" id="starsRating">
-            <div class="card-header bg-white">
-                <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#starsFilter">
-                    <?=T::star?> <?=T::rating?>
-                    <span class="drop--Icon d-flex justify-content-center align-items-center rounded-pill border border-black p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                    </span>
-                </a>
-            </div>
+            
+                
+                <h5 class="d-flex justify-content-between align-items-center p-0 text-black text-18 mt-1"><?=T::star?> <?=T::rating?></h5>
+            
 
             <?php
             function stars($one, $two){
@@ -30,100 +25,80 @@
             }
             ?>
 
-            <div id="starsFilter" class="collapse show" data-bs-parent="#hotelsFilter">
-                <div class="card-body px-4 py-3">
-                    <ul class="list-group">
-                        <li class="list-group-item border-0 rounded-3 p-1">
-                            <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                <input type="radio" class="" id="starRating1" name="starRating" value="1" style="height: 1em !important; width: 1em !important;">
-                                <label class="form-check-label w-100 fw-semibold" for="starRating1">
-                                    1 <?=stars(1,4)?>
-                                </label>
-                            </div>
-                        </li>
-                        <li class="list-group-item border-0 rounded-3 p-1">
-                            <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                <input type="radio" class="" id="starRating2" name="starRating" value="2" style="height: 1em !important; width: 1em !important;">
-                                <label class="form-check-label w-100 fw-semibold" for="starRating2">
-                                    2 <?=stars(2,3)?>
-                                </label>
-                            </div>
-                        </li>
-                        <li class="list-group-item border-0 rounded-3 p-1">
-                            <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                <input type="radio" class="" id="starRating3" name="starRating" value="3" style="height: 1em !important; width: 1em !important;">
-                                <label class="form-check-label w-100 fw-semibold" for="starRating3">
-                                    3 <?=stars(3,2)?>
-                                </label>
-                            </div>
-                        </li>
-                        <li class="list-group-item border-0 rounded-3 p-1">
-                            <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                <input type="radio" class="" id="starRating4" name="starRating" value="4" style="height: 1em !important; width: 1em !important;">
-                                <label class="form-check-label w-100 fw-semibold" for="starRating4">
-                                    4 <?=stars(4,1)?>
-                                </label>
-                            </div>
-                        </li>
-                        <li class="list-group-item border-0 rounded-3 p-1">
-                            <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                <input type="radio" class="" id="starRating5" name="starRating" value="5" style="height: 1em !important; width: 1em !important;">
-                                <label class="form-check-label w-100 fw-semibold" for="starRating5">
-                                    5 <?=stars(5,0)?>
-                                </label>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
+            <div class="card-body px-4 py-3">
+                <ul class="list-group">
+                    <li class="list-group-item border-0 rounded-3 p-1">
+                        <div class="form-check d-flex align-items-center gap-2 mb-0" style="padding-left:0px;">
+                            <input type="radio" class="" id="starRating1" name="starRating" value="1" style="height: 1em !important; width: 1em !important;">
+                            <label class="form-check-label w-100 fw-semibold" for="starRating1">
+                                1 <?=stars(1,4)?>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="list-group-item border-0 rounded-3 p-1">
+                        <div class="form-check d-flex align-items-center gap-2 mb-0" style="padding-left:0px;">
+                            <input type="radio" class="" id="starRating2" name="starRating" value="2" style="height: 1em !important; width: 1em !important;">
+                            <label class="form-check-label w-100 fw-semibold" for="starRating2">
+                                2 <?=stars(2,3)?>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="list-group-item border-0 rounded-3 p-1">
+                        <div class="form-check d-flex align-items-center gap-2 mb-0" style="padding-left:0px;">
+                            <input type="radio" class="" id="starRating3" name="starRating" value="3" style="height: 1em !important; width: 1em !important;">
+                            <label class="form-check-label w-100 fw-semibold" for="starRating3">
+                                3 <?=stars(3,2)?>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="list-group-item border-0 rounded-3 p-1">
+                        <div class="form-check d-flex align-items-center gap-2 mb-0" style="padding-left:0px;">
+                            <input type="radio" class="" id="starRating4" name="starRating" value="4" style="height: 1em !important; width: 1em !important;">
+                            <label class="form-check-label w-100 fw-semibold" for="starRating4">
+                                4 <?=stars(4,1)?>
+                            </label>
+                        </div>
+                    </li>
+                    <li class="list-group-item border-0 rounded-3 p-1">
+                        <div class="form-check d-flex align-items-center gap-2 mb-0" style="padding-left:0px;">
+                            <input type="radio" class="" id="starRating5" name="starRating" value="5" style="height: 1em !important; width: 1em !important;">
+                            <label class="form-check-label w-100 fw-semibold" for="starRating5">
+                                5 <?=stars(5,0)?>
+                            </label>
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
 
         <!-- PRICE RANGE  -->
         <div class="sidebar__item" id="priceRange">
-            <div class="card-header bg-white">
-                <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#rangeFilter">
-                    <?=T::pricerange?>
-                    <span class="drop--Icon d-flex justify-content-center align-items-center rounded-pill border border-black p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                    </span>
-                </a>
-            </div>
-            <div id="rangeFilter" class="collapse show" data-bs-parent="#hotelsFilter">
-                <div class="card-body px-4 py-3">
-                    <input type="text" id="PriceRange" value="" />
-                </div>
+                <h5 class="d-flex justify-content-between align-items-center p-0 text-black text-18 mt-1"><?=T::pricerange?></h5>
+           
+            <div class="card-body px-4 py-3">
+                <input type="text" id="PriceRange" value="" />
             </div>
         </div>
 
         <!-- SORT ORDER  -->
         <div class="sidebar__item" id="sortOrder">
-            <div class="card-header bg-white">
-                <a class="btn collapsed d-flex justify-content-between align-items-center p-0 text-black" data-bs-toggle="collapse" href="#sortFilter">
-                    <?=T::price?> <?=T::sort_by?>
-                    <span class="drop--Icon d-flex justify-content-center align-items-center rounded-pill border border-black p-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                    </span>
-                </a>
-            </div>
-            <div id="sortFilter" class="collapse show" data-bs-parent="#Filter">
-                <div class="card-body py-3">
-                    <div class="row g-2">
-                        <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 " style="padding:1rem 2rem !important;">
-                            <input type="radio" class="" id="desc" name="sortOrder" default="false" value="desc" style="height: 1em !important; width: 1em !important;">
-                            <label class="form-check-label w-100 fw-semibold" for="desc">
-                                <?=T::highest_to_lower?>
-                            </label>
-                        </div>
+            <h5 class="d-flex justify-content-between align-items-center p-0 text-black text-18 mt-1"><?=T::price?> <?=T::sort_by?></h5>
+            <div class="card-body py-3">
+                <div class="row g-2">
+                    <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3 " style="padding:1rem 2rem !important;">
+                        <input type="radio" class="" id="desc" name="sortOrder" default="false" value="desc" style="height: 1em !important; width: 1em !important;">
+                        <label class="form-check-label w-100 fw-semibold" for="desc">
+                            <?=T::highest_to_lower?>
+                        </label>
+                    </div>
 
-                        <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3" style="padding:1rem 2rem !important;">
-                            <input type="radio" class="" id="asc" name="sortOrder" default="true" value="asc" checked style="height: 1em !important; width: 1em !important;">
-                            <label class="form-check-label w-100 fw-semibold" for="asc">
-                                <?=T::lowest_to_higher?>
-                            </label>
-                        </div>
+                    <div class="col-12 mb-2 form-check d-flex align-items-center mb-0 gap-2 border rounded-3" style="padding:1rem 2rem !important;">
+                        <input type="radio" class="" id="asc" name="sortOrder" default="true" value="asc" checked style="height: 1em !important; width: 1em !important;">
+                        <label class="form-check-label w-100 fw-semibold" for="asc">
+                            <?=T::lowest_to_higher?>
+                        </label>
                     </div>
                 </div>
-
             </div>
         </div>
 

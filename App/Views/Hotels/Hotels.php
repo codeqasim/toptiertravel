@@ -6,7 +6,7 @@
 </style>
 <div class="header-margin"></div>
 
-<section class="pt-40 pb-40 bg-blue-2">
+<section class="pt-40 pb-40 bg-light-2">
     <div class="container ">
         <div class="row">
         <div class="text-center my-2">
@@ -107,16 +107,19 @@ $api_url = root.api_url.'hotel_search';
             var url  =  "<?=root?>hotel/"+item.hotel_id+"/"+item.name.toLowerCase().replace(/ /g, '-')+"/<?=$meta['checkin']?>/<?=$meta['checkout']?>/<?=$meta['rooms']?>/<?=$meta['adults']?>/<?=$meta['childs']?>/<?=$meta['nationality']?>/"+item.supplier_name+"";
             var target_blank = "_self";
         }
-
+    var randomReviews = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
         // TEMPLATE
-        $('.append_template').append(`
-    <div class="col-lg-4 col-sm-6">
-        <div class="hotelsCard -type-1 d-flex flex-column" style="min-height: 450px;">
-            <div class="hotelsCard__image">
-                <div class="cardImage ratio ratio-1x1 rounded">
-                    <div class="cardImage__content">
-                        <img class="rounded col-12" src="${item.img}" alt="${item.name}">
-                        <span class="d-inline-block rounded-pill position-absolute" style="top:15px; right:15px; height: 10px;width: 10px;background: `+item.color+`"></span>
+        $('.append_template').prepend(`
+    <div class="col-12">
+
+                <div class="border-top-light pt-30">
+                  <div class="row x-gap-20 y-gap-20">
+                    <div class="col-md-auto">
+
+                      <div class="cardImage ratio ratio-1:1 w-250 md:w-1/1 rounded">
+                        <div class="cardImage__content">
+                          <img class="rounded col-12" src="${item.img}" alt="${item.name}">
+                          <span class="d-inline-block rounded-pill position-absolute" style="top:15px; right:15px; height: 10px;width: 10px;background: `+item.color+`"></span>
 
                     <div class="images-bottom-banner multi">
                     <div class="indicator">
@@ -130,52 +133,95 @@ $api_url = root.api_url.'hotel_search';
                     </div>
                     </div>
                     </div>
-                    </div>
-                </div>
-            </div>
-            <div class="hotelsCard__content mt-10 flex-grow-1">
-                <h4 class="hotelsCard__title text-dark-1 text-18 lh-16 fw-500">
-                    <span>${item.name}</span>
-                </h4>     
-            </div>
+                        </div>
+                      </div>
 
-            <!-- Moved the rating and price sections to the bottom -->
-            <p class="text-light-1 text-14 mt-5">${item.location}</p>
-            <div class="d-flex justify-content-between align-items-center mt-auto">
-            
-                <div class="item">
-                    <span class="d-block"> ${starsHtml}</span>
-                </div>
-                <div class="item">
-                    <small class="d-flex justify-content-start gap-2 align-items-center mb-1 py-2">
-                        <span class="btn btn-outline-primary rounded-4 p-2 d-flex gap-2 justify-content-between align-items-center px-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" style="stroke:var(--theme-bg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                            </svg>
-                            <?=T::rating?> ${item.rating}/5
-                        </span>
-                    </small>
-                </div>
-            </div>
-            <div class="mt-5">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="content">
-                        <p><?=currency?>${item.actual_price}</p>
                     </div>
-                    <div class="content"></div>
-                    <div class="content">
-                        <a href="${url}" target="${target_blank}" class="w-100 fadeout py-2 d-flex align-items-center justify-content-center btn btn-primary d-block text-center waves-effect">
-                            <?=T::view_more?>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1" stroke-linecap="square" stroke-linejoin="arcs">
-                                <path d="M9 18l6-6-6-6"></path>
-                            </svg>
+
+                    <div class="col-md">
+                      <h3 class="text-18 lh-16 fw-500">
+                        ${item.name}
+
+                        <div class="d-inline-block ml-10">
+                           ${starsHtml}
+                        </div>
+                      </h3>
+
+                      <div class="row x-gap-10 y-gap-10 items-center pt-10">
+                        <div class="col-auto">
+                          <p class="text-14">${item.location}</p>
+                        </div>
+
+                        <div class="col-auto">
+                          <button data-x-click="mapFilter" class="d-block text-14 text-blue-1 underline">Show on map</button>
+                        </div>
+
+                        <div class="col-auto">
+                          <div class="size-3 rounded-full bg-light-1"></div>
+                        </div>
+
+                        <div class="col-auto">
+                          <p class="text-14">2 km to city center</p>
+                        </div>
+                      </div>
+
+                      <div class="text-14 lh-15 mt-20">
+                        <div class="fw-500">King Room</div>
+                        <div class="text-light-1">1 extra-large double bed</div>
+                      </div>
+
+                      <div class="text-14 text-green-2 lh-15 mt-10">
+                        <div class="fw-500">Free cancellation</div>
+                        <div class="">You can cancel later, so lock in this great price.</div>
+                      </div>
+
+                      <div class="row x-gap-10 y-gap-10 pt-20">
+
+                        <div class="col-auto">
+                          <div class="border-light rounded-100 py-5 px-20 text-14 lh-14">Breakfast</div>
+                        </div>
+
+                        <div class="col-auto">
+                          <div class="border-light rounded-100 py-5 px-20 text-14 lh-14">WiFi</div>
+                        </div>
+
+                        <div class="col-auto">
+                          <div class="border-light rounded-100 py-5 px-20 text-14 lh-14">Spa</div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    <div class="col-md-auto text-right md:text-left">
+                      <div class="row x-gap-10 y-gap-10 justify-end items-center md:justify-start">
+                        <div class="col-auto">
+                          <div class="text-14 lh-14 fw-500">Exceptional</div>
+                          <div class="text-14 lh-14 text-light-1">${randomReviews} reviews</div>
+                        </div>
+                        <div class="col-auto">
+                          <div class="flex-center text-white fw-600 text-14 size-40 rounded bg-blue-1">${item.rating}/5</div>
+                        </div>
+                      </div>
+
+                      <div class="">
+                        <div class="text-14 text-light-1 mt-50 md:mt-20"><?=$meta['rooms']?> room, <?=$meta['adults']?> adult</div>
+                        <div class="text-22 lh-12 fw-600 mt-5"><?=currency?>$${item.actual_price}</div>
+                        
+
+
+                        <a href="`+url+`" target="`+target_blank+`" class="button -md -dark-1 bg-blue-1 text-white mt-24">
+                          See Availability <div class="icon-arrow-top-right ml-15"></div>
                         </a>
+
+                      </div>
                     </div>
+                  </div>
                 </div>
-            </div>
-        </div>
-    </div>
+
+              </div>
 `);
+
+
 
     }
     // INIT
