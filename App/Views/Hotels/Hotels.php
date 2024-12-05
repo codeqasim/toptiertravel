@@ -110,7 +110,7 @@ $api_url = root.api_url.'hotel_search';
     var randomReviews = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
         // TEMPLATE
         $('.append_template').prepend(`
-    <div class="col-12">
+    <div class="card--item col-12">
 
                 <div class="border-top-light pt-30">
                   <div class="row x-gap-20 y-gap-20">
@@ -205,7 +205,7 @@ $api_url = root.api_url.'hotel_search';
 
                       <div class="">
                         <div class="text-14 text-light-1 mt-50 md:mt-20"><?=$meta['rooms']?> room, <?=$meta['adults']?> adult</div>
-                        <div class="text-22 lh-12 fw-600 mt-5"><?=currency?>$${item.actual_price}</div>
+                        <div class="text-22 lh-12 fw-600 mt-5" data-price="${item.actual_price}" ><?=currency?>$${item.actual_price}</div>
                         
 
 
