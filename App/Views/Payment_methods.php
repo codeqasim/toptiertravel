@@ -48,7 +48,7 @@
                   <div class="col-md-12 mb-1 gateway_<?=strtolower(str_replace(' ', '_', $item->name))?>">
                      <div id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true" class="<?php if ($i==0){echo"active";}?> nav-link ripple form-check nav-link p-2 px-3 m-1 d-flex border" style="justify-content: space-between;border-radius: 4px !important;">
                         <div class="d-flex mb-2 input justify-content-start gap-3 align-items-center">
-                           <input <?=$checked?> class="form-check-input mx-auto" type="radio" name="payment_gateway" id="gateway_<?=strtolower(str_replace(' ', '_', $item->name))?>" value="<?=strtolower(str_replace(' ', '_', $item->name))?>" required>
+                           <input <?=$checked?> style="height: 1em !important; width: 1em !important;" class="form-check-input mx-auto" type="radio" name="payment_gateway" id="gateway_<?=strtolower(str_replace(' ', '_', $item->name))?>" value="<?=strtolower(str_replace(' ', '_', $item->name))?>" required>
                            <span class="d-block pt-2 text-capitalize">
                            <?php
                               $name = strtolower(str_replace('_', ' ', $item->name));

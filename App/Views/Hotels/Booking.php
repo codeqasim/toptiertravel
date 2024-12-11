@@ -4,7 +4,10 @@ $booking_data=($meta['data']);
 $rooms=$booking_data->room;
 
 ?>
+  <main>
 
+
+<div class="header-margin"></div>
 <!-- ================================
     START BREADCRUMB AREA
 ================================= -->
@@ -80,16 +83,16 @@ $rooms=$booking_data->room;
                         </div>
                         </div>
                         <div class="col-md-5">
-                            <div class="form-floating">
-                            <input type="text" name="firstname_<?=$i?>" class="form-control" placeholder="<?=T::first_name?>" value="<?php if (dev == 1){echo "Elan".$range1[$index1];}?>" required/>
+                            <div class="form-input">
+                            <input type="text" name="firstname_<?=$i?>" class="form-control" value="<?php if (dev == 1){echo "Elan".$range1[$index1];}?>" required/>
                             <label for="">
                             <?=T::first_name?>
                             </label>
                             </div>
                         </div>
                         <div class="col-md-5">
-                        <div class="form-floating">
-                        <input type="text" name="lastname_<?=$i?>" class="form-control" placeholder="<?=T::last_name?>" value="<?php if (dev == 1){echo "Mask".$range2[$index2];}?>" required/>
+                        <div class="form-input">
+                        <input type="text" name="lastname_<?=$i?>" class="form-control" value="<?php if (dev == 1){echo "Mask".$range2[$index2];}?>" required/>
                             <label for="">
                             <?=T::last_name?>
                             </label>
@@ -132,8 +135,8 @@ $rooms=$booking_data->room;
 
                         <div class="col-md-5">
 
-                        <div class="form-floating">
-                        <input type="text" name="child_firstname_<?=$i?>" class="form-control" placeholder="<?=T::first_name?>" value="<?php if (dev == 1){echo "Elan".$range1[$index1];}?>" required />
+                        <div class="form-input">
+                        <input type="text" name="child_firstname_<?=$i?>" class="form-control" value="<?php if (dev == 1){echo "Elan".$range1[$index1];}?>" required />
                             <label for="">
                             <?=T::first_name?>
                             </label>
@@ -142,8 +145,8 @@ $rooms=$booking_data->room;
                         </div>
                         <div class="col-md-5">
 
-                        <div class="form-floating">
-                        <input type="text" name="child_lastname_<?=$i?>" class="form-control" placeholder="<?=T::last_name?>" value="<?php if (dev == 1){echo "Mask".$range2[$index2];}?>" required />
+                        <div class="form-input">
+                        <input type="text" name="child_lastname_<?=$i?>" class="form-control" value="<?php if (dev == 1){echo "Mask".$range2[$index2];}?>" required />
                             <label for="">
                             <?=T::last_name?>
                             </label>
@@ -193,7 +196,7 @@ $rooms=$booking_data->room;
                         <div class="">
 
                             <div class="d-flex gap-3 alert border">
-                            <input class="form-check-input" type="checkbox" id="agreechb" onchange="document.getElementById('booking').disabled = !this.checked;" <?php if (dev == 1){echo "checked";}?>>
+                            <input class="form-check-input" style="height: 1em !important; width: 1em !important;" type="checkbox" id="agreechb" onchange="document.getElementById('booking').disabled = !this.checked;" <?php if (dev == 1){echo "checked";}?>>
             
                             <label for="agreechb"> I agree to all<a target="_blank" href="<?=root?>page/terms-of-use"> &nbsp; Terms & Condition</a></label>
 
@@ -212,7 +215,7 @@ $rooms=$booking_data->room;
             </div><!-- end col-lg-8 -->
             <div class="col-lg-4">
 
-                <div class="form-box booking-detail-form sticky-top">
+                <div class="form-box booking-detail-form">
                     <div class="form-title-wrap">
                         <h3 class="title"><?=T::booking?> <?=T::details?></h3>
                     </div><!-- end form-title-wrap -->
@@ -373,7 +376,7 @@ $booking['cancellation_policy'] = $cancellation_policy;
     END BOOKING AREA
 ================================= -->
 </div>
-
+<main>
 <script>
 $(".book").submit(function() {
 $("body").scrollTop(0);
@@ -402,7 +405,7 @@ $('.child_age_<?=$i+1?> option[value=<?=$ages->ages?>]')
 
 <style>
 .form-check{cursor:pointer}
-.header-top-bar,.main-menu-content,.info-area,.footer-area,.cta-area{display:none}
+.header-top-bar,.main-menu-content,.info-area,.cta-area{display:none}
 .menu-wrapper{display: flex; justify-content: center; padding: 12px;}
 .nav-link:focus, .nav-link:hover { color: var(--theme-bg) !important; }
 

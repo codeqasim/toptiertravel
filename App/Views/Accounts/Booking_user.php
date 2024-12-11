@@ -30,36 +30,36 @@ $meta['countries'] = (GET(api_url."countries"));
         <div class="row g-2">
 
             <div class="col-lg-6 mb-1">
-                <div class="form-floating">
-                <input type="text" name="user[first_name]" class="<?php if (!empty($first_name)){echo "disabled";} ?> form-control" placeholder="<?=T::first_name?>" value="<?=$first_name?><?php if (dev == 1){echo "Elon";}?>" required/>
-                <label for="">
+                <div class="form-input">
+                <input type="text" name="user[first_name]" class="<?php if (!empty($first_name)){echo "disabled";} ?> form-control" value="<?=$first_name?><?php if (dev == 1){echo "Elon";}?>" required/>
+                <label class="lh-1 text-16 text-light-1" for="">
                 <?=T::first_name?>
                 </label>
                 </div>
             </div>
 
             <div class="col-lg-6 mb-1">
-                <div class="form-floating">
-                <input type="text" name="user[last_name]" class="<?php if (!empty($last_name)){echo "disabled";} ?> form-control" placeholder="<?=T::last_name?>" value="<?=$last_name?><?php if (dev == 1){echo "Musk";}?>" required/>
-                <label for="">
+                <div class="form-input">
+                <input type="text" name="user[last_name]" class="<?php if (!empty($last_name)){echo "disabled";} ?> form-control" value="<?=$last_name?><?php if (dev == 1){echo "Musk";}?>" required/>
+                <label class="lh-1 text-16 text-light-1" for="">
                 <?=T::last_name?>
                 </label>
                 </div>
             </div>
 
             <div class="col-lg-6 mb-1">
-                <div class="form-floating">
-                <input type="text" name="user[email]" class="<?php if (!empty($email)){echo "disabled";} ?> form-control" placeholder="<?=T::email?>" value="<?=$email?><?php if (dev == 1){echo "elon@musk.com";}?>" required/>
-                <label for="">
+                <div class="form-input">
+                <input type="text" name="user[email]" class="<?php if (!empty($email)){echo "disabled";} ?> form-control" value="<?=$email?><?php if (dev == 1){echo "elon@musk.com";}?>" required/>
+                <label class="lh-1 text-16 text-light-1" for="">
                 <?=T::email?>
                 </label>
                 </div>
             </div>
 
             <div class="col-lg-6 mb-1">
-                <div class="form-floating">
-                    <input type="text" name="user[phone]" id="phone" class="<?php if (!empty($phone)){echo 'disabled';} ?> form-control" placeholder="<?=T::phone?>" value="<?=$phone?><?php if (dev == 1){echo '+442080160508';}?>" required/>
-                    <label for="phone"><?=T::phone?></label>
+                <div class="form-input">
+                    <input type="text" name="user[phone]" id="phone" class="<?php if (!empty($phone)){echo 'disabled';} ?> form-control" value="<?=$phone?><?php if (dev == 1){echo '+442080160508';}?>" required/>
+                    <label class="lh-1 text-16 text-light-1" for="phone"><?=T::phone?></label>
                     <small id="phone_error" style="color: red; display: none;">Please include your country code.</small>
                 </div>
             </div>
@@ -69,9 +69,9 @@ $meta['countries'] = (GET(api_url."countries"));
             if(!empty($address)) {
             ?>
             <div class="col-lg-12 mb-1">
-                <div class="form-floating">
+                <div class="form-input">
                 <input type="text" name="user[address]" class="<?php if (!empty($address)){echo "disabled";} ?> form-control" placeholder="<?=T::address?>" value="<?=$address?><?php if (dev == 1){echo "ST 6 Cavalry Ground Burdin DK";}?>" required/>
-                <label for="">
+                <label class="lh-1 text-16 text-light-1" for="">
                 <?=T::address?>
                 </label>
                 </div>
@@ -79,9 +79,9 @@ $meta['countries'] = (GET(api_url."countries"));
             <?php } } else { ?>
 
             <div class="col-lg-12 mb-1">
-            <div class="form-floating">
-            <input type="text" name="user[address]" class="form-control" placeholder="<?=T::address?>" value="<?php if (dev == 1){echo "ST 6 Cavalry Ground Burdin DK";}?>" required/>
-            <label for="">
+            <div class="form-input">
+            <input type="text" name="user[address]" class="form-control" value="<?php if (dev == 1){echo "ST 6 Cavalry Ground Burdin DK";}?>" required/>
+            <label class="lh-1 text-16 text-light-1" for="">
             <?=T::address?>
             </label>
             </div>
@@ -91,7 +91,7 @@ $meta['countries'] = (GET(api_url."countries"));
 
             <div class="col-md-6">
             <label class="mb-1"><strong><?=T::nationality?></strong></label>
-                <div class="form-floating mb-3">
+                <div class="form-input mb-3">
 
                     <?php
                     if (isset($meta['nav_menu'])){
@@ -137,7 +137,7 @@ $meta['countries'] = (GET(api_url."countries"));
 
             <div class="col-md-6">
             <label class="mb-1"><strong> <?=T::current?> <?=T::country?></strong></label>
-                <div class="form-floating mb-3">
+                <div class="form-input mb-3">
                     <select name="user[country_code]" class="country selectpicker w-100" data-live-search="true"
                         required>
                         <option value=""><?=T::select?> <?=T::country?></option>
@@ -191,4 +191,7 @@ $user_id = $_SESSION['phptravels_client']->user_id;} else { $user_id="";}
 <style>
     .disabled{pointer-events:none!important}
     .disabled{background:#e9eef2!important}
+    .input:not([type="range"]){
+        
+    }
 </style>
