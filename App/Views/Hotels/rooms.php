@@ -151,7 +151,18 @@
         const selectedQuantity = parseInt(selectElement.value);
         const totalPriceElement = selectElement.closest('.roomGrid__grid').querySelector('.total-price');
 
-        // Update the total price
         totalPriceElement.innerHTML = "<?= currency ?> " + (pricePerRoom * selectedQuantity).toFixed(2);
+
+        const formElement = selectElement.closest('.roomGrid__grid').querySelector('form');
+        const payloadInput = formElement.querySelector('input[name="payload"]');
+
+        if (payloadInput) {
+           
+            let payload = JSON.parse(atob(payloadInput.value));
+            payload.room_price = pricePerRoom * selectedQuantity; 
+            payload.real_price = pricePerRoom * selectedQuantity; 
+
+            payloadInput.value = btoa(JSON.stringify(payload));
+        }
     }
 </script>
