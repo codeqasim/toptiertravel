@@ -1167,3 +1167,14 @@ if (
     // });
 
   </script>
+
+<style>
+    .select2-selection--single{
+        padding:0 !important;
+    }
+    .select2-selection__rendered{
+    position: relative !important;
+    height: 46px !important;
+    padding: 5px 22px !important;
+    }
+</style>
