@@ -1,10 +1,1 @@
-[26-Nov-2024 10:28:12 Europe/Berlin] PHP Fatal error:  Uncaught Error: Undefined constant T::homepage in D:\server\htdocs\top\App\Views\Header.php:230
-Stack trace:
-#0 D:\server\htdocs\top\App\Controllers\HomeController.php(29): require_once()
-#1 [internal function]: {closure}()
-#2 D:\server\htdocs\top\App\Lib\router.php(298): call_user_func_array(Object(Closure), Array)
-#3 D:\server\htdocs\top\App\Lib\router.php(248): AppRouter\Router->call(Object(Closure), Array)
-#4 D:\server\htdocs\top\App\Lib\router.php(309): AppRouter\Router->dispatch('GET', '/')
-#5 D:\server\htdocs\top\index.php(464): AppRouter\Router->dispatchGlobal()
-#6 {main}
-  thrown in D:\server\htdocs\top\App\Views\Header.php on line 230
+[16-Dec-2024 18:48:41 Europe/Berlin] PHP Warning:  Undefined variable $booking_array in D:\server\htdocs\top\App\Views\Accounts\Bookings.php on line 70

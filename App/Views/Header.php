@@ -36,7 +36,7 @@ $module_status = array_intersect_key($modules, $temp_module);
         <link rel="stylesheet" type="text/css" href="<?=root?>assets/css/themes/<?=$_SESSION['theme']?>.css">
     <?php endif; ?>
     <?php if (!empty($_SESSION['phptravels_client']) && strtolower($_SESSION['phptravels_client']->user_type) == "agent"): ?>
-        <link rel="stylesheet" type="text/css" href="<?=root?>assets/css/agent.css">
+        <!-- <link rel="stylesheet" type="text/css" href="<?=root?>assets/css/agent.css"> -->
     <?php endif; ?>
     <?= base()->app->javascript ?>
 
@@ -74,13 +74,12 @@ $module_status = array_intersect_key($modules, $temp_module);
                   <div class="menu js-navList">
                     <ul class="menu__nav text-dark-1 -is-active">
 
-                      <li class="menu-item-has-children">
-                        <a data-barba href="<?=root?>">
+                      <!-- <li class="menu-item-has-children">
+                        <a href="<?=root?>">
                           <span class=""><?=T::home?></span>
-                          <i class="icon icon-chevron-sm-down"></i>
-                        </a>
+                         </a>
 
-                      </li>
+                      </li> -->
 
                       <?php
                     $keys = array_column($module_status, 'order');
@@ -143,7 +142,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
 
 
-                      <li class="menu-item-has-children d-none">
+                      <!-- <li class="menu-item-has-children d-none">
                         <a data-barba href="">
                           <span class="mr-10">Pages</span>
                           <i class="icon icon-chevron-sm-down"></i>
@@ -175,7 +174,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
                         </ul>
 
-                      </li>
+                      </li> -->
 
                       <li>
                         <a href="<?=root?>page/contact/us"><?=T::contact?></a>
@@ -283,13 +282,10 @@ $module_status = array_intersect_key($modules, $temp_module);
 
               </div>
 
-              <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
+              <div class=" ">
 
 
               <?php if (app()->app->user_registration == 1) {?>
-
-
-
 
                             <?php if(!isset($_SESSION['phptravels_client']->user_id)) { ?>
 
@@ -337,7 +333,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
 
     <script>
-    
+
     // Check if website is being executed from localhost
     <?php if ($_SERVER['HTTP_HOST'] !== 'localhost') { ?>
         setTimeout(function() {

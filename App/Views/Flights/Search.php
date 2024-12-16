@@ -281,7 +281,7 @@
                 </svg>
             </button>
             <div class="loading_button" style="display:none">
-                <button style="height:64px"
+                <button style="height:64px; border-radius:50px"
                     class="loading_button gap-2 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full"
                     type="button" disabled>
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
