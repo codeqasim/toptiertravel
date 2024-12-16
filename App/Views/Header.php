@@ -142,7 +142,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
 
 
-                      <!-- <li class="menu-item-has-children d-none">
+                      <li class="menu-item-has-children d-none">
                         <a data-barba href="">
                           <span class="mr-10">Pages</span>
                           <i class="icon icon-chevron-sm-down"></i>
@@ -174,7 +174,7 @@ $module_status = array_intersect_key($modules, $temp_module);
 
                         </ul>
 
-                      </li> -->
+                      </li>
 
                       <li>
                         <a href="<?=root?>page/contact/us"><?=T::contact?></a>
@@ -282,10 +282,11 @@ $module_status = array_intersect_key($modules, $temp_module);
 
               </div>
 
-              <div class=" ">
+              <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
 
 
               <?php if (app()->app->user_registration == 1) {?>
+
 
                             <?php if(!isset($_SESSION['phptravels_client']->user_id)) { ?>
 
