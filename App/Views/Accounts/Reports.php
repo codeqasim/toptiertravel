@@ -1,5 +1,4 @@
-<div class="container-fluid">
-<div class="row g-3">
+
 <?php
 $profile_data=$meta['data'];
 ?>
@@ -7,24 +6,32 @@ $profile_data=$meta['data'];
 <link href="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-1.13.8/sl-1.7.0/datatables.min.css" rel="stylesheet">
 <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/dt-1.13.8/sl-1.7.0/datatables.min.js"></script>
 
-<div class="col-md-2">
-    <?php require "Sidebar.php" ?>
+<div class="header-margin"></div>
+  <div class="dashboard" data-x="dashboard" data-x-toggle="-is-sidebar-open">
+    <div class="dashboard__sidebar bg-white scroll-bar-1">
+      <div class="sidebar -dashboard">
+      <?php require "Sidebar.php"?>
+      </div>
     </div>
 
     <!-- ================================
     START PROFILE AREA
     ================================= -->
-    <section class="col-md-10">
+    <div class="dashboard__main">
+      <div class="m-2">
 
-            <div class="">
-            <div class="px-0 py-3">
-                <div class="row">
-                    <div class="">
-                        <div class="form-box">
-                            <div class="form-title-wrap border-bottom-0 pb-0">
-                                <h5 class="fw-bold mb-3"><?= T::reports ?></h5>
-                            </div>
-                            <hr>
+        <div class="row y-gap-30">
+        
+
+                <div class="">
+                <div class="">
+                    <div class="row">
+                        <div class="">
+                            <div class="form-box">
+                                <div class="form-title-wrap border-bottom-0 pb-0">
+                                    <h5 class="fw-bold mb-3"><?= T::reports ?></h5>
+                                </div>
+                                <hr>
 
                             <div class="p-4 pt-0">
 
@@ -231,9 +238,8 @@ $profile_data=$meta['data'];
                 </div><!-- end row -->
             </div>
         </div>
-</div>
 </section>
-</div>
+
 <style>
     .newsletter-section {display:none}
 </style>

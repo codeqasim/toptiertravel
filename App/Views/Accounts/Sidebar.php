@@ -1,6 +1,6 @@
 <?php //dd($_SESSION);?>
 
-<div class="pt-3">
+<div class="py-3">
     <div class="sticky-top bg-white">
         <div class="author-content">
             <div class="lh-1 rounded p-3 py-4 mb-0 text-center align-items-center gap-3">
