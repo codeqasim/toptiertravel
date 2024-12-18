@@ -3960,7 +3960,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .mainSearch.-w-900 {
-  width: 900px;
+  width: 1200px;
 }
 
 @media (max-width: 991px) {
@@ -12016,4 +12016,10 @@ table.table-5 td {
   height: 100%;
   background-color: var(--color-light-2);
   z-index: -2;
+}
+
+.searchBtn {
+  height: 64px;
+  border-radius: 94px;
+  width: 64px !important;
 }

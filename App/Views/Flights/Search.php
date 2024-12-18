@@ -1,4 +1,4 @@
-<form id="flights-search" class="content m-0 search_box">
+<form id="flights-search" class="content m-0 search_box px-5 mx-3">
     <?php if(isset($_SESSION['flights_type']) == "" ) { $_SESSION['flights_type'] = "oneway"; }?>
 
     <div class="row mb-3 g-2 pt-2" style="justify-content: space-between;">
@@ -199,7 +199,7 @@
 
                     <div class="dropdown dropdown-contain">
 
-                        <a class="dropdown-toggle dropdown-btn travellers" href="javascript:void(0)" role="button" data-toggle="dropdown"
+                        <a class="dropdown-toggle dropdown-btn travellers border-0" href="javascript:void(0)" role="button" data-toggle="dropdown"
                             aria-expanded="false">
                             <p>
 
@@ -272,7 +272,7 @@
 
         <div class="col-lg-1">
             <button style="height:64px" type="submit" id="flights-search"
-                class="search_button w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full">
+                class="searchBtn search_button w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full">
                 <svg style="fill:currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"
                     class="c8LPF-icon" role="img" height="24" cleanup="">
                     <path
@@ -282,7 +282,7 @@
             </button>
             <div class="loading_button" style="display:none">
                 <button style="height:64px; border-radius:50px"
-                    class="loading_button gap-2 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full"
+                    class="searchBtn loading_button gap-2 w-100 btn btn-primary btn-m rounded-sm font-700 text-uppercase btn-full"
                     type="button" disabled>
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 </button>
