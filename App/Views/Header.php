@@ -285,32 +285,49 @@ $module_status = array_intersect_key($modules, $temp_module);
               <div class="d-flex items-center ml-20 is-menu-opened-hide md:d-none">
 
 
-              <?php if (app()->app->user_registration == 1) {?>
+              <?php if (app()->app->user_registration == 1) { ?>
 
+                <!-- If the user is NOT logged in -->
+                <?php if (!isset($_SESSION['phptravels_client']->user_id)) { ?>
+                    <a href="<?=root?>login" class="button px-30 fw-400 text-14 -blue-1 bg-dark-4 h-50 text-white px-5"><?=T::login?></a>
+                    <a href="<?=root?>signup" class="button px-30 fw-400 text-14 border-dark-4 -blue-1 h-50 text-dark-4 ml-20"><?=T::signup?></a>
+                <?php } ?>
 
-                            <?php if(!isset($_SESSION['phptravels_client']->user_id)) { ?>
+                <!-- If the user IS logged in -->
+                <?php if (isset($_SESSION['phptravels_client']->user_id)) { ?>
+                    <li class="nav-item dropdown">
+                        <a class="bg-light nav-link btn pr-0 dropdown-toggle btn-outline-secondary ps-3 text-center d-flex align-items-center justify-content-center gap-2 border"
+                            href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 
-                                <a href="<?=root?>login" class="button px-30 fw-400 text-14 -blue-1 bg-dark-4 h-50 text-white px-5"><?=T::login?></a>
+                            <svg stroke="#000" class="pe-1" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
 
-                                <a href="<?=root?>signup" class="button px-30 fw-400 text-14 border-dark-4 -blue-1 h-50 text-dark-4 ml-20"><?=T::signup?></a>
+                            <strong class="m-0 text-dark text-uppercase">
+                                <?=T::account?>
+                            </strong>
+                            <svg stroke="#000" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 9l6 6 6-6" />
+                            </svg>
+                        </a>
 
+                        <ul class="dropdown-menu bg-white rounded-3 p-2">
+                            <li><a class="dropdown-item fadeout" href="<?=root?>dashboard"> <?=T::dashboard?></a></li>
+                            <li><a class="dropdown-item fadeout" href="<?=root?>bookings"> <?=T::bookings?></a></li>
+                            <?php if($_SESSION['phptravels_client']->user_type == "Agent"){ ?>
+                                <li><a class="dropdown-item fadeout" href="<?=root.('reports/'.date("Y"))?>"> <?=T::reports?></a></li>
                             <?php } ?>
+                            <!-- <li><a class="dropdown-item fadeout" href="<?=root?>wallet"> <?=T::wallet?></a></li> -->
+                            <li><a class="dropdown-item fadeout" href="<?=root?>profile"> <?=T::profile?></a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fadeout" href="<?=root?>logout"> <?=T::logout?></a></li>
+                        </ul>
+                    </li>
+                <?php } ?>
 
-                            <?php if(isset($_SESSION['phptravels_client']->user_id)) { ?>
-                            <ul class="dropdown-menu bg-white rounded-3 p-2">
-                                <li><a class="dropdown-item fadeout" href="<?=root?>dashboard"> <?=T::dashboard?></i></a></li>
-                                <li><a class="dropdown-item fadeout" href="<?=root?>bookings"> <?=T::bookings?></i></a></li>
-                                <?php if($_SESSION['phptravels_client']->user_type ==  "Agent"){ ?>
-                                <li><a class="dropdown-item fadeout" href="<?=root.('reports/'.date("Y"))?>"> <?=T::reports?></i></a></li>
-                                <?php } ?>
-                                <!-- <li><a class="dropdown-item fadeout" href="<?=root?>wallet"> <?=T::wallet?></i></a></li> -->
-                                <li><a class="dropdown-item fadeout" href="<?=root?>profile"> <?=T::profile?></i></a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item fadeout" href="<?=root?>logout"> <?=T::logout?></i></a></li>
-                            </ul>
-                            <?php } ?>
-                        </li>
-                        <?php } ?>
+                <?php } ?>
+
 
 
 
