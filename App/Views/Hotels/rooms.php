@@ -128,6 +128,13 @@
                                             "latitude" => $hotel->latitude,
                                             "longitude" => $hotel->longitude,
                                             "booking_data" => $options,
+                                            "adult_travellers" => $hotel->hotel_phone,
+                                            "child_travellers" => $hotel->hotel_phone,
+                                            "hotel_phone" => $hotel->hotel_phone,
+                                            "hotel_email" => $hotel->hotel_email,
+                                            "hotel_website" => $hotel->hotel_website,
+                                            "children_ages" => "",
+                                            "cancellation_policy" => $hotel->cancellation,
                                             "room_data" => $room->options[0],
                                         ];
                                         ?>
