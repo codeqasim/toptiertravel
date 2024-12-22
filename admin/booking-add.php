@@ -47,16 +47,30 @@ include "_header.php";
 
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-3">
 
                 <div class="form-floating mb-3">
-                <select class="form-select" id="roomSelect" name="room" required disabled>
+                <select class="form-select" id="roomSelect" name="room" required>
                     <option value="" disabled selected>Select a Room</option>
                 </select>
                 <label for="roomSelect">Select Room</label>
             </div>
 
                 </div>
+
+                <div class="col-md-3">
+
+                <div class="form-floating mb-3">
+                <select class="form-select" id="roomOption" name="room_option" required>
+                    <option value="" disabled selected>Select a Room</option>
+                </select>
+                <label for="roomSelect">Room Option</label>
+            </div>
+
+                </div>
+
+
+
             </div>
 
             <!-- Check-in and Check-out Dates -->
@@ -160,6 +174,48 @@ $(document).ready(function() {
         } else {
             roomSelect.prop('disabled', true);
             roomSelect.html('<option value="" disabled selected>Select a Room</option>');
+        }
+    });
+
+
+
+
+
+    $('#roomSelect').on('change', function() {
+        const roomId = $(this).val();
+        const roomOption = $('#roomOption');
+
+        if (roomId) {
+            // Enable room select
+            roomOption.prop('disabled', false);
+
+            // Fetch rooms for selected hotel
+            $.ajax({
+                url: 'booking-ajax.php',
+                type: 'POST',
+                data: {
+                    action: 'get_rooms',
+                    room_id: roomId
+                },
+                success: function(response) {
+
+                    console.log(response);
+                    roomOption.html('<option value="" disabled selected>Select a Room</option>');
+                    if (response.status === 'success') {
+                        response.options.forEach(function(option) {
+                            roomOption.append(`<option value="${option.id}">${option.price} - Adults ${option.adults} Childs ${option.childs}</option>`);
+                        });
+                    } else {
+                        console.error('Error fetching rooms:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', error);
+                }
+            });
+        } else {
+            roomOption.prop('disabled', true);
+            roomOption.html('<option value="" disabled selected>Select a Room</option>');
         }
     });
 });
