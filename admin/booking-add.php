@@ -123,10 +123,63 @@ include "_header.php";
                 <label for="clientName">Client Name</label>
             </div>
 
+            <div class="row g-3">
+
+            <div class="col-md-6">
             <div class="form-floating mb-3">
                 <input type="email" class="form-control" id="clientEmail" name="email" placeholder="Enter email address" required>
                 <label for="clientEmail">Email</label>
             </div>
+            </div>
+
+            <div class="col-md-6">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="clientEmail" name="email" placeholder="Enter email address" required>
+                <label for="clientEmail">Phone</label>
+            </div>
+            </div>
+            </div>
+
+
+            <div class="d-block"></div>
+            <hr>
+
+            <div class="row">
+            <div class="col-md-2">
+
+
+            <div class="form-check d-flex gap-3 align-items-center">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
+            <label class="form-check-label" for="flexCheckDefault">
+                Send Email
+            </label>
+            </div>
+            </div>
+
+            <div class="col-md-2">
+
+            <div class="form-check d-flex gap-3 align-items-center">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
+            <label class="form-check-label" for="flexCheckDefault">
+                Send SMS
+            </label>
+            </div>
+            </div>
+
+            <div class="col-md-2">
+
+            <div class="form-check d-flex gap-3 align-items-center">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked>
+            <label class="form-check-label" for="flexCheckDefault">
+                Send Whatsapp
+            </label>
+            </div>
+            </div>
+
+            </div>
+
+            <hr>
+
 
             <!-- Submit Button -->
             <div class="text-start">
