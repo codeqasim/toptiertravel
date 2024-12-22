@@ -289,7 +289,61 @@ function notification(name) {
 </script>
 
 
-              <!-- end slide -->
+<!-- Bookings -->
+ <!-- <?php
+if (isset($user_permissions->bookings->page_access)) {
+?>
+<li class="slide">
+<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-calendar side-menu__icon"></i>
+<span class="side-menu__label"><?= T::bookings ?></span>
+</a>
+</li> -->
+
+<!-- End Bookings -->
+
+
+
+
+
+
+<!-- Start::slide -->
+<!-- Start::Markups Slide -->
+
+<li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-calendar side-menu__icon"></i>
+<span class="side-menu__label"><?= T::bookings ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+
+<ul class="slide-menu child1">
+
+<li class="slide">
+<a href="./booking-add.php" class="side-menu__item <?php if ($url_name == 'booking-add') { echo "active"; } ?>">
+<?= T::add ?> <?= T::booking ?>
+</a>
+</li>
+
+<li class="slide">
+<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
+<?= T::all ?> <?= T::bookings ?>
+</a>
+</li>
+
+</ul>
+</li>
+ <!-- End::Markups Slide -->
+ <?php } ?>
+
+
+
+
+<!-- end slide -->
 <!-- Start::slide -->
 <?php
 if (
@@ -657,21 +711,6 @@ if (isset($user_permissions->newsletter->page_access)) {
 </li>
 <?php } ?>
 <!-- End Newsletter -->
-
-<!-- Bookings -->
-<?php
-if (isset($user_permissions->bookings->page_access)) {
-?>
-<li class="slide">
-<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-calendar side-menu__icon"></i>
-<span class="side-menu__label"><?= T::bookings ?></span>
-</a>
-</li>
-<?php } ?>
-<!-- End Bookings -->
 
 <!-- Transactions -->
 <?php
