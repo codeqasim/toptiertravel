@@ -6,7 +6,6 @@ $title = T::add .' '. T::booking;
 include "_header.php";
 
 ?>
-
     <div class="page_head bg-transparent">
         <div class="panel-heading">
             <div class="float-start">
@@ -27,25 +26,29 @@ include "_header.php";
             <!-- Select Hotel -->
 
             <div class="row g-3">
-                <div class="col-md-6">
+            <div class="col-md-3">
+            <?php
+                $locations = $db->select("hotels", "location", ["status" => 1, "GROUP" => "location"]);
+            ?>
 
-                <?php
-                    $hotels = $db->select("hotels", "*", ["status" => 1]);
-                ?>
-
-                <div class="form-floating mb-3">
+            <div class="form-floating mb-3">
+                <select class="form-select" id="locationSelect" name="location" required>
+                    <option value="" disabled selected>Select a Location</option>
+                    <?php foreach($locations as $location) { ?>
+                        <option value="<?= $location ?>"><?= $location ?></option>
+                    <?php } ?>
+                </select>
+                <label for="locationSelect">Select Location</label>
+            </div>
+        </div>
+            <div class="col-md-3">
+            <div class="form-floating mb-3">
                 <select class="form-select" id="hotelSelect" name="hotel" required>
                     <option value="" disabled selected>Select a Hotel</option>
-
-                    <?php foreach($hotels as $hotel) { ?>
-                        <option value="<?=$hotel['id']?>"><?=$hotel['name']?></option>
-                    <?php } ?>
-
                 </select>
                 <label for="hotelSelect">Select Hotel</label>
             </div>
-
-                </div>
+            </div>
 
                 <div class="col-md-3">
 
@@ -192,17 +195,46 @@ include "_header.php";
         </div>
     </div>
 
-<script>
+    <script>
 $(document).ready(function() {
-    $('#hotelSelect').on('change', function() {
+    const hotelSelect = $('#hotelSelect');
+    const roomSelect = $('#roomSelect');
+    const roomOption = $('#roomOption');
+
+    $('#locationSelect').on('change', function() {
+        const location = $(this).val();
+        if (location) {
+            hotelSelect.prop('disabled', false);
+            $.ajax({
+                url: 'booking-ajax.php',
+                type: 'POST',
+                data: {
+                    action: 'get_hotels',
+                    location: location
+                },
+                success: function(response) {
+                    hotelSelect.html('<option value="" disabled selected>Select a Hotel</option>');
+                    if (response.status === 'success') {
+                        response.hotels.forEach(function(hotel) {
+                            hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
+                        });
+                    } else {
+                        console.error('Error fetching hotels:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', error);
+                }
+            });
+        } else {
+            hotelSelect.prop('disabled', true).html('<option value="" disabled selected>Select a Hotel</option>');
+        }
+    });
+
+    hotelSelect.on('change', function() {
         const hotelId = $(this).val();
-        const roomSelect = $('#roomSelect');
-
         if (hotelId) {
-            // Enable room select
             roomSelect.prop('disabled', false);
-
-            // Fetch rooms for selected hotel
             $.ajax({
                 url: 'booking-ajax.php',
                 type: 'POST',
@@ -225,41 +257,29 @@ $(document).ready(function() {
                 }
             });
         } else {
-            roomSelect.prop('disabled', true);
-            roomSelect.html('<option value="" disabled selected>Select a Room</option>');
+            roomSelect.prop('disabled', true).html('<option value="" disabled selected>Select a Room</option>');
         }
     });
 
-
-
-
-
-    $('#roomSelect').on('change', function() {
+    roomSelect.on('change', function() {
         const roomId = $(this).val();
-        const roomOption = $('#roomOption');
-
         if (roomId) {
-            // Enable room select
             roomOption.prop('disabled', false);
-
-            // Fetch rooms for selected hotel
             $.ajax({
                 url: 'booking-ajax.php',
                 type: 'POST',
                 data: {
-                    action: 'get_rooms',
+                    action: 'get_room_options',
                     room_id: roomId
                 },
                 success: function(response) {
-
-                    console.log(response);
-                    roomOption.html('<option value="" disabled selected>Select a Room</option>');
+                    roomOption.html('<option value="" disabled selected>Select a Room Option</option>');
                     if (response.status === 'success') {
                         response.options.forEach(function(option) {
                             roomOption.append(`<option value="${option.id}">${option.price} - Adults ${option.adults} Childs ${option.childs}</option>`);
                         });
                     } else {
-                        console.error('Error fetching rooms:', response.message);
+                        console.error('Error fetching room options:', response.message);
                     }
                 },
                 error: function(xhr, status, error) {
@@ -267,11 +287,11 @@ $(document).ready(function() {
                 }
             });
         } else {
-            roomOption.prop('disabled', true);
-            roomOption.html('<option value="" disabled selected>Select a Room</option>');
+            roomOption.prop('disabled', true).html('<option value="" disabled selected>Select a Room Option</option>');
         }
     });
 });
 </script>
+
 
 <?php include "_footer.php" ?>
