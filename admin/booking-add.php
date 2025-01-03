@@ -5,7 +5,32 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
+   if($_POST){
+    dd($_POST);
+   }
+
+//    $db->insert("hotels_bookings", [
+//        "hotel_id" => 1,
+//        "room_id" => 1,
+//        "room_option_id" => 1,
+//        "checkin" => "2022-12-12",
+//        "checkout" => "2022-12-15",
+//        "adults" => 2,
+//        "childs" => 1,
+//        "price" => 330,
+//        "first_name" => "John",
+//        "last_name" => "Doe",
+//        "email" => "",
+//    ]);
+
+    $id = $db->id();
+    if (isset($id)) {
+        // $_SESSION['booking_inserted'] = true;
+    }
+
    ?>
+
+
 <div class="page_head bg-transparent">
    <div class="panel-heading px-5">
       <div class="float-start">
@@ -22,12 +47,17 @@
    </div>
 </div>
 <div class="container">
-   <div id="formAlert" class="mb-3"></div>
+    <?php
+    if (isset($_SESSION['booking_inserted'])){ ?>
+    <p class="alert alert-success"> Your booking has been added to system</p>
+    <?php }
+    unset($_SESSION['booking_inserted']);
+    ?>
 </div>
 <div class="mt-1">
    <div class="p-3">
       <div class="container px-5">
-         <form id="bookingForm">
+         <form method="post" action="<?=root?>booking-add.php">
             <!-- Select Hotel -->
             <div class="row g-3 mb-3">
                <div class="col-md-3">
@@ -69,7 +99,7 @@
                </div>
             </div>
             <!-- Check-in and Check-out Dates -->
-            <div class="row g-3">
+            <div class="row g-3 mb-3">
                <div class="col-md-3">
                   <div class="form-floating">
                      <input type="text" class="checkin form-control" id="" name="checkin"  autocomplete="off" required value="<?php $d=strtotime("+3 Days"); echo date("d-m-Y", $d); ?>">
@@ -82,13 +112,7 @@
                      <label for="checkoutDate">Check-out Date</label>
                   </div>
                </div>
-               <div class="col-md-6">
-                  <div class="form-floating mb-3">
-                     <input type="text" class="form-control" id="bookingPrice" name="price" value="0"
-                        placeholder="Enter booking price" required>
-                     <label for="bookingPrice">Total Price</label>
-                  </div>
-               </div>
+
             </div>
             <!-- Number of Travelers -->
             <!-- <div class="row mb-3 g-3">
@@ -143,63 +167,54 @@
                   </div>
                </div>
             </div>
-            <div class="card mb-3">
+            <div class="card mb-2">
                <div class="card-header bg-primary text-dark">
                   <strong class="">
                   <?=T::travellers?>
                </div>
-
-
                <div class="card-body p-3">
-                    <p class="mb-2"><strong>Adults</strong></p>
-                    <div class="adults-container text-center">
-                        <div class="row adults_clone mt-3">
-                            <div class="col-md-2">
-                                <div class="form-floating">
-                                    <select name="adults_data[0][title]" class="form-select">
-                                        <option value="Mr">Mr</option>
-                                        <option value="Miss">Miss</option>
-                                        <option value="Mrs">Mrs</option>
-                                    </select>
-                                    <label for="">Title</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" name="adults_data[0][firstname]" class="form-control"
-                                        placeholder="First Name" value="" required />
-                                    <label for="">First Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-floating">
-                                    <input type="text" name="adults_data[0][lastname]" class="form-control"
-                                        placeholder="Last Name" value="" required />
-                                    <label for="">Last Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
-                                    Add More
-                                </button>
-                                <button type="button"
-                                    class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn remove_adults"
-                                    style="display:none;">Remove</button>
-                            </div>
+                  <p class="mb-2"><strong>Adults</strong></p>
+                  <div class="adults-container text-center">
+                     <div class="row adults_clone mt-3">
+                        <div class="col-md-2">
+                           <div class="form-floating">
+                              <select name="adults_data[0][title]" class="form-select">
+                                 <option value="Mr">Mr</option>
+                                 <option value="Miss">Miss</option>
+                                 <option value="Mrs">Mrs</option>
+                              </select>
+                              <label for="">Title</label>
+                           </div>
                         </div>
-                    </div>
-                </div>
-
-
-
+                        <div class="col-md-4">
+                           <div class="form-floating">
+                              <input type="text" name="adults_data[0][firstname]" class="form-control"
+                                 placeholder="First Name" value="" required />
+                              <label for="">First Name</label>
+                           </div>
+                        </div>
+                        <div class="col-md-4">
+                           <div class="form-floating">
+                              <input type="text" name="adults_data[0][lastname]" class="form-control"
+                                 placeholder="Last Name" value="" required />
+                              <label for="">Last Name</label>
+                           </div>
+                        </div>
+                        <div class="col-md-2">
+                           <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
+                           Add More
+                           </button>
+                           <button type="button"
+                              class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn remove_adults"
+                              style="display:none;">Remove</button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
                <hr class="m-0">
-
-
                <div class="card-body p-3">
-               <p class="mb-2"><strong>Childs</strong></p>
-
+                  <p class="mb-2"><strong>Childs</strong></p>
                   <div class="children-container text-center">
-
                      <div class="row">
                         <div class="col-md-2">
                            <div class="form-floating">
@@ -233,53 +248,39 @@
                               </label>
                            </div>
                         </div>
-
-
-                     <div class="col-md-2">
-                     <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100" onclick="addChild()">Add More</button>
-                     <button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-child-btn" onclick="removeAdult()" style="display:none;">Remove One</button>
+                        <div class="col-md-2">
+                           <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100" onclick="addChild()">Add More</button>
+                           <button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-child-btn" onclick="removeAdult()" style="display:none;">Remove One</button>
+                        </div>
                      </div>
-                     </div>
-
-
+                  </div>
                </div>
-
-
-
             </div>
-            </div>
+            <script>
+               $(document).ready(function () {
+                   $(".adults-container").on("click", ".add_adults", function () {
+                       // Clone the row
+                       const clonedRow = $(".adults_clone:first").clone();
 
+                       // Clear input values in the cloned row
+                       clonedRow.find("input").val("");
+                       clonedRow.find("select").val("Mr");
 
-           <script>
+                       // Ensure Remove button is visible and Add button is only in the last row
+                       clonedRow.find(".add_adults").hide();
+                       clonedRow.find(".remove_adults").show();
 
-$(document).ready(function () {
-    $(".adults-container").on("click", ".add_adults", function () {
-        // Clone the row
-        const clonedRow = $(".adults_clone:first").clone();
+                       // Append the cloned row to the container
+                       $(".adults-container").append(clonedRow);
+                   });
 
-        // Clear input values in the cloned row
-        clonedRow.find("input").val("");
-        clonedRow.find("select").val("Mr");
+                   // Handle remove button click
+                   $(".adults-container").on("click", ".remove_adults", function () {
+                       $(this).closest(".adults_clone").remove();
+                   });
+               });
 
-        // Ensure Remove button is visible and Add button is only in the last row
-        clonedRow.find(".add_adults").hide();
-        clonedRow.find(".remove_adults").show();
-
-        // Append the cloned row to the container
-        $(".adults-container").append(clonedRow);
-    });
-
-    // Handle remove button click
-    $(".adults-container").on("click", ".remove_adults", function () {
-        $(this).closest(".adults_clone").remove();
-    });
-});
-
-
-
-           </script>
-
-
+            </script>
             <!-- <script>
                let adultIndex = 1;
                let childIndex = 1;
@@ -356,9 +357,28 @@ $(document).ready(function () {
                    }
                }
 
-            </script> -->
+               </script> -->
             <div class="d-block"></div>
-            <hr>
+
+            <div class="row mb-2">
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="" name="price" value="0"
+                            placeholder="Amount" required>
+                        <label for="">Comission</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="bookingPrice" name="price" readonly
+                            placeholder="" required value="USD 330">
+                        <label for="bookingPrice">Total Price</label>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
@@ -394,7 +414,7 @@ $(document).ready(function () {
       </div>
    </div>
 </div>
-<script>
+  <script>
    $(document).ready(function () {
        const hotelSelect = $('#hotelSelect');
        const roomSelect = $('#roomSelect');
@@ -429,6 +449,8 @@ $(document).ready(function () {
                hotelSelect.prop('disabled', true).html('<option value="" disabled selected>Select a Hotel</option>');
            }
        });
+
+
 
        hotelSelect.on('change', function () {
            const hotelId = $(this).val();
@@ -492,58 +514,58 @@ $(document).ready(function () {
            }
        });
 
-       $('#bookingForm').on('submit', function (e) {
-           e.preventDefault();
+//        $('#bookingForm').on('submit', function (e) {
+//            e.preventDefault();
 
-           const formData = $(this).serialize();
-           $.ajax({
-               url: 'booking-ajax.php',
-               type: 'POST',
-               data: formData + '&action=submit_booking',
-               success: function (response) {
-                   if (response.status === 'success') {
-                       showFormAlert('success', response.message); // Show success alert
-                       $('#bookingForm')[0].reset(); // Reset the form
-                       // Clear the dynamically added adult and child rows
-                       $('.adults-container .row:not(:first-child)').remove(); // Remove all added adult rows except the first
-                       $('.children-container .row:not(:first-child)').remove(); // Remove all added child rows except the first
+//            const formData = $(this).serialize();
+//            $.ajax({
+//                url: 'booking-ajax.php',
+//                type: 'POST',
+//                data: formData + '&action=submit_booking',
+//                success: function (response) {
+//                    if (response.status === 'success') {
+//                        showFormAlert('success', response.message); // Show success alert
+//                        $('#bookingForm')[0].reset(); // Reset the form
+//                        // Clear the dynamically added adult and child rows
+//                        $('.adults-container .row:not(:first-child)').remove(); // Remove all added adult rows except the first
+//                        $('.children-container .row:not(:first-child)').remove(); // Remove all added child rows except the first
 
-                       adultIndex = 1; // Reset the adult index for next additions
-                       childIndex = 1;
-                   } else {
-                       showFormAlert('danger', 'Error: ' + response.message); // Show error alert
-                   }
-               },
-               error: function (xhr, status, error) {
-                   console.error('Ajax error:', error);
-                   showFormAlert('danger', 'An unexpected error occurred.'); // Show general error alert
-               }
-           });
-       });
+//                        adultIndex = 1; // Reset the adult index for next additions
+//                        childIndex = 1;
+//                    } else {
+//                        showFormAlert('danger', 'Error: ' + response.message); // Show error alert
+//                    }
+//                },
+//                error: function (xhr, status, error) {
+//                    console.error('Ajax error:', error);
+//                    showFormAlert('danger', 'An unexpected error occurred.'); // Show general error alert
+//                }
+//            });
+//        });
 
-       function showFormAlert(type, message) {
-           const alertHTML = `
-       <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-           ${message}
-   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">x</button>
-       </div>`;
-           $('#formAlert').html(alertHTML);
+//        function showFormAlert(type, message) {
+//            const alertHTML = `
+//        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+//            ${message}
+//    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">x</button>
+//        </div>`;
+//            $('#formAlert').html(alertHTML);
 
-           $('#formAlert .alert').get(0).scrollIntoView({
-               behavior: 'smooth',
-               block: 'center'
-           });
+//            $('#formAlert .alert').get(0).scrollIntoView({
+//                behavior: 'smooth',
+//                block: 'center'
+//            });
 
-           setTimeout(() => {
-               $('.alert').alert('close');
-           }, 5000);
-       }
+//            setTimeout(() => {
+//                $('.alert').alert('close');
+//            }, 5000);
+//        }
 
 
    });
 </script>
-<!-- SLEECT2 -->
-<script>
+
+ <script>
    $(document).ready(function() {
     $('.select2').select2();
    });
