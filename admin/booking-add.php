@@ -213,7 +213,9 @@ include "_header.php";
         </div>
     </div>
     <!-- Add More Button -->
-    <button type="button" class="btn btn-primary mt-2 align-items-center w-100" onclick="addAdult()">Add More</button>
+    <button type="button" class="btn btn-primary mt-2 align-items-center float-end mx-2" onclick="addAdult()">Add More</button>
+<button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn" onclick="removeAdult()" style="display:none;">Remove One</button>
+
 </div>
 
                     </div>
@@ -260,34 +262,50 @@ include "_header.php";
             </div>
         </div>
     </div>
-    <button type="button" class="btn btn-primary mt-2 align-items-center w-100" onclick="addChild()">Add More</button>
+    <button type="button" class="btn btn-primary mt-2 align-items-center float-end mx-2" onclick="addChild()">Add More</button>
+<button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-child-btn" onclick="RemoveChild()" style="display:none;">Remove One</button>
+
 </div>
 
                     </div>
                 </div>
 
-                <script>
+<script>
 let adultIndex = 1;
 let childIndex = 1;
 
 function addAdult() {
     var adultContainer = document.querySelector('.adults-container');
     
-    // Clone only the structure without any data
     var row = adultContainer.querySelector('.row').cloneNode(true); 
 
-    // Reset values for new input fields
-    // row.querySelector('select[name="adults_data[0][title]"]').value = '';
     row.querySelector('input[name="adults_data[0][firstname]"]').value = '';
     row.querySelector('input[name="adults_data[0][lastname]"]').value = '';
 
-    // Update the name attributes with the new index
     row.querySelector('select[name="adults_data[0][title]"]').name = `adults_data[${adultIndex}][title]`;
     row.querySelector('input[name="adults_data[0][firstname]"]').name = `adults_data[${adultIndex}][firstname]`;
     row.querySelector('input[name="adults_data[0][lastname]"]').name = `adults_data[${adultIndex}][lastname]`;
 
     adultContainer.insertBefore(row, adultContainer.querySelector('button')); 
     adultIndex++;
+
+    if (adultIndex > 1) {
+        adultContainer.querySelector('.remove-adult-btn').style.display = 'block';
+    }
+}
+
+function removeAdult() {
+    var adultContainer = document.querySelector('.adults-container');
+    var rows = adultContainer.querySelectorAll('.row');
+    
+    if (rows.length > 1) {
+        adultContainer.removeChild(rows[rows.length - 1]);
+        adultIndex--;
+
+        if (adultIndex === 1) {
+            adultContainer.querySelector('.remove-adult-btn').style.display = 'none';
+        }
+    }
 }
 
 function addChild() {
@@ -295,7 +313,6 @@ function addChild() {
     
     var row = childContainer.querySelector('.row').cloneNode(true);
 
-    // row.querySelector('select[name="childs_data[0][age]"]').value = '';
     row.querySelector('input[name="childs_data[0][firstname]"]').value = '';
     row.querySelector('input[name="childs_data[0][lastname]"]').value = '';
 
@@ -305,9 +322,32 @@ function addChild() {
 
     childContainer.insertBefore(row, childContainer.querySelector('button')); 
     childIndex++;
+
+    if (childIndex > 1) {
+        childContainer.querySelector('.remove-child-btn').style.display = 'block';
+    }
 }
 
-                </script>
+function RemoveChild() {
+    var childContainer = document.querySelector('.children-container');
+    var rows = childContainer.querySelectorAll('.row');
+
+    if (rows.length > 1) {
+        
+        var lastRow = rows[rows.length - 1];
+        childContainer.removeChild(lastRow);
+
+        childIndex--;
+
+        // Hide the Remove button if there's only one row left
+        if (childIndex === 1) {
+            childContainer.querySelector('.remove-child-btn').style.display = 'none';
+        }
+    }
+}
+
+</script>
+
 
 
                 <div class="d-block"></div>
@@ -442,7 +482,9 @@ function addChild() {
                         roomOption.html('<option value="" disabled selected>Select a Room Option</option>');
                         if (response.status === 'success') {
                             response.options.forEach(function (option) {
-                                roomOption.append(`<option value="${option.id}">${option.price} - Adults ${option.adults} Childs ${option.childs}</option>`);
+                                roomOption.append(
+                                    `<option value="${option.id}">${response.currency_name} ${option.price} - Adults ${option.adults} Childs ${option.childs}</option>`
+                                );
                             });
                         } else {
                             console.error('Error fetching room options:', response.message);

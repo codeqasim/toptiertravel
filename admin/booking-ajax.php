@@ -43,17 +43,22 @@ if (isset($_POST['action'])) {
 
     if ($action === 'get_room_options' && isset($_POST['room_id'])) {
         $room_id = $_POST['room_id'];
+        
         $room_options = $db->select("hotels_rooms_options", "*", ["room_id" => $room_id]);
-
+        
+        $default_currency = $db->get("currencies", "name", ["default" => 1]);
+    
         echo json_encode([
             'status' => 'success',
-            'options' => $room_options
+            'options' => $room_options,
+            'currency_name' => $default_currency
         ]);
         exit;
     }
+    
 }
-if ($action === 'submit_booking') {
 
+if ($action === 'submit_booking') {
     $params = [
         "booking_ref_no" => date('Ymdhis').rand(),
         "location" => $_POST['location'],
@@ -69,7 +74,7 @@ if ($action === 'submit_booking') {
         "first_name" => $_POST['first_name'],
         "last_name" => $_POST['last_name'],
         "email" => $_POST['email'],
-        "phone" => $_POST['phone'],
+        "supplier" => "hotels",
         // "send_email" => isset($_POST['send_email']) ? 1 : 0, 
         // "send_sms" => isset($_POST['send_sms']) ? 1 : 0, 
         // "send_whatsapp" => isset($_POST['send_whatsapp']) ? 1 : 0    
@@ -81,15 +86,30 @@ if ($action === 'submit_booking') {
     $hotel_id = $_POST['hotel'];
     $hotel_data = $db->select("hotels", ["name"], ["id" => $hotel_id]);
 
-    // Add hotel name to the parameters
     if (!empty($hotel_data)) {
         $params['hotel_name'] = $hotel_data[0]['name'];
     }
+    // Fetch the currencies 
+    $currency = $db->select("currencies", ["name"], ["default" => 1]);
 
-    // Collect guest details for adults and children
+    if (!empty($currency)) {
+        $params['currency_markup'] = $currency[0]['name'];
+    }
+
+    // $adults = $db->select("hotels_rooms_options", "*", ["room_id" => $room_id]);
+    // if (!empty($adults)) {
+    //     $params['adults'] = ['adults'];
+    // }
+
+    // $childs = $db->select("hotels_rooms_options", "*", ["room_id" => $room_id]);
+    // if (!empty($childs)) {
+    //     $params['childs'] = $childs['childs'];
+    // }
+
+    // Collect guest details
     $guest_details = [];
     if (isset($_POST['adults_data'])) {
-        foreach ($_POST['adults_data'] as $index => $adult) {
+        foreach ($_POST['adults_data'] as $adult) {
             $guest_details[] = [
                 "traveller_type" => "adult",
                 "title" => $adult['title'],
@@ -99,8 +119,9 @@ if ($action === 'submit_booking') {
             ];
         }
     }
+
     if (isset($_POST['childs_data'])) {
-        foreach ($_POST['childs_data'] as $index => $child) {
+        foreach ($_POST['childs_data'] as $child) {
             $guest_details[] = [
                 "traveller_type" => "child",
                 "title" => "",
@@ -112,6 +133,7 @@ if ($action === 'submit_booking') {
     }
     $params['guest'] = json_encode($guest_details);
 
+    // Fetch room details including extra bed charges
     if (isset($_POST['room'])) {
         $room_id = $_POST['room'];
 
@@ -120,24 +142,26 @@ if ($action === 'submit_booking') {
         ], [
             "hotels_rooms.id",
             "hotels_settings.name",
-            "hotels_rooms_options.price"
-            // "hotels_rooms.quantity",
-            // "hotels_rooms.extrabed_price",
-            // "hotels_rooms.actual_price"
+            "hotels_rooms.extra_bed_charges",
+            "hotels_rooms.extra_bed",
         ], [
             "hotels_rooms.id" => $room_id,
             "hotels_rooms.status" => 1
+        ]);
+
+        $room_options = $db->select("hotels_rooms_options", ["price", "quantity"], [
+            "room_id" => $room_id
         ]);
 
         if (!empty($room_details)) {
             $room_data = [
                 "room_id" => $room_details[0]['id'],
                 "room_name" => $room_details[0]['name'],
-                "room_price" => $room_details[0]['price'],
-                // "room_quantity" => $room_details[0]['quantity'],
-                // "room_extrabed_price" => $room_details[0]['extrabed_price'],
-                // "room_extrabed" => 0,  
-                // "room_actual_price" => $room_details[0]['actual_price']
+                "room_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00",
+                "room_quantity" => !empty($room_options) ? $room_options[0]['quantity'] : "1",
+                "room_extrabed_price" => $room_details[0]['extra_bed_charges'],
+                "room_extrabed" => $room_details[0]['extra_bed'],
+                "room_actual_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00"
             ];
 
             $params['room_data'] = json_encode([$room_data]);
