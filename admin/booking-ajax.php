@@ -15,11 +15,7 @@ if (isset($_POST['action'])) {
             "status" => 1
         ]);
 
-        echo json_encode([
-            'status' => 'success',
-            'hotels' => $hotels
-        ]);
-        exit;
+        echo json_encode(['status' => 'success', 'hotels' => $hotels]);exit;
     }
 
     if ($action === 'get_rooms' && isset($_POST['hotel_id'])) {
@@ -34,11 +30,7 @@ if (isset($_POST['action'])) {
             "hotels_rooms.status" => 1
         ]);
 
-        echo json_encode([
-            'status' => 'success',
-            'rooms' => $rooms
-        ]);
-        exit;
+        echo json_encode(['status' => 'success', 'rooms' => $rooms]);exit;
     }
 
     if ($action === 'get_room_options' && isset($_POST['room_id'])) {
@@ -48,17 +40,8 @@ if (isset($_POST['action'])) {
         
         $default_currency = $db->get("currencies", "name", ["default" => 1]);
     
-        echo json_encode([
-            'status' => 'success',
-            'options' => $room_options,
-            'currency_name' => $default_currency
-        ]);
-        exit;
+        echo json_encode(['status' => 'success', 'options' => $room_options, 'currency_name' => $default_currency]);exit;
     }
-    
+}else {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
 }
-
-echo json_encode([
-    'status' => 'error',
-    'message' => 'Invalid request'
-]);
