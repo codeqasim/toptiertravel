@@ -5,7 +5,7 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
-   if ($_POST) {
+   if ($_SERVER['REQUEST_METHOD'] === 'POST'){
        // Collect main booking parameters
        $params = [
            "booking_ref_no" => date('Ymdhis') . rand(),
@@ -18,6 +18,7 @@
            "supplier" => "hotels",
            "checkin" => $_POST['checkin'],
            "checkout" => $_POST['checkout'],
+           "comission" => $_POST['comission'],
            "booking_date" => date('Y-m-d'),
        ];
 
@@ -125,7 +126,7 @@
        // Get the inserted booking ID (if needed)
        $id = $db->id();
        if (isset($id)) {
-           // $_SESSION['booking_inserted'] = true; // Optionally set a session flag
+           $_SESSION['booking_inserted'] = true; 
        }
    }
 ?>
@@ -141,22 +142,26 @@
       <div class="float-end">
          <a href="javascript:window.history.back();" data-toggle="tooltip" data-placement="top" title="Previous Page"
             class="loading_effect btn btn-warning">
-         <?=T::back?>
+            <?=T::back?>
          </a>
       </div>
    </div>
 </div>
 <div class="container">
-    <?php
-    if (isset($_SESSION['booking_inserted'])){ ?>
-    <p class="alert alert-success"> Your booking has been added to system</p>
-    <?php }
-    unset($_SESSION['booking_inserted']);
-    ?>
 </div>
 <div class="mt-1">
    <div class="p-3">
       <div class="container px-5">
+      <?php
+         if (isset($_SESSION['booking_inserted'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+               <strong>Success!</strong> Your booking has been added to the system.
+            </div>
+         <?php 
+         endif;
+         unset($_SESSION['booking_inserted']);
+      ?>
+
          <form method="post" action="<?=root?>booking-add.php">
             <!-- Select Hotel -->
             <div class="row g-3 mb-3">
@@ -202,13 +207,15 @@
             <div class="row g-3 mb-3">
                <div class="col-md-3">
                   <div class="form-floating">
-                     <input type="text" class="checkin form-control" id="" name="checkin"  autocomplete="off" required value="<?php $d=strtotime("+3 Days"); echo date("d-m-Y", $d); ?>">
+                     <input type="text" class="checkin form-control" id="" name="checkin" autocomplete="off" required
+                        value="<?php $d=strtotime(" +3 Days"); echo date("d-m-Y", $d); ?>">
                      <label for="checkinDate">Check-in Date</label>
                   </div>
                </div>
                <div class="col-md-3">
                   <div class="form-floating">
-                     <input type="text" class="checkout form-control" id="" name="checkout" required autocomplete="off" value="<?php $d=strtotime("+4 Days"); echo date("d-m-Y", $d); ?>">
+                     <input type="text" class="checkout form-control" id="" name="checkout" required autocomplete="off"
+                        value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
                      <label for="checkoutDate">Check-out Date</label>
                   </div>
                </div>
@@ -220,13 +227,15 @@
             <div class="row mb-3 g-3">
                <div class="col-md-3">
                   <div class="form-floating">
-                     <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+                     <input type="text" class="form-control" id="firstName" name="first_name"
+                        placeholder="Enter first name" required>
                      <label for="firstName">First Name</label>
                   </div>
                </div>
                <div class="col-md-3">
                   <div class="form-floating">
-                     <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+                     <input type="text" class="form-control" id="lastName" name="last_name"
+                        placeholder="Enter last name" required>
                      <label for="lastName">Last Name</label>
                   </div>
                </div>
@@ -248,7 +257,7 @@
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark">
                   <strong class="">
-                  <?=T::travellers?>
+                     <?=T::travellers?>
                </div>
                <div class="card-body p-3">
                   <p class="mb-2"><strong>Adults</strong></p>
@@ -279,8 +288,9 @@
                            </div>
                         </div>
                         <div class="col-md-2">
-                           <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
-                           Add More
+                           <button type="button"
+                              class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
+                              Add More
                            </button>
                            <button type="button"
                               class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn remove_adults"
@@ -293,128 +303,148 @@
                <div class="card-body p-3">
                   <p class="mb-2"><strong>Childs</strong></p>
                   <div class="children-container text-center">
-   <div class="row children_clone mt-3">
-      <div class="col-md-2">
-         <div class="form-floating">
-            <select name="childs_data[0][age]" class="form-select child_age" required>
-               <?php for ($x = 1; $x <= 16; $x++) { ?>
-               <option value="<?=$x?>">
-                  <?=$x?>
-               </option>
-               <?php } ?>
-            </select>
-            <label for=""><?=T::age?></label>
-         </div>
-      </div>
-      <div class="col-md-4">
-         <div class="form-floating">
-            <input type="text" name="childs_data[0][firstname]" class="form-control"
-               placeholder="<?=T::first_name?>" value="" required />
-            <label for=""><?=T::first_name?></label>
-         </div>
-      </div>
-      <div class="col-md-4">
-         <div class="form-floating">
-            <input type="text" name="childs_data[0][lastname]" class="form-control"
-               placeholder="<?=T::last_name?>" value="" required />
-            <label for=""><?=T::last_name?></label>
-         </div>
-      </div>
-      <div class="col-md-2">
-         <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100 add_children">Add More</button>
-         <button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-child-btn remove_children" style="display:none;">Remove</button>
-      </div>
-   </div>
-</div>
+                     <div class="row children_clone mt-3">
+                        <div class="col-md-2">
+                           <div class="form-floating">
+                              <select name="childs_data[0][age]" class="form-select child_age" required>
+                                 <?php for ($x = 1; $x <= 16; $x++) { ?>
+                                 <option value="<?=$x?>">
+                                    <?=$x?>
+                                 </option>
+                                 <?php } ?>
+                              </select>
+                              <label for="">
+                                 <?=T::age?>
+                              </label>
+                           </div>
+                        </div>
+                        <div class="col-md-4">
+                           <div class="form-floating">
+                              <input type="text" name="childs_data[0][firstname]" class="form-control"
+                                 placeholder="<?=T::first_name?>" value="" required />
+                              <label for="">
+                                 <?=T::first_name?>
+                              </label>
+                           </div>
+                        </div>
+                        <div class="col-md-4">
+                           <div class="form-floating">
+                              <input type="text" name="childs_data[0][lastname]" class="form-control"
+                                 placeholder="<?=T::last_name?>" value="" required />
+                              <label for="">
+                                 <?=T::last_name?>
+                              </label>
+                           </div>
+                        </div>
+                        <div class="col-md-2">
+                           <button type="button"
+                              class="btn btn-primary align-items-center float-end w-100 h-100 add_children">Add
+                              More</button>
+                           <button type="button"
+                              class="btn btn-danger mt-2 align-items-center float-end remove-child-btn remove_children"
+                              style="display:none;">Remove</button>
+                        </div>
+                     </div>
+                  </div>
 
                </div>
             </div>
             <script>
                $(document).ready(function () {
-                   $(".adults-container").on("click", ".add_adults", function () {
-                       // Clone the row
-                       const clonedRow = $(".adults_clone:first").clone();
+                  let adultIndex = 1; // Start index for adults
+                  let childIndex = 1; // Start index for children
 
-                       // Clear input values in the cloned row
-                       clonedRow.find("input").val("");
-                       clonedRow.find("select").val("Mr");
+                  $(".adults-container").on("click", ".add_adults", function () {
+                     const clonedRow = $(".adults_clone:first").clone();
 
-                       // Ensure Remove button is visible and Add button is only in the last row
-                       clonedRow.find(".add_adults").hide();
-                       clonedRow.find(".remove_adults").show();
+                     // Clear input values
+                     clonedRow.find("input").val("");
+                     clonedRow.find("select").val("Mr");
 
-                       // Append the cloned row to the container
-                       $(".adults-container").append(clonedRow);
-                   });
+                     // Update the `name` attributes with unique index
+                     clonedRow.find("[name^='adults_data']").each(function () {
+                        const nameAttr = $(this).attr("name");
+                        $(this).attr("name", nameAttr.replace(/\[0\]/, `[${adultIndex}]`));
+                     });
 
-                   // Handle remove button click
-                   $(".adults-container").on("click", ".remove_adults", function () {
-                       $(this).closest(".adults_clone").remove();
-                   });
+                     clonedRow.find(".add_adults").hide();
+                     clonedRow.find(".remove_adults").show();
 
-                   $(".children-container").on("click", ".add_children", function () {
-                    // Clone the row
-                        const clonedRow = $(".children_clone:first").clone();
-                        // Clear input values in the cloned row
-                        clonedRow.find("input").val("");
-                        clonedRow.find("select").val("1");
-                        // Ensure Remove button is visible and Add button is only in the last row
-                        clonedRow.find(".add_children").hide();
-                        clonedRow.find(".remove_children").show();
+                     $(".adults-container").append(clonedRow);
+                     adultIndex++;
+                  });
 
-                        // Append the cloned row to the container
-                        $(".children-container").append(clonedRow);
-                    });
+                  $(".children-container").on("click", ".add_children", function () {
+                     const clonedRow = $(".children_clone:first").clone();
 
-                    // Children: Remove
-                    $(".children-container").on("click", ".remove_children", function () {
-                        $(this).closest(".children_clone").remove();
-                    });
+                     // Clear input values
+                     clonedRow.find("input").val("");
+                     clonedRow.find("select").val("1");
+
+                     // Update the `name` attributes with unique index
+                     clonedRow.find("[name^='childs_data']").each(function () {
+                        const nameAttr = $(this).attr("name");
+                        $(this).attr("name", nameAttr.replace(/\[0\]/, `[${childIndex}]`));
+                     });
+
+                     clonedRow.find(".add_children").hide();
+                     clonedRow.find(".remove_children").show();
+
+                     $(".children-container").append(clonedRow);
+                     childIndex++;
+                  });
+
+                  $(".adults-container").on("click", ".remove_adults", function () {
+                     $(this).closest(".adults_clone").remove();
+                  });
+
+                  $(".children-container").on("click", ".remove_children", function () {
+                     $(this).closest(".children_clone").remove();
+                  });
                });
-
             </script>
             <div class="d-block"></div>
 
             <div class="row mb-2">
-                <div class="col-md-3">
-                    <div class="form-floating">
-                        <input type="text" class="form-control" id="" name="price" value="0"
-                            placeholder="Amount" required>
-                        <label for="">Comission</label>
-                    </div>
-                </div>
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="text" class="form-control" id="" name="comission" value="0" placeholder="Amount" required>
+                     <label for="">Comission</label>
+                  </div>
+               </div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-3">
-                    <div class="form-floating">
-                    <input type="text" class="form-control" id="bookingPrice" name="price" readonly placeholder="Total Price" required value="0.00">
-                    <label for="bookingPrice">Total Price</label>
-                    </div>
-                </div>
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="text" class="form-control" id="bookingPrice" name="price" readonly
+                        placeholder="Total Price" required value="0.00">
+                     <label for="bookingPrice">Total Price</label>
+                  </div>
+               </div>
             </div>
 
             <div class="row">
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"  >
+                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
                      <label class="form-check-label" for="flexCheckDefault">
-                     Send Email
+                        Send Email
                      </label>
                   </div>
                </div>
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"  >
+                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
                      <label class="form-check-label" for="flexCheckDefault">
-                     Send SMS
+                        Send SMS
                      </label>
                   </div>
                </div>
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"  >
+                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
                      <label class="form-check-label" for="flexCheckDefault">
-                     Send Whatsapp
+                        Send Whatsapp
                      </label>
                   </div>
                </div>
@@ -428,142 +458,141 @@
       </div>
    </div>
 </div>
-  <script>
+<script>
 $(document).ready(function () {
-    const hotelSelect = $('#hotelSelect');
-    const roomSelect = $('#roomSelect');
-    const roomOption = $('#roomOption');
-    const bookingPrice = $('#bookingPrice');
-    const commissionInput = $('input[name="price"]');
+   const hotelSelect = $('#hotelSelect');
+   const roomSelect = $('#roomSelect');
+   const roomOption = $('#roomOption');
+   const bookingPrice = $('#bookingPrice');
+   const commissionInput = $('input[name="comission"]');
 
-    // Handle location selection change
-    $('#locationSelect').on('change', function () {
-        const location = $(this).val();
-        if (location) {
+      // Handle location selection change
+      $('#locationSelect').on('change', function () {
+         const location = $(this).val();
+         if (location) {
             hotelSelect.prop('disabled', false);
             $.ajax({
-                url: 'booking-ajax.php',
-                type: 'POST',
-                data: {
-                    action: 'get_hotels',
-                    location: location
-                },
-                success: function (response) {
-                    hotelSelect.html('<option value="" disabled selected>Select a Hotel</option>');
-                    if (response.status === 'success') {
-                        response.hotels.forEach(function (hotel) {
-                            hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
-                        });
-                    } else {
-                        console.error('Error fetching hotels:', response.message);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Ajax error:', error);
-                }
+               url: 'booking-ajax.php',
+               type: 'POST',
+               data: {
+                  action: 'get_hotels',
+                  location: location
+               },
+               success: function (response) {
+                  hotelSelect.html('<option value="" disabled selected>Select a Hotel</option>');
+                  if (response.status === 'success') {
+                     response.hotels.forEach(function (hotel) {
+                        hotelSelect.append(`<option value="${hotel.id}">${hotel.name}</option>`);
+                     });
+                  } else {
+                     console.error('Error fetching hotels:', response.message);
+                  }
+               },
+               error: function (xhr, status, error) {
+                  console.error('Ajax error:', error);
+               }
             });
-        } else {
+         } else {
             hotelSelect.prop('disabled', true).html('<option value="" disabled selected>Select a Hotel</option>');
-        }
-    });
+         }
+      });
 
-    // Handle hotel selection change
-    hotelSelect.on('change', function () {
-        const hotelId = $(this).val();
-        if (hotelId) {
+      // Handle hotel selection change
+      hotelSelect.on('change', function () {
+         const hotelId = $(this).val();
+         if (hotelId) {
             roomSelect.prop('disabled', false);
             $.ajax({
-                url: 'booking-ajax.php',
-                type: 'POST',
-                data: {
-                    action: 'get_rooms',
-                    hotel_id: hotelId
-                },
-                success: function (response) {
-                    roomSelect.html('<option value="" disabled selected>Select a Room</option>');
-                    if (response.status === 'success') {
-                        response.rooms.forEach(function (room) {
-                            roomSelect.append(`<option value="${room.id}">${room.name}</option>`);
-                        });
-                    } else {
-                        console.error('Error fetching rooms:', response.message);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Ajax error:', error);
-                }
+               url: 'booking-ajax.php',
+               type: 'POST',
+               data: {
+                  action: 'get_rooms',
+                  hotel_id: hotelId
+               },
+               success: function (response) {
+                  roomSelect.html('<option value="" disabled selected>Select a Room</option>');
+                  if (response.status === 'success') {
+                     response.rooms.forEach(function (room) {
+                        roomSelect.append(`<option value="${room.id}">${room.name}</option>`);
+                     });
+                  } else {
+                     console.error('Error fetching rooms:', response.message);
+                  }
+               },
+               error: function (xhr, status, error) {
+                  console.error('Ajax error:', error);
+               }
             });
-        } else {
+         } else {
             roomSelect.prop('disabled', true).html('<option value="" disabled selected>Select a Room</option>');
-        }
-    });
+         }
+      });
 
-    // Handle room selection change
-    roomSelect.on('change', function () {
-        const roomId = $(this).val();
-        if (roomId) {
+      // Handle room selection change
+      roomSelect.on('change', function () {
+         const roomId = $(this).val();
+         if (roomId) {
             roomOption.prop('disabled', false);
             $.ajax({
-                url: 'booking-ajax.php',
-                type: 'POST',
-                data: {
-                    action: 'get_room_options',
-                    room_id: roomId
-                },
-                success: function (response) {
-                    roomOption.html('<option value="" disabled selected>Select a Room Option</option>');
-                    if (response.status === 'success') {
-                        response.options.forEach(function (option) {
-                            roomOption.append(
-                                `<option value="${option.id}" data-price="${option.price}" data-currency="${response.currency_name}">
+               url: 'booking-ajax.php',
+               type: 'POST',
+               data: {
+                  action: 'get_room_options',
+                  room_id: roomId
+               },
+               success: function (response) {
+                  roomOption.html('<option value="" disabled selected>Select a Room Option</option>');
+                  if (response.status === 'success') {
+                     response.options.forEach(function (option) {
+                        roomOption.append(
+                           `<option value="${option.id}" data-price="${option.price}" data-currency="${response.currency_name}">
                                     ${response.currency_name} ${option.price} - Adults ${option.adults} Childs ${option.childs}
                                 </option>`
-                            );
-                        });
+                        );
+                     });
 
-                        // Update the total price field when room option changes
-                        roomOption.on('change', function () {
-                            updateTotalPrice();
-                        });
-                    } else {
-                        console.error('Error fetching room options:', response.message);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Ajax error:', error);
-                }
+                     // Update the total price field when room option changes
+                     roomOption.on('change', function () {
+                        updateTotalPrice();
+                     });
+                  } else {
+                     console.error('Error fetching room options:', response.message);
+                  }
+               },
+               error: function (xhr, status, error) {
+                  console.error('Ajax error:', error);
+               }
             });
-        } else {
+         } else {
             roomOption.prop('disabled', true).html('<option value="" disabled selected>Select a Room Option</option>');
-        }
-    });
+         }
+      });
 
-    // Update the total price field when commission or room option changes
-    roomOption.on('change', function () {
-        updateTotalPrice();
-    });
+      // Update the total price field when commission or room option changes
+      roomOption.on('change', function () {
+         updateTotalPrice();
+      });
 
-    commissionInput.on('input', function () {
-        updateTotalPrice();
-    });
+      commissionInput.on('input', function () {
+      updateTotalPrice();
+   });
 
-    // Function to calculate and update the total price
-    function updateTotalPrice() {
-        const selectedOption = roomOption.find(':selected');
-        const roomPrice = parseFloat(selectedOption.data('price')) || 0;
-        const currency = selectedOption.data('currency') || '';
-        const commission = parseFloat(commissionInput.val()) || 0;
+   function updateTotalPrice() {
+      const selectedOption = roomOption.find(':selected');
+      const roomPrice = parseFloat(selectedOption.data('price')) || 0;
+      const currency = selectedOption.data('currency') || '';
+      const commission = parseFloat(commissionInput.val()) || 0;
 
-        const totalPrice = roomPrice + commission;
-        bookingPrice.val(`${currency} ${totalPrice.toFixed(2)}`);
-    }
+      const totalPrice = roomPrice + commission;
+      bookingPrice.val(`${totalPrice}`);
+   }
 });
 
 </script>
 
- <script>
-   $(document).ready(function() {
-    $('.select2').select2();
+<script>
+   $(document).ready(function () {
+      $('.select2').select2();
    });
 </script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
