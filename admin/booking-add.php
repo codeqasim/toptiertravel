@@ -18,7 +18,7 @@
            "supplier" => "hotels",
            "checkin" => $_POST['checkin'],
            "checkout" => $_POST['checkout'],
-           "comission" => $_POST['comission'],
+         //   "comission" => $_POST['comission'],
            "booking_date" => date('Y-m-d'),
        ];
 
@@ -45,7 +45,7 @@
                    "title" => $adult['title'],
                    "first_name" => $adult['firstname'],
                    "last_name" => $adult['lastname'],
-                   "age" => "" 
+                   "age" => ""
                ];
            }
        }
@@ -55,10 +55,10 @@
            foreach ($_POST['childs_data'] as $child) {
                $travelers_data[] = [
                    "traveller_type" => "children",
-                   "title" => "",  
+                   "title" => "",
                    "first_name" => $child['firstname'],
                    "last_name" => $child['lastname'],
-                   "age" => $child['age']  
+                   "age" => $child['age']
                ];
            }
        }
@@ -126,7 +126,7 @@
        // Get the inserted booking ID (if needed)
        $id = $db->id();
        if (isset($id)) {
-           $_SESSION['booking_inserted'] = true; 
+           $_SESSION['booking_inserted'] = true;
        }
    }
 ?>
@@ -157,7 +157,7 @@
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                <strong>Success!</strong> Your booking has been added to the system.
             </div>
-         <?php 
+         <?php
          endif;
          unset($_SESSION['booking_inserted']);
       ?>
