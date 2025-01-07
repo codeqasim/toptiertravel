@@ -1,3 +1,8 @@
+<style>
+    .blockquote{
+        font-size: 0.9rem !important;
+    }
+</style>
 <?php
 require_once '_config.php';
 auth_check();
