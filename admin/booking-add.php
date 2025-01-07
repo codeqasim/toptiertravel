@@ -18,8 +18,15 @@
            "supplier" => "hotels",
            "checkin" => $_POST['checkin'],
            "checkout" => $_POST['checkout'],
+           "agent" => $_POST['agent'],
          //   "comission" => $_POST['comission'],
            "booking_date" => date('Y-m-d'),
+           
+           "agent_fee" => $_POST['agent_comission'],
+           "tax" => $_POST['tax'],
+           "platform_comission" => $_POST['platform_comission'],
+           "price_original" => $_POST['room_price'],
+           "booking_note" => $_POST['bookingnote'],
        ];
 
        // Collect user data
@@ -46,19 +53,6 @@
                    "first_name" => $adult['firstname'],
                    "last_name" => $adult['lastname'],
                    "age" => ""
-               ];
-           }
-       }
-
-       // Process children data
-       if (isset($_POST['childs_data'])) {
-           foreach ($_POST['childs_data'] as $child) {
-               $travelers_data[] = [
-                   "traveller_type" => "children",
-                   "title" => "",
-                   "first_name" => $child['firstname'],
-                   "last_name" => $child['lastname'],
-                   "age" => $child['age']
                ];
            }
        }
@@ -99,15 +93,15 @@
             "room_id" => $room_id
         ]);
 
-        if (!empty($room_options)) {
-            $params['price_original'] = $room_options[0]['price'];
-        }
+      //   if (!empty($room_options)) {
+      //       $params['price_original'] = $room_options[0]['price'];
+      //   }
 
         if (!empty($room_details)) {
             $room_data = [
                 "room_id" => $room_details[0]['id'],
                 "room_name" => $room_details[0]['name'],
-                "room_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00",
+                "room_price" => $_POST['room_price'],
                 "room_quantity" => !empty($room_options) ? $room_options[0]['quantity'] : "1",
                 "room_extrabed_price" => $room_details[0]['extra_bed_charges'],
                 "room_extrabed" => $room_details[0]['extra_bed'],
@@ -195,13 +189,6 @@
                      </select>
                   </div>
                </div>
-               <div class="col-md-3">
-                  <div class=" ">
-                     <select class="select2" id="roomOption" name="room_option" required>
-                        <option value="" disabled selected>Select a Room</option>
-                     </select>
-                  </div>
-               </div>
             </div>
             <!-- Check-in and Check-out Dates -->
             <div class="row g-3 mb-3">
@@ -218,6 +205,23 @@
                         value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
                      <label for="checkoutDate">Check-out Date</label>
                   </div>
+               </div>
+               <div class="col-md-6">
+               <div class="form-floating">
+                   <select class="select2" id="agentSelect" name="agent" required>
+                     <option value="" selected>Select an Agent</option>
+                        <?php
+                           // Fetch agents from users table where user_type is 'agent'
+                           $agents = $db->select("users", "*", ["user_type" => "agent"]);
+                           foreach ($agents as $agent) {
+                           ?>
+                     <option value="<?= $agent['user_id']?>">
+                           <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
+                     </option>
+                        <?php } ?>
+                  </select>
+                  <!-- <label for="agentSelect">Select an Agent</label> -->
+               </div>
                </div>
 
             </div>
@@ -300,59 +304,10 @@
                   </div>
                </div>
                <hr class="m-0">
-               <div class="card-body p-3">
-                  <p class="mb-2"><strong>Childs</strong></p>
-                  <div class="children-container text-center">
-                     <div class="row children_clone mt-3">
-                        <div class="col-md-2">
-                           <div class="form-floating">
-                              <select name="childs_data[0][age]" class="form-select child_age" required>
-                                 <?php for ($x = 1; $x <= 16; $x++) { ?>
-                                 <option value="<?=$x?>">
-                                    <?=$x?>
-                                 </option>
-                                 <?php } ?>
-                              </select>
-                              <label for="">
-                                 <?=T::age?>
-                              </label>
-                           </div>
-                        </div>
-                        <div class="col-md-4">
-                           <div class="form-floating">
-                              <input type="text" name="childs_data[0][firstname]" class="form-control"
-                                 placeholder="<?=T::first_name?>" value="" required />
-                              <label for="">
-                                 <?=T::first_name?>
-                              </label>
-                           </div>
-                        </div>
-                        <div class="col-md-4">
-                           <div class="form-floating">
-                              <input type="text" name="childs_data[0][lastname]" class="form-control"
-                                 placeholder="<?=T::last_name?>" value="" required />
-                              <label for="">
-                                 <?=T::last_name?>
-                              </label>
-                           </div>
-                        </div>
-                        <div class="col-md-2">
-                           <button type="button"
-                              class="btn btn-primary align-items-center float-end w-100 h-100 add_children">Add
-                              More</button>
-                           <button type="button"
-                              class="btn btn-danger mt-2 align-items-center float-end remove-child-btn remove_children"
-                              style="display:none;">Remove</button>
-                        </div>
-                     </div>
-                  </div>
-
-               </div>
             </div>
             <script>
                $(document).ready(function () {
                   let adultIndex = 1; // Start index for adults
-                  let childIndex = 1; // Start index for children
 
                   $(".adults-container").on("click", ".add_adults", function () {
                      const clonedRow = $(".adults_clone:first").clone();
@@ -374,55 +329,80 @@
                      adultIndex++;
                   });
 
-                  $(".children-container").on("click", ".add_children", function () {
-                     const clonedRow = $(".children_clone:first").clone();
-
-                     // Clear input values
-                     clonedRow.find("input").val("");
-                     clonedRow.find("select").val("1");
-
-                     // Update the `name` attributes with unique index
-                     clonedRow.find("[name^='childs_data']").each(function () {
-                        const nameAttr = $(this).attr("name");
-                        $(this).attr("name", nameAttr.replace(/\[0\]/, `[${childIndex}]`));
-                     });
-
-                     clonedRow.find(".add_children").hide();
-                     clonedRow.find(".remove_children").show();
-
-                     $(".children-container").append(clonedRow);
-                     childIndex++;
-                  });
-
                   $(".adults-container").on("click", ".remove_adults", function () {
                      $(this).closest(".adults_clone").remove();
                   });
 
-                  $(".children-container").on("click", ".remove_children", function () {
-                     $(this).closest(".children_clone").remove();
-                  });
                });
             </script>
+                        <div class="card mb-2">
+               <div class="card-header bg-primary text-dark">
+                  <strong class="">
+                  booking note
+               </div>
+               <div class="card-body p-3">
+                  <textarea name="bookingnote" class="form-control" id="bookingnote" rows="4" placeholder="Add booking note here..."></textarea>
+               </div>
+               <hr class="m-0">
+            </div>
+            <?php 
+            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
             <div class="d-block"></div>
-
-            <div class="row mb-2">
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="form-control" id="" name="comission" value="0" placeholder="Amount" required>
-                     <label for="">Comission</label>
+            <div class="row mb-3 g-3">
+            <div class="col-md-2">
+               <small for="">Room Price</small>
+               <div class="form-floating">
+                  <div class="input-group">
+                     <input type="text" class="form-control rounded-0" id="" name="room_price" value="0" required>
+                     <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
                   </div>
-               </div>
-            </div>
-            <div class="row mb-3">
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="form-control" id="bookingPrice" name="price" readonly
-                        placeholder="Total Price" required value="0.00">
-                     <label for="bookingPrice">Total Price</label>
-                  </div>
+                  <!-- <label for="">Room Price</label> -->
                </div>
             </div>
 
+            <div class="col-md-2">
+               <small for="">Platform Commission</small>
+               <div class="form-floating">
+                  <div class="input-group">
+                     <input type="text" class="form-control rounded-0" id="" name="platform_comission" value="0" required>
+                     <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
+                  </div>
+                  <!-- <label for="">Platform Commission</label> -->
+               </div>
+            </div>
+
+            <div class="col-md-2">
+               <small for="">Tax</small>
+               <div class="form-floating">
+                  <div class="input-group">
+                     <input type="text" class="form-control rounded-0" id="" name="tax" value="14" required>
+                     <span class="input-group-text text-white bg-primary">%</span>
+                  </div>
+                  <!-- <label for="">Tax</label> -->
+               </div>
+            </div>
+
+            <!-- Agent Commission -->
+            <div class="col-md-2">
+               <div class="form-floating">
+                  <small for="">Agent Commission</small>
+                  <div class="input-group">
+                     <input type="text" class="form-control rounded-0" id="" name="agent_comission" value="0" required readonly>
+                     <span class="input-group-text text-white bg-primary">%</span>
+                  </div>
+                  <!-- <label for="">Agent Commission</label> -->
+               </div>
+            </div>
+
+            <div class="col-md-4">
+               <div class="form-floating">
+                  <small for="">Total Price</small>
+                  <div class="input-group">
+                  <input type="text" class="form-control fw-semibold text-dark" id="bookingPrice" name="price" readonly>
+                  </div>
+               </div>
+            </div>
+            </div>
             <div class="row">
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
@@ -459,12 +439,41 @@
    </div>
 </div>
 <script>
-$(document).ready(function () {
-   const hotelSelect = $('#hotelSelect');
-   const roomSelect = $('#roomSelect');
-   const roomOption = $('#roomOption');
-   const bookingPrice = $('#bookingPrice');
-   const commissionInput = $('input[name="comission"]');
+   $(document).ready(function () {
+      const hotelSelect = $('#hotelSelect');
+      const roomSelect = $('#roomSelect');
+
+      // Function to calculate the total price
+      function calculateTotalPrice() {
+         // Get values from input fields
+         const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
+         const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
+         const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
+         const taxPercent = parseFloat($('input[name="tax"]').val()) || 0; 
+
+         // Calculate the agent commission based on room price and platform commission
+         const agentCommission = (roomPrice + platformCommission) * (agentCommissionPercent / 100);
+
+         // Calculate total before tax (room price + platform commission + agent commission)
+         const totalBeforeTax = roomPrice + platformCommission + agentCommission;
+
+         // Calculate tax amount
+         const taxAmount = totalBeforeTax * (taxPercent / 100);
+
+         // Calculate total price (including tax)
+         const totalPrice = totalBeforeTax + taxAmount;
+
+         // Update the total price field
+         $('#bookingPrice').val(totalPrice.toFixed(2));
+      }
+
+      // Bind change events to fields to recalculate the total price
+      $('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"]').on('input', function () {
+         calculateTotalPrice();
+      });
+
+      // Initial calculation when the page loads
+      calculateTotalPrice();
 
       // Handle location selection change
       $('#locationSelect').on('change', function () {
@@ -528,35 +537,23 @@ $(document).ready(function () {
          }
       });
 
-      // Handle room selection change
-      roomSelect.on('change', function () {
-         const roomId = $(this).val();
-         if (roomId) {
-            roomOption.prop('disabled', false);
+      // Handle agent selection change
+      $('#agentSelect').on('change', function () {
+         const agentId = $(this).val();
+         if (agentId) {
             $.ajax({
                url: 'booking-ajax.php',
                type: 'POST',
                data: {
-                  action: 'get_room_options',
-                  room_id: roomId
+                  action: 'get_agent_markup',
+                  agent_id: agentId
                },
                success: function (response) {
-                  roomOption.html('<option value="" disabled selected>Select a Room Option</option>');
                   if (response.status === 'success') {
-                     response.options.forEach(function (option) {
-                        roomOption.append(
-                           `<option value="${option.id}" data-price="${option.price}" data-currency="${response.currency_name}">
-                                    ${response.currency_name} ${option.price} - Adults ${option.adults} Childs ${option.childs}
-                                </option>`
-                        );
-                     });
-
-                     // Update the total price field when room option changes
-                     roomOption.on('change', function () {
-                        updateTotalPrice();
-                     });
+                     $('input[name="agent_comission"]').val(response.markup);
+                     calculateTotalPrice(); // Recalculate total price with new commission
                   } else {
-                     console.error('Error fetching room options:', response.message);
+                     console.error('Error fetching agent commission:', response.message);
                   }
                },
                error: function (xhr, status, error) {
@@ -564,30 +561,11 @@ $(document).ready(function () {
                }
             });
          } else {
-            roomOption.prop('disabled', true).html('<option value="" disabled selected>Select a Room Option</option>');
+            $('input[name="agent_comission"]').val('0'); // Reset agent commission if no agent is selected
+            calculateTotalPrice(); // Recalculate total price
          }
       });
-
-      // Update the total price field when commission or room option changes
-      roomOption.on('change', function () {
-         updateTotalPrice();
-      });
-
-      commissionInput.on('input', function () {
-      updateTotalPrice();
    });
-
-   function updateTotalPrice() {
-      const selectedOption = roomOption.find(':selected');
-      const roomPrice = parseFloat(selectedOption.data('price')) || 0;
-      const currency = selectedOption.data('currency') || '';
-      const commission = parseFloat(commissionInput.val()) || 0;
-
-      const totalPrice = roomPrice + commission;
-      bookingPrice.val(`${totalPrice}`);
-   }
-});
-
 </script>
 
 <script>

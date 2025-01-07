@@ -15,7 +15,8 @@ if (isset($_POST['action'])) {
             "status" => 1
         ]);
 
-        echo json_encode(['status' => 'success', 'hotels' => $hotels]);exit;
+        echo json_encode(['status' => 'success', 'hotels' => $hotels]);
+        exit;
     }
 
     if ($action === 'get_rooms' && isset($_POST['hotel_id'])) {
@@ -30,18 +31,23 @@ if (isset($_POST['action'])) {
             "hotels_rooms.status" => 1
         ]);
 
-        echo json_encode(['status' => 'success', 'rooms' => $rooms]);exit;
+        echo json_encode(['status' => 'success', 'rooms' => $rooms]);
+        exit;
     }
 
-    if ($action === 'get_room_options' && isset($_POST['room_id'])) {
-        $room_id = $_POST['room_id'];
-        
-        $room_options = $db->select("hotels_rooms_options", "*", ["room_id" => $room_id]);
-        
-        $default_currency = $db->get("currencies", "name", ["default" => 1]);
-    
-        echo json_encode(['status' => 'success', 'options' => $room_options, 'currency_name' => $default_currency]);exit;
+    if ($action === 'get_agent_markup' && isset($_POST['agent_id'])) {
+        $agent_id = $_POST['agent_id'];
+        $markup = $db->get("markups", "user_markup", [
+            "user_id" => $agent_id,
+            "status" => 1
+        ]);
+
+        if ($markup !== null) {
+            echo json_encode(['status' => 'success', 'markup' => $markup]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'No markup found for the selected agent.']);
+        }
     }
-}else {
+} else {
     echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
 }
