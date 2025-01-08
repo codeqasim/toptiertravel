@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 26, 2024 at 08:55 PM
+-- Generation Time: Jan 08, 2025 at 08:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -13979,7 +13979,7 @@ CREATE TABLE `hotels_bookings` (
   `email` varchar(50) NOT NULL,
   `address` varchar(250) NOT NULL,
   `phone_country_code` tinyint(4) NOT NULL,
-  `phone` smallint(25) NOT NULL,
+  `phone` varchar(299) NOT NULL,
   `country` varchar(50) NOT NULL,
   `stars` varchar(5) NOT NULL,
   `hotel_id` int(50) NOT NULL,
@@ -14015,8 +14015,19 @@ CREATE TABLE `hotels_bookings` (
   `module_type` varchar(255) NOT NULL DEFAULT 'hotels',
   `pnr` varchar(255) DEFAULT NULL,
   `booking_response` text DEFAULT NULL,
-  `error_response` text DEFAULT NULL
+  `error_response` text DEFAULT NULL,
+  `agent_id` varchar(255) NOT NULL,
+  `platform_comission` varchar(255) NOT NULL,
+  `booking_note` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
+--
+-- Dumping data for table `hotels_bookings`
+--
+
+INSERT INTO `hotels_bookings` (`booking_id`, `booking_ref_no`, `booking_date`, `booking_status`, `price_original`, `price_markup`, `agent_fee`, `vat`, `tax`, `gst`, `first_name`, `last_name`, `email`, `address`, `phone_country_code`, `phone`, `country`, `stars`, `hotel_id`, `hotel_name`, `hotel_phone`, `hotel_email`, `hotel_website`, `hotel_address`, `room_data`, `location`, `location_cords`, `hotel_img`, `checkin`, `checkout`, `booking_nights`, `adults`, `childs`, `child_ages`, `currency_original`, `currency_markup`, `payment_date`, `cancellation_request`, `cancellation_status`, `booking_data`, `payment_status`, `supplier`, `transaction_id`, `user_id`, `user_data`, `guest`, `nationality`, `payment_gateway`, `module_type`, `pnr`, `booking_response`, `error_response`, `agent_id`, `platform_comission`, `booking_note`) VALUES
+(27, '20250108052439924', '2025-01-08', 'pending', 44, '55.18', '10', '', '14', 0, 'Malik', 'Ahtisham', 'ahti.s6666@gmail.com', '', 0, '', '', '', 3, 'Four Points by Sheraton Bur Dubai', 0, '', '', '', '[{\"room_id\":15,\"room_name\":\"Premier Studio\",\"room_price\":\"44\",\"room_quantity\":6,\"room_extrabed_price\":0,\"room_extrabed\":0,\"room_actual_price\":260}]', 'Dubai', '', '', '11-01-2025', '12-01-2025', NULL, 1, 0, '', '', 'USD', NULL, 0, 0, NULL, 'unpaid', 'hotels', NULL, NULL, '', '[{\"traveller_type\":\"adults\",\"title\":\"Mr\",\"first_name\":\"Malik\",\"last_name\":\"Ahtisham\",\"age\":\"\"}]', NULL, NULL, 'hotels', NULL, NULL, NULL, '20230311051923100', '80', ''),
+(28, '20250108053248372', '2025-01-08', 'pending', 0, '7.00', '10', '', '14', 0, 'Malik', 'Ahtisham', 'ahti.s6666@gmail.com', '', 0, '', '', '', 3, 'Four Points by Sheraton Bur Dubai', 0, '', '', '', '[{\"room_id\":15,\"room_name\":\"Premier Studio\",\"room_price\":\"0\",\"room_quantity\":6,\"room_extrabed_price\":0,\"room_extrabed\":0,\"room_actual_price\":260}]', 'Dubai', '', '', '11-01-2025', '12-01-2025', NULL, 1, 0, '', '', 'USD', NULL, 0, 0, NULL, 'unpaid', 'hotels', NULL, NULL, '{\"first_name\":\"Malik\",\"last_name\":\"Ahtisham\",\"email\":\"ahti.s6666@gmail.com\",\"phone\":\"03262363166\",\"address\":null,\"nationality\":null,\"country_code\":null,\"user_id\":null}', '[{\"traveller_type\":\"adults\",\"title\":\"Mr\",\"first_name\":\"Malik\",\"last_name\":\"Ahtisham\",\"age\":\"\"}]', NULL, NULL, 'hotels', NULL, NULL, NULL, '20230311051923100', '60', '');
 
 -- --------------------------------------------------------
 
@@ -23437,7 +23448,21 @@ INSERT INTO `logs` (`id`, `user_id`, `user_ip`, `type`, `datetime`, `description
 (28, '2023031105102799', '::1', 'settings_updated', '2024-11-26 11:46:24', 'user updated main settings{\"business_name\":\"PHPTRAVELS\",\"site_url\":\"https:\\/\\/phptravels.net\",\"license_key\":\"2024071801314699\",\"site_offline\":\"0\",\"offline_message\":\"Our website is currently offline\",\"default_theme\":\"#163c8c\",\"theme_name\":\"default\",\"home_t'),
 (29, '2023031105102799', '::1', 'settings_updated', '2024-11-26 12:45:59', 'user updated main settings{\"business_name\":\"PHPTRAVELS\",\"site_url\":\"https:\\/\\/phptravels.net\",\"license_key\":\"2024071801314699\",\"site_offline\":\"0\",\"offline_message\":\"Our website is currently offline\",\"default_theme\":\"#163c8c\",\"theme_name\":\"default\",\"home_t'),
 (30, '2023031105102799', '::1', 'settings_updated', '2024-11-26 08:53:55', 'user updated main settings{\"business_name\":\"Top Tier Travel\",\"site_url\":\"https:\\/\\/toptiertravel.site\",\"license_key\":\"2024071801314699\",\"site_offline\":\"0\",\"offline_message\":\"Our website is currently offline\",\"default_theme\":\"#163c8c\",\"theme_name\":\"default'),
-(31, '2023031105102799', '::1', 'settings_updated', '2024-11-26 08:55:38', 'user updated main settings{\"business_name\":\"PHPTARVELS\",\"site_url\":\"https:\\/\\/phptravels.net\",\"license_key\":\"2024071801314699\",\"site_offline\":\"0\",\"offline_message\":\"Our website is currently offline\",\"default_theme\":\"#163c8c\",\"theme_name\":\"default\",\"home_t');
+(31, '2023031105102799', '::1', 'settings_updated', '2024-11-26 08:55:38', 'user updated main settings{\"business_name\":\"PHPTARVELS\",\"site_url\":\"https:\\/\\/phptravels.net\",\"license_key\":\"2024071801314699\",\"site_offline\":\"0\",\"offline_message\":\"Our website is currently offline\",\"default_theme\":\"#163c8c\",\"theme_name\":\"default\",\"home_t'),
+(32, '2023031105102799', '::1', 'login', '2025-01-06 04:29:40', 'user logged into account'),
+(33, '2023031105102799', '::1', 'login', '2025-01-06 06:16:33', 'user logged into account'),
+(34, '2023031105102799', '::1', 'login', '2025-01-06 06:53:12', 'user logged into account'),
+(35, '2023031105102799', '::1', 'login', '2025-01-07 08:44:34', 'user logged into account'),
+(36, '2023031105102799', '::1', 'logout', '2025-01-07 11:38:58', 'user logout from account'),
+(37, '2023031105102799', '::1', 'login', '2025-01-07 11:40:51', 'user logged into account'),
+(38, '2023031105102799', '::1', 'module_status', '2025-01-07 12:02:08', 'module status updated<br />\n{\"id\":\"11\",\"status\":\"0\"}'),
+(39, '2023031105102799', '::1', 'login', '2025-01-08 09:13:38', 'user logged into account'),
+(40, '2023031105102799', '::1', 'logout', '2025-01-08 02:05:10', 'user logout from account'),
+(41, '2023031105102799', '::1', 'login', '2025-01-08 02:37:12', 'user logged into account'),
+(42, '2023031105102799', '::1', 'logout', '2025-01-08 02:37:19', 'user logout from account'),
+(43, '2023031105102799', '::1', 'login', '2025-01-08 02:37:23', 'user logged into account'),
+(44, '2023031105102799', '::1', 'logout', '2025-01-08 05:14:03', 'user logout from account'),
+(45, '2023031105102799', '::1', 'login', '2025-01-08 05:16:03', 'user logged into account');
 
 -- --------------------------------------------------------
 
@@ -23460,6 +23485,13 @@ CREATE TABLE `markups` (
   `location` varchar(255) DEFAULT NULL,
   `user_markup` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `markups`
+--
+
+INSERT INTO `markups` (`id`, `type`, `origin`, `destination`, `from_date`, `to_date`, `module_id`, `user_id`, `status`, `b2c_markup`, `b2b_markup`, `location`, `user_markup`) VALUES
+(11, 'hotels', NULL, NULL, NULL, NULL, NULL, '20230311051923100', '1', NULL, NULL, NULL, '10');
 
 -- --------------------------------------------------------
 
@@ -23502,7 +23534,7 @@ INSERT INTO `modules` (`id`, `name`, `active`, `type`, `status`, `c1`, `c2`, `c3
 (8, 'kiwi', '1', 'flights', '0', 'booknowphptravelsnet', 's3IlTys2-tVS0WvIGwZIHkV32YFnaHZL', '', '', '', '', '1', '1', 'USD', '#57cba9', 6, '0'),
 (9, 'rezlive', '0', 'hotels', '0', NULL, NULL, NULL, NULL, NULL, NULL, '0', '0', 'USD', NULL, 10, '0'),
 (10, 'hotelston', '0', 'hotels', '0', '1', '1', '1', '1', NULL, NULL, '0', '0', 'USD', '#000000', 8, '0'),
-(11, 'agoda', '1', 'hotels', '1', '', '', '', '', '', '', '0', '0', 'USD', '#007bff', 9, '0'),
+(11, 'agoda', '1', 'hotels', '0', '', '', '', '', '', '', '0', '0', 'USD', '#007bff', 9, '0'),
 (12, 'viator', '1', 'tours', '0', '', '', '', '', '', '', '0', '0', 'USD', '#0098a3', 11, '0'),
 (13, 'tiqets', '1', 'tours', '0', '', '', '', '', '', '', '1', '1', 'USD', '#50ccce', 14, '0'),
 (14, 'tbo', '1', 'flights', '0', '', '', '', '', '', '', '0', '0', 'USD', '#2e9aff', 5, '0'),
@@ -25550,7 +25582,7 @@ ALTER TABLE `hotels_amenities`
 -- AUTO_INCREMENT for table `hotels_bookings`
 --
 ALTER TABLE `hotels_bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `hotels_images`
@@ -25604,13 +25636,13 @@ ALTER TABLE `locations`
 -- AUTO_INCREMENT for table `logs`
 --
 ALTER TABLE `logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `markups`
 --
 ALTER TABLE `markups`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `modules`
