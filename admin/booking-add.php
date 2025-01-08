@@ -18,7 +18,7 @@
            "supplier" => "hotels",
            "checkin" => $_POST['checkin'],
            "checkout" => $_POST['checkout'],
-           "agent" => $_POST['agent'],
+           "agent_id" => $_POST['agent'],
          //   "comission" => $_POST['comission'],
            "booking_date" => date('Y-m-d'),
            
@@ -353,7 +353,7 @@
                <small for="">Room Price</small>
                <div class="form-floating">
                   <div class="input-group">
-                     <input type="text" class="form-control rounded-0" id="" name="room_price" value="0" required>
+                     <input type="number" class="form-control rounded-0" id="" name="room_price" value="0" required>
                      <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
                   </div>
                   <!-- <label for="">Room Price</label> -->
@@ -364,7 +364,7 @@
                <small for="">Platform Commission</small>
                <div class="form-floating">
                   <div class="input-group">
-                     <input type="text" class="form-control rounded-0" id="" name="platform_comission" value="0" required>
+                     <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0" required>
                      <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
                   </div>
                   <!-- <label for="">Platform Commission</label> -->
@@ -375,7 +375,7 @@
                <small for="">Tax</small>
                <div class="form-floating">
                   <div class="input-group">
-                     <input type="text" class="form-control rounded-0" id="" name="tax" value="14" required>
+                     <input type="number" class="form-control rounded-0" id="" name="tax" value="14" required>
                      <span class="input-group-text text-white bg-primary">%</span>
                   </div>
                   <!-- <label for="">Tax</label> -->
@@ -387,7 +387,7 @@
                <div class="form-floating">
                   <small for="">Agent Commission</small>
                   <div class="input-group">
-                     <input type="text" class="form-control rounded-0" id="" name="agent_comission" value="0" required readonly>
+                     <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0" required>
                      <span class="input-group-text text-white bg-primary">%</span>
                   </div>
                   <!-- <label for="">Agent Commission</label> -->
