@@ -5,42 +5,41 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
-   if ($_SERVER['REQUEST_METHOD'] === 'POST'){
-       // Collect main booking parameters
-       $params = [
-           "booking_ref_no" => date('Ymdhis') . rand(),
-           "location" => $_POST['location'],
-           "hotel_id" => $_POST['hotel'],
-           "price_markup" => $_POST['price'],
-           "first_name" => $_POST['first_name'],
-           "last_name" => $_POST['last_name'],
-           "email" => $_POST['email'],
-           "supplier" => "hotels",
-           "checkin" => $_POST['checkin'],
-           "checkout" => $_POST['checkout'],
-           "agent_id" => $_POST['agent'],
-         //   "comission" => $_POST['comission'],
-           "booking_date" => date('Y-m-d'),
-           
-           "agent_fee" => $_POST['agent_comission'],
-           "tax" => $_POST['tax'],
-           "platform_comission" => $_POST['platform_comission'],
-           "price_original" => $_POST['room_price'],
-           "booking_note" => $_POST['bookingnote'],
-       ];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Collect main booking parameters
+    $params = [
+        "booking_ref_no" => date('Ymdhis') . rand(),
+        "location" => $_POST['location'],
+        "hotel_id" => $_POST['hotel'],
+        "price_markup" => $_POST['price'],
+        "first_name" => $_POST['adults_data'][0]['firstname'], // Get first adult's first name
+        "last_name" => $_POST['adults_data'][0]['lastname'],   // Get first adult's last name
+        "email" => $_POST['email'],
+        "phone" => $_POST['phone'],
+        "supplier" => "hotels",
+        "checkin" => $_POST['checkin'],
+        "checkout" => $_POST['checkout'],
+        "agent_id" => $_POST['agent'],
+        "booking_date" => date('Y-m-d'),
+        "agent_fee" => $_POST['agent_comission'],
+        "tax" => $_POST['tax'],
+        "platform_comission" => $_POST['platform_comission'],
+        "price_original" => $_POST['room_price'],
+        "booking_note" => $_POST['bookingnote'],
+    ];
 
-       // Collect user data
-       $user_data = [
-           "first_name" => $_POST['first_name'],
-           "last_name" => $_POST['last_name'],
-           "email" => $_POST['email'],
-           "phone" => $_POST['phone'],
-           "address" => $_POST['address'],
-           "nationality" => $_POST['nationality'],
-           "country_code" => $_POST['country_code'],
-           "user_id" => $_POST['user_id']
-       ];
-       $params['user_data'] = json_encode($user_data);
+    // Collect user data
+    $user_data = [
+        "first_name" => $_POST['adults_data'][0]['firstname'], // Get first adult's first name
+        "last_name" => $_POST['adults_data'][0]['lastname'],   // Get first adult's last name
+        "email" => $_POST['email'],
+        "phone" => $_POST['phone'],
+        "address" => $_POST['address'],
+        "nationality" => $_POST['nationality'],
+        "country_code" => $_POST['country_code'],
+        "user_id" => $_POST['user_id']
+    ];
+    $params['user_data'] = json_encode($user_data);
 
        // Collect the travelers' data in the required format
        $travelers_data = [];
@@ -52,6 +51,8 @@
                    "title" => $adult['title'],
                    "first_name" => $adult['firstname'],
                    "last_name" => $adult['lastname'],
+                  //  "email" => $adult['email'],
+                  //  "phone" => $adult['phone'],
                    "age" => ""
                ];
            }
@@ -228,7 +229,7 @@
             <!-- Number of Travelers -->
 
             <!-- Client Details -->
-            <div class="row mb-3 g-3">
+            <!-- <div class="row mb-3 g-3">
                <div class="col-md-3">
                   <div class="form-floating">
                      <input type="text" class="form-control" id="firstName" name="first_name"
@@ -257,84 +258,101 @@
                      <label for="clientPhone">Phone</label>
                   </div>
                </div>
-            </div>
+            </div> -->
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
-                  <strong class="">
-                     <?=T::travellers?>
-               </div>
-               <div class="card-body p-3">
-                  <p class="mb-2"><strong>Adults</strong></p>
-                  <div class="adults-container text-center">
-                     <div class="row adults_clone mt-3">
-                        <div class="col-md-2">
-                           <div class="form-floating">
-                              <select name="adults_data[0][title]" class="form-select">
-                                 <option value="Mr">Mr</option>
-                                 <option value="Miss">Miss</option>
-                                 <option value="Mrs">Mrs</option>
-                              </select>
-                              <label for="">Title</label>
-                           </div>
-                        </div>
-                        <div class="col-md-4">
-                           <div class="form-floating">
-                              <input type="text" name="adults_data[0][firstname]" class="form-control"
-                                 placeholder="First Name" value="" required />
-                              <label for="">First Name</label>
-                           </div>
-                        </div>
-                        <div class="col-md-4">
-                           <div class="form-floating">
-                              <input type="text" name="adults_data[0][lastname]" class="form-control"
-                                 placeholder="Last Name" value="" required />
-                              <label for="">Last Name</label>
-                           </div>
-                        </div>
-                        <div class="col-md-2">
-                           <button type="button"
-                              class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
-                              Add More
-                           </button>
-                           <button type="button"
-                              class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn remove_adults"
-                              style="display:none;">Remove</button>
-                        </div>
-                     </div>
+    <div class="card-header bg-primary text-dark">
+        <strong class="">
+            <?=T::travellers?>
+        </strong>
+    </div>
+    <div class="card-body p-3">
+        <p class="mb-2"><strong>Adults</strong></p>
+        <div class="adults-container text-center">
+            <div class="row adults_clone mt-3">
+                <div class="col-md-2">
+                    <div class="form-floating">
+                        <select name="adults_data[0][title]" class="form-select">
+                            <option value="Mr">Mr</option>
+                            <option value="Miss">Miss</option>
+                            <option value="Mrs">Mrs</option>
+                        </select>
+                        <label for="">Title</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" name="adults_data[0][firstname]" class="form-control" placeholder="First Name" value="" required />
+                        <label for="">First Name</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input type="text" name="adults_data[0][lastname]" class="form-control" placeholder="Last Name" value="" required />
+                        <label for="">Last Name</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary align-items-center float-end w-100 h-100 add_adults">
+                        Add More
+                    </button>
+                    <button type="button" class="btn btn-danger mt-2 align-items-center float-end remove-adult-btn remove_adults" style="display:none;">
+                        Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div><hr></div>
+        <div class="row g-3">
+               <div class="col-md-6">
+                  <div class="form-floating">
+                     <input type="email" class="form-control" id="clientEmail" name="email"
+                        placeholder="Enter email address" required>
+                     <label for="clientEmail">Email</label>
                   </div>
                </div>
-               <hr class="m-0">
+               <div class="col-md-6">
+                  <div class="form-floating">
+                     <input type="number" class="form-control" id="clientPhone" name="phone"
+                        placeholder="Enter Phone Number" required>
+                     <label for="clientPhone">Phone</label>
+                  </div>
+               </div>
             </div>
-            <script>
-               $(document).ready(function () {
-                  let adultIndex = 1; // Start index for adults
+    </div>
+    <hr class="m-0">
+</div>
 
-                  $(".adults-container").on("click", ".add_adults", function () {
-                     const clonedRow = $(".adults_clone:first").clone();
+<script>
+    $(document).ready(function () {
+        let adultIndex = 1; // Start index for adults
 
-                     // Clear input values
-                     clonedRow.find("input").val("");
-                     clonedRow.find("select").val("Mr");
+        $(".adults-container").on("click", ".add_adults", function () {
+            const clonedRow = $(".adults_clone:first").clone();
 
-                     // Update the `name` attributes with unique index
-                     clonedRow.find("[name^='adults_data']").each(function () {
-                        const nameAttr = $(this).attr("name");
-                        $(this).attr("name", nameAttr.replace(/\[0\]/, `[${adultIndex}]`));
-                     });
+            // Clear input values
+            clonedRow.find("input").val("");
+            clonedRow.find("select").val("Mr");
 
-                     clonedRow.find(".add_adults").hide();
-                     clonedRow.find(".remove_adults").show();
+            // Update the `name` attributes with unique index
+            clonedRow.find("[name^='adults_data']").each(function () {
+                const nameAttr = $(this).attr("name");
+                $(this).attr("name", nameAttr.replace(/\[0\]/, `[${adultIndex}]`));
+            });
 
-                     $(".adults-container").append(clonedRow);
-                     adultIndex++;
-                  });
+            clonedRow.find(".add_adults").hide();
+            clonedRow.find(".remove_adults").show();
 
-                  $(".adults-container").on("click", ".remove_adults", function () {
-                     $(this).closest(".adults_clone").remove();
-                  });
+            $(".adults-container").append(clonedRow);
+            adultIndex++;
+        });
 
-               });
-            </script>
+        $(".adults-container").on("click", ".remove_adults", function () {
+            $(this).closest(".adults_clone").remove();
+        });
+
+    });
+</script>
+
                         <div class="card mb-2">
                <div class="card-header bg-primary text-dark">
                   <strong class="">
@@ -350,6 +368,8 @@
             <div class="d-block"></div>
             <div class="row mb-3 g-3">
             <div class="col-md-2">
+            <?php 
+            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                <small for="">Room Price</small>
                <div class="form-floating">
                   <div class="input-group">

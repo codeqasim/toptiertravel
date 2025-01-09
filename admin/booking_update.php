@@ -65,6 +65,7 @@ if (!empty($_GET['booking_id']) && !empty($_GET['module']) && !empty($_GET['book
             'first_name' => $_GET['first_name'], 
             'last_name' => $_GET['last_name'],
             'email' => $_GET['email'],
+            'phone' =>  $_GET['phone'],
             'user_data' => $user_data_json, // Updating user_data column
 
             'price_original' => $_GET['room_price'],
