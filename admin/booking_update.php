@@ -65,6 +65,8 @@ if (!empty($_GET['booking_id']) && !empty($_GET['module']) && !empty($_GET['book
             'first_name' => $_GET['first_name'], 
             'last_name' => $_GET['last_name'],
             'email' => $_GET['email'],
+            'agent_id' => $_GET['agent_id'],
+            'booking_note' => $_GET['bookingnote'],
             'phone' =>  $_GET['phone'],
             'user_data' => $user_data_json, // Updating user_data column
 
@@ -164,19 +166,55 @@ if (!empty($_GET['booking']) && !empty($_GET['module'])) {
                 </div>
             </div>
             <?php $hotels = $db->select('hotels', '*', ['status' => 1]); ?>
-            <div class="col-md-4">
-                <div class="form-floating">
-                    <select class="form-select" id="hotel_select" name="hotel_id">
-                        <?php foreach ($hotels as $hotel): ?>
-                        <option value="<?= $hotel['id'] ?>" <?=($data[0]['hotel_id'] ?? '' )==$hotel['id'] ? "selected"
-                            : "" ; ?>>
-                            <?= $hotel['name'] ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <label for="hotel_select">Listing</label>
-                </div>
-            </div>
+<div class="col-md-4">
+    <div class="form-floating">
+        <select class="form-select" id="hotel_select" name="hotel_id">
+            <option value="">Select Hotel</option>
+            <?php foreach ($hotels as $hotel): ?>
+            <option value="<?= $hotel['id'] ?>" <?=($data[0]['hotel_id'] ?? '' ) == $hotel['id'] ? "selected" : ""; ?>>
+                <?= $hotel['name'] ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
+        <label for="hotel_select">Hotel</label>
+    </div>
+</div>
+
+
+<?php
+$agents = $db->select('users', '*', [
+    'user_type' => 'agent',  
+    'status' => 1
+]);
+
+$selectedAgentId = $data[0]['agent_id'] ?? null; 
+?>
+
+<div class="col-md-4">
+    <div class="form-floating">
+        <select class="form-select" id="agent_id" name="agent_id">
+            <option value="">Select Agent</option>
+            <?php foreach ($agents as $agent): ?>
+            <option value="<?= $agent['user_id'] ?>" <?= ($selectedAgentId == $agent['user_id']) ? "selected" : ""; ?>>
+                <?= htmlspecialchars($agent['first_name'] . ' ' . $agent['last_name']) ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
+        <label for="agent_select">Agent</label>
+    </div>
+</div>
+
+<!-- <div class="col-md-4">
+    <div class="form-floating">
+        <select class="form-select" id="room_select" name="room_id">
+            <option value="">Select Room</option>
+        </select>
+        <label for="room_select">Room</label>
+    </div>
+</div> -->
+
+
+
             <!-- Add First Name and Last Name Fields -->
 
             <div class="col-md-12">
@@ -216,6 +254,16 @@ if (!empty($_GET['booking']) && !empty($_GET['module'])) {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="card" style="margin-block-end:0px;">
+                    <div class="card-header bg-primary text-black">
+                        <strong>Booking Note                        </strong>
+                    </div>
+                    <div class="card-body p-3">
+                    <textarea name="bookingnote" class="form-control" id="bookingnote" rows="4"><?= $data[0]['booking_note'] ?? '' ?></textarea>
                     </div>
                 </div>
             </div>
@@ -300,6 +348,39 @@ if (!empty($_GET['booking']) && !empty($_GET['module'])) {
                 </button>
             </div>
         </form>
+        <script>
+        $(document).ready(function() {
+    $('#hotel_select').change(function() {
+        var hotelId = $(this).val();
+
+        if (hotelId) {
+            $.ajax({
+                url: 'book-update-ajax.php',
+                method: 'POST', 
+                data: { hotel_id: hotelId },
+                dataType: 'json',
+                success: function(response) {
+                    $('#room_select').html('<option value="">Select Room</option>');
+
+                    if (response.length > 0) {
+                        response.forEach(function(room) {
+                            $('#room_select').append('<option value="' + room.id + '">' + room.name + '</option>');
+                        });
+                    } else {
+                        $('#room_select').append('<option value="">No rooms available</option>');
+                    }
+                },
+                error: function() {
+                    alert('Error fetching rooms.');
+                }
+            });
+        } else {
+            $('#room_select').html('<option value="">Select Room</option>');
+        }
+    });
+});
+</script>
+
 
         <script>
             $("#search").submit(function (event) {
@@ -317,6 +398,8 @@ if (!empty($_GET['booking']) && !empty($_GET['module'])) {
                 var last_name = $("#last_name").val();    // Get last_name
                 var email = $("#email").val();
                 var phone = $("#phone").val();
+                var bookingnote = $("#bookingnote").val();
+                var agent_id = $("#agent_id").val();
 
                 var room_price = $("#room_price").val();
                 var platform_comission = $("#platform_comission").val();
@@ -325,7 +408,7 @@ if (!empty($_GET['booking']) && !empty($_GET['module'])) {
                 var bookingPrice = $("#bookingPrice").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id;
 
             });
         </script>

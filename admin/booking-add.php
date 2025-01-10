@@ -157,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          unset($_SESSION['booking_inserted']);
       ?>
 
-         <form method="post" action="<?=root?>booking-add.php">
+         <form method="post" action="<?=root?>booking-add.php" onsubmit="loading()">
             <!-- Select Hotel -->
             <div class="row g-3 mb-3">
                <div class="col-md-3">
@@ -592,6 +592,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
    $(document).ready(function () {
       $('.select2').select2();
    });
+</script>
+<script>
+   function loading(){
+      $('.bodyload').show()
+   }
 </script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
