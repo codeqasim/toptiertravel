@@ -208,8 +208,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
                </div>
                <div class="col-md-6">
-               <div class="form-floating">
-                   <select class="select2" id="agentSelect" name="agent" required>
+               <div class="form-floating mt-2 bg-white rounded-2 h-100">
+                   <select class="select2 pt-2" id="agentSelect" name="agent" required>
                      <option value="" selected>Select an Agent</option>
                         <?php
                            // Fetch agents from users table where user_type is 'agent'
@@ -356,19 +356,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="card mb-2">
                <div class="card-header bg-primary text-dark">
                   <strong class="">
-                  booking note
+                  Booking note
                </div>
                <div class="card-body p-3">
                   <textarea name="bookingnote" class="form-control" id="bookingnote" rows="4" placeholder="Add booking note here..."></textarea>
                </div>
                <hr class="m-0">
             </div>
-            <?php 
+            <?php
             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
             <div class="d-block"></div>
             <div class="row mb-3 g-3">
             <div class="col-md-2">
-            <?php 
+            <?php
             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                <small for="">Room Price</small>
                <div class="form-floating">
@@ -469,7 +469,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
          const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
          const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
-         const taxPercent = parseFloat($('input[name="tax"]').val()) || 0; 
+         const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
 
          // Calculate the agent commission based on room price and platform commission
          const agentCommission = (roomPrice + platformCommission) * (agentCommissionPercent / 100);
