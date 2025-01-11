@@ -143,6 +143,16 @@ if(!empty($booking_data->Prn)){
         </ul>
         </div>
     </div>
+        <p><strong><?=T::agent?> <?=T::details?></strong></p>
+        <table class="table table-bordered">
+        <tbody class="">
+            <tr class="">
+                <th class="text-start"><?=T::name?>: <?=$data->first_name . ' ' . $data->last_name;?></th>
+                <th class="text-start"><?=T::email?>: <?=$data->email?></th>
+                <th class="text-start"><?=T::fee?>: <?=$data->agent_fee?>%</th>
+            </tr>
+        </tbody>
+    </table>
 
 <?php
 if(!empty($booking_data->response->booking->hotel->rooms[0]->rates[0]->rateComments)){
@@ -166,17 +176,30 @@ if(!empty($booking_data->response->booking->hotel->rooms[0]->rates[0]->rateComme
                 <th class="text-end"><?=($data->currency_markup)?> <?=($data->price_markup)?></th>
             </tr> -->
             <tr>
+                <th class="text-start"><?=T::room?> <?=T::price?></th>
+                <th class="text-end"><?=$data->currency_markup?> <?= $data->price_original?></th>
+            </tr>
+            <tr>
+                <th class="text-start"><?=T::agent?> <?=T::fee?></th>
+                <th class="text-end">% <?=$data->agent_fee?></th>
+            </tr>
+            <tr>
+                <th class="text-start"><?=T::tax?></th>
+                <th class="text-end">% <?=$data->tax?></th>
+            </tr>
+            <tr>
+                <th class="text-start"><?=T::platform?> <?=T::commission?></th>
+                <th class="text-end"><?=$data->currency_markup?> <?=$data->platform_comission?></th>
+            </tr>
+            <!-- <tr>
                 <th class="text-start"><?=T::gst?></th>
                 <th class="text-end">% 0</th>
             </tr>
             <tr>
                 <th class="text-start"><?=T::vat?></th>
                 <th class="text-end">% 0</th>
-            </tr>
-            <tr>
-                <th class="text-start"><?=T::tax?></th>
-                <th class="text-end">% 0</th>
-            </tr>
+            </tr> -->
+
             <tr class="bg-light">
                 <th class="text-start"><strong><?=T::total?></strong></th>
                 <th class="text-end"><strong><?=($data->currency_markup)?> <?=($data->price_markup)?></strong></th>

@@ -6,11 +6,14 @@
    include "_header.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+   $hotel_img = $db->select("hotels_images","*",["hotel_id"=> $_POST['hotel']]);
     // Collect main booking parameters
     $params = [
         "booking_ref_no" => date('Ymdhis') . rand(),
         "location" => $_POST['location'],
         "hotel_id" => $_POST['hotel'],
+        "hotel_img" => $hotel_img[0]['img'],
         "price_markup" => $_POST['price'],
         "first_name" => $_POST['adults_data'][0]['firstname'], // Get first adult's first name
         "last_name" => $_POST['adults_data'][0]['lastname'],   // Get first adult's last name
