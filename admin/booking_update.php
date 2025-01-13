@@ -101,6 +101,7 @@ $title = T::booking .' '. T::edit;
                     'email' => $_GET['email'],
                     'agent_id' => $_GET['agent_id'],
                     'booking_note' => $_GET['bookingnote'],
+                    'cancellation_terms' => $_GET['cancellation_terms'],
                     'phone' => $_GET['phone'],
                     'user_data' => $user_data_json,
                     'price_original' => $_GET['room_price'],
@@ -108,6 +109,8 @@ $title = T::booking .' '. T::edit;
                     'tax' => $_GET['tax'],
                     'agent_fee' => $_GET['agent_comission'],
                     'price_markup' => $_GET['bookingPrice'],
+                    'supplier_payment_status' => $_GET['supplier_payment_status'],
+                    'due_date' => $_GET['due_date'],
                     'room_data' => $room_data_json
                 ],
                 ['booking_ref_no' => $_GET['booking_id']]
@@ -143,14 +146,14 @@ $title = T::booking .' '. T::edit;
 
 
         <form class="row g-3" id="search">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="form-floating">
                     <input type="text" class="form-control" id="booking_id" name="booking_id"
                         value="<?= $data[0]['booking_ref_no'] ?? '' ?>" readonly>
                     <label for="">Booking ID</label>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="form-floating">
                     <input type="date" class="form-control" id="booking_date" name="booking_date"
                         value="<?= $data[0]['booking_date'] ?? '' ?>">
@@ -159,7 +162,7 @@ $title = T::booking .' '. T::edit;
             </div>
 
 
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="form-floating">
                     <select class="form-select booking_status" id="search_type" name="booking_status">
                         <option value="">Select Type</option>
@@ -182,7 +185,7 @@ $title = T::booking .' '. T::edit;
                     </label>
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="form-floating">
                     <select id="search_type" name="payment_status" class="form-select payment_status">
                         <option value="">Select Type</option>
@@ -212,7 +215,40 @@ $title = T::booking .' '. T::edit;
                 $selectedAgentId = $data[0]['agent_id'] ?? null; 
             ?>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="form-floating">
+                <select id="supplier_payment_status" name="supplier_payment_status" class="form-select" required>
+                        <option value="" disabled selected>Supplier Payment Status</option>
+                        <option value="paid" <?=($data[0]['supplier_payment_status'] ?? '' )==="paid" ? "selected" : "";?>>
+                            <?=T::paid?>
+                        </option>
+                        <option value="unpaid" <?=($data[0]['supplier_payment_status'] ?? '' )==="unpaid" ? "selected" : "";?>>
+                            <?=T::unpaid?>
+                        </option>
+                        <!-- <option value="refunded" <?=($data[0]['payment_status'] ?? '' )==="refunded" ? "selected" : ""
+                            ;?>>
+                            <?=T::refunded?>
+                        </option> -->
+                    </select>
+                    <!-- <select class="form-select" id="agent_id" name="agent_id">
+                        <option value="">Select Agent</option>
+                        <?php foreach ($agents as $agent): ?>
+                        <option value="<?= $agent['user_id'] ?>" <?=($selectedAgentId==$agent['user_id']) ? "selected"
+                            : "" ; ?>>
+                            <?= htmlspecialchars($agent['first_name'] . ' ' . $agent['last_name']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select> -->
+                    <label for="agent_select">Supplier Payment Status</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                <input type="date" class="form-control" id="due_date" name="due_date" autocomplete="off" value="<?=($data[0]['due_date'])?>" required>
+                     <label for="due_date">Due Date</label>
+            </div>
+            </div>
+            <div class="col-md-6">
                 <div class="form-floating">
                     <select class="form-select" id="agent_id" name="agent_id">
                         <option value="">Select Agent</option>
@@ -314,6 +350,17 @@ $title = T::booking .' '. T::edit;
                     <div class="card-body p-3">
                         <textarea name="bookingnote" class="form-control" id="bookingnote"
                             rows="4"><?= $data[0]['booking_note'] ?? '' ?></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="card" style="margin-block-end:0px;">
+                    <div class="card-header bg-primary text-black">
+                        <strong>Cancellation terms & policy</strong>
+                    </div>
+                    <div class="card-body p-3">
+                        <textarea name="cancellation_terms" class="form-control" id="cancellation_terms"
+                            rows="4"><?= $data[0]['cancellation_terms'] ?? '' ?></textarea>
                     </div>
                 </div>
             </div>
@@ -477,10 +524,13 @@ $(document).ready(function () {
                 var tax = $("#tax").val();
                 var agent_comission = $("#agent_comission").val();
                 var bookingPrice = $("#bookingPrice").val();
-                var room_select = $("#room_select").val();
+                var room_select = $("#room_select").val();cancellation_terms
+                var cancellation_terms = $("#cancellation_terms").val();
+                var supplier_payment_status = $("#supplier_payment_status").val();
+                var due_date = $("#due_date").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&due_date=" + due_date + "&cancellation_terms=" + cancellation_terms;
 
             });
         </script>

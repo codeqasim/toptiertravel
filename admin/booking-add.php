@@ -15,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         "hotel_id" => $_POST['hotel'],
         "hotel_img" => $hotel_img[0]['img'],
         "price_markup" => $_POST['price'],
-        "first_name" => $_POST['adults_data'][0]['firstname'], // Get first adult's first name
-        "last_name" => $_POST['adults_data'][0]['lastname'],   // Get first adult's last name
+        "first_name" => $_POST['adults_data'][0]['firstname'],
+        "last_name" => $_POST['adults_data'][0]['lastname'],
         "email" => $_POST['email'],
         "phone" => $_POST['phone'],
         "supplier" => "hotels",
@@ -29,6 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         "platform_comission" => $_POST['platform_comission'],
         "price_original" => $_POST['room_price'],
         "booking_note" => $_POST['bookingnote'],
+        "cancellation_terms" => $_POST['cancellation_terms'],
+        "supplier_cost" => $_POST['supplier_cost'],
+        "supplier_payment_status"=>$_POST['supplier_payment_status'],
+        "supplier_due_date"=>$_POST['supplier_due_date'],
+        "supplier_id" => $_POST["supplier_id"]
     ];
 
     // Collect user data
@@ -130,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 
-<div class="page_head bg-transparent">
+<!-- <div class="page_head bg-transparent">
    <div class="panel-heading px-5">
       <div class="float-start">
          <p class="m-0 page_title">
@@ -144,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          </a>
       </div>
    </div>
-</div>
+</div> -->
 <div class="container">
 </div>
 <div class="mt-1">
@@ -162,13 +167,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
          <form method="post" action="<?=root?>booking-add.php" onsubmit="loading()">
             <!-- Select Hotel -->
-            <div class="row g-3 mb-3">
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark">
+                  <strong class=""><?=T::hotel?></strong>
+               </div>
+               
+               <div class="card-body p-3">
+               <div class="row g-3">
                <div class="col-md-3">
                   <?php
                      $locations = $db->select("hotels", "location", ["status" => 1, "GROUP" => "location"]);
                      ?>
                   <div class="">
-                     <select class="select2" id="locationSelect" name="location" required>
+                     <select class="select2 form-select" id="locationSelect" name="location" required>
                         <option value="" disabled selected>Select a Location</option>
                         <?php foreach($locations as $location) { ?>
                         <option value="<?= $location ?>">
@@ -193,75 +204,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      </select>
                   </div>
                </div>
+               <div class="col-md-3">
+               <?php
+               $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+               <!-- <small for="">Room Price</small> -->
+               <div class="form-floating">
+                  <div class="input-group">
+                     <div class="form-floating">
+                     <input type="number" class="form-control" id="" name="room_price" value="0" required style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                     <label for=""><?=T::room?> <?=T::price?></label>
+                     </div>
+                     <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
+                  </div>
+                  <!-- <label for="">Room Price</label> -->
+               </div>
             </div>
-            <!-- Check-in and Check-out Dates -->
-            <div class="row g-3 mb-3">
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="checkin form-control" id="" name="checkin" autocomplete="off" required
-                        value="<?php $d=strtotime(" +3 Days"); echo date("d-m-Y", $d); ?>">
-                     <label for="checkinDate">Check-in Date</label>
-                  </div>
-               </div>
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="checkout form-control" id="" name="checkout" required autocomplete="off"
-                        value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
-                     <label for="checkoutDate">Check-out Date</label>
-                  </div>
-               </div>
-               <div class="col-md-6">
-               <div class="form-floating mt-2 bg-white rounded-2 h-100">
-                   <select class="select2 pt-2" id="agentSelect" name="agent" required>
-                     <option value="" selected>Select an Agent</option>
-                        <?php
-                           // Fetch agents from users table where user_type is 'agent'
-                           $agents = $db->select("users", "*", ["user_type" => "agent"]);
-                           foreach ($agents as $agent) {
-                           ?>
-                     <option value="<?= $agent['user_id']?>">
-                           <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
-                     </option>
-                        <?php } ?>
-                  </select>
-                  <!-- <label for="agentSelect">Select an Agent</label> -->
-               </div>
-               </div>
-
             </div>
-            <!-- Number of Travelers -->
-
-            <!-- Client Details -->
-            <!-- <div class="row mb-3 g-3">
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="form-control" id="firstName" name="first_name"
-                        placeholder="Enter first name" required>
-                     <label for="firstName">First Name</label>
-                  </div>
-               </div>
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="text" class="form-control" id="lastName" name="last_name"
-                        placeholder="Enter last name" required>
-                     <label for="lastName">Last Name</label>
-                  </div>
-               </div>
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="email" class="form-control" id="clientEmail" name="email"
-                        placeholder="Enter email address" required>
-                     <label for="clientEmail">Email</label>
-                  </div>
-               </div>
-               <div class="col-md-3">
-                  <div class="form-floating">
-                     <input type="number" class="form-control" id="clientPhone" name="phone"
-                        placeholder="Enter Phone Number" required>
-                     <label for="clientPhone">Phone</label>
-                  </div>
-               </div>
-            </div> -->
+         </div>
+               <hr class="m-0">
+            </div>
             <div class="card mb-2">
     <div class="card-header bg-primary text-dark">
         <strong class="">
@@ -269,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </strong>
     </div>
     <div class="card-body p-3">
-        <p class="mb-2"><strong>Adults</strong></p>
+        <p class="mb-2"><strong><?=T::adults?></strong></p>
         <div class="adults-container text-center">
             <div class="row adults_clone mt-3">
                 <div class="col-md-2">
@@ -323,7 +284,164 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
     </div>
     <hr class="m-0">
+    <div class="p-3">
+    <div class="row g-3">
+               <div class="col-md-6">
+                  <div class="form-floating">
+                     <input type="text" class="checkin form-control" id="" name="checkin" autocomplete="off" required
+                        value="<?php $d=strtotime(" +3 Days"); echo date("d-m-Y", $d); ?>">
+                     <label for="checkinDate">Check-in Date</label>
+                  </div>
+               </div>
+               <div class="col-md-6">
+                  <div class="form-floating">
+                     <input type="text" class="checkout form-control" id="" name="checkout" required autocomplete="off"
+                        value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
+                     <label for="checkoutDate">Check-out Date</label>
+                  </div>
+               </div>
+               </div>
+    </div>
 </div>
+
+
+<div class="card mb-2">
+   <div class="card-header bg-primary text-dark">
+      <strong><?=T::supplier?></strong>
+   </div>
+   <div class="card-body p-3">
+      <div class="row g-3">
+      <div class="col-md-3">
+    <small for="">Select Supplier</small>
+    <div class="form-floating mt-2 rounded-2 h-100">
+        <select class="form-select select2 pt-2" id="supplier_id" name="supplier_id" required>
+        <option value="" disabled selected>Select a supplier</option>
+                        <?php
+                           // Fetch agents from users table where user_type is 'agent'
+                           $agents = $db->select("users", "*", ["user_type" => "supplier"]);
+                           foreach ($agents as $agent) {
+                           ?>
+                     <option value="<?= $agent['user_id']?>">
+                           <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
+                     </option>
+                        <?php } ?>
+        </select>
+    </div>
+</div>
+
+         <!-- Supplier Payment Status (With select2) -->
+         <div class="col-md-4">
+         <small for="">Payment Status</small>
+            <div class="form-floating mt-2 rounded-2 h-100">
+               <select class="form-select select2 pt-2" id="search_type" name="supplier_payment_status" required>
+                  <option value="" disabled selected>Supplier Payment Status</option>
+                  <option value="paid"><?=T::paid?></option>
+                  <option value="unpaid"><?=T::unpaid?></option>
+               </select>
+               <!-- <label for="search_type">Supplier Payment Status</label> -->
+            </div>
+         </div>
+         <div class="col-md-3">
+         <small for="">Supplier Due Date</small>
+         <div class="">
+                     <input type="date" class="form-control" id="supplier_due_date" name="supplier_due_date" autocomplete="off" required>
+                     <!-- <label for="supplier_due_date">Due Date</label> -->
+                  </div>
+                  </div>
+         <!-- Supplier Cost Input -->
+         <div class="col-md-2">
+         <small for="">Supplier Cost</small>
+            <div class="form-floating">
+               <div class="input-group">
+                  <input type="number" class="form-control rounded-0" id="supplierCost" name="supplier_cost" value="0" required>
+                  <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
+               </div>
+               <!-- <label for="supplierCost">Supplier Cost</label> -->
+            </div>
+         </div>
+      </div>
+   </div>
+   <hr class="m-0">
+</div>
+
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark">
+                  <strong class="">
+                  <?=T::agent?></strong>
+               </div>
+               <div class="card-body p-3">
+               <div class="row g-3">
+               <div class="col-md-6">
+               <small for="">Select Agent</small>
+               <div class="form-floating mt-2 rounded-2 h-100">
+                   <select class="select2 pt-2" id="agentSelect" name="agent" required>
+                     <option value="" selected>Select an Agent</option>
+                        <?php
+                           // Fetch agents from users table where user_type is 'agent'
+                           $agents = $db->select("users", "*", ["user_type" => "agent"]);
+                           foreach ($agents as $agent) {
+                           ?>
+                     <option value="<?= $agent['user_id']?>">
+                           <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
+                     </option>
+                        <?php } ?>
+                  </select>
+                  <!-- <label for="agentSelect">Select an Agent</label> -->
+               </div>
+               </div>
+               
+                   <!-- Agent Commission -->
+                   <div class="col-md-2">
+                   <small for="">Agent fee</small>
+               <div class="form-floating">
+                  <div class="input-group">
+                     <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0" required>
+                     <span class="input-group-text text-white bg-primary">%</span>
+                  </div>
+                  <!-- <label for="">Agent Commission</label> -->
+               </div>
+            </div>
+
+            </div>
+         </div>
+               <hr class="m-0">
+            </div>
+
+
+
+            <!-- Number of Travelers -->
+
+            <!-- Client Details -->
+            <!-- <div class="row mb-3 g-3">
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="text" class="form-control" id="firstName" name="first_name"
+                        placeholder="Enter first name" required>
+                     <label for="firstName">First Name</label>
+                  </div>
+               </div>
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="text" class="form-control" id="lastName" name="last_name"
+                        placeholder="Enter last name" required>
+                     <label for="lastName">Last Name</label>
+                  </div>
+               </div>
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="email" class="form-control" id="clientEmail" name="email"
+                        placeholder="Enter email address" required>
+                     <label for="clientEmail">Email</label>
+                  </div>
+               </div>
+               <div class="col-md-3">
+                  <div class="form-floating">
+                     <input type="number" class="form-control" id="clientPhone" name="phone"
+                        placeholder="Enter Phone Number" required>
+                     <label for="clientPhone">Phone</label>
+                  </div>
+               </div>
+            </div> -->
 
 <script>
     $(document).ready(function () {
@@ -366,25 +484,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                </div>
                <hr class="m-0">
             </div>
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark">
+                  <strong class="">
+                  Cancellation terms & policy
+               </div>
+               <div class="card-body p-3">
+                  <textarea name="cancellation_terms" class="form-control" id="cancellation_terms" rows="4" placeholder="Add Cancellation terms & policy here..."></textarea>
+               </div>
+               <hr class="m-0">
+            </div>
             <?php
             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
             <div class="d-block"></div>
             <div class="row mb-3 g-3">
-            <div class="col-md-2">
-            <?php
-            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
-               <small for="">Room Price</small>
-               <div class="form-floating">
-                  <div class="input-group">
-                     <input type="number" class="form-control rounded-0" id="" name="room_price" value="0" required>
-                     <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
-                  </div>
-                  <!-- <label for="">Room Price</label> -->
-               </div>
-            </div>
+
+
 
             <div class="col-md-2">
-               <small for="">Platform Commission</small>
+               <small for="">Net Profit</small>
                <div class="form-floating">
                   <div class="input-group">
                      <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0" required>
@@ -402,18 +520,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      <span class="input-group-text text-white bg-primary">%</span>
                   </div>
                   <!-- <label for="">Tax</label> -->
-               </div>
-            </div>
-
-            <!-- Agent Commission -->
-            <div class="col-md-2">
-               <div class="form-floating">
-                  <small for="">Agent Commission</small>
-                  <div class="input-group">
-                     <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0" required>
-                     <span class="input-group-text text-white bg-primary">%</span>
-                  </div>
-                  <!-- <label for="">Agent Commission</label> -->
                </div>
             </div>
 
@@ -443,7 +549,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      </label>
                   </div>
                </div>
-               <div class="col-md-2">
+               <div class="col-md-4">
                   <div class="form-check d-flex gap-3 align-items-center">
                      <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
                      <label class="form-check-label" for="flexCheckDefault">
@@ -466,37 +572,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
 
-      // Function to calculate the total price
-      function calculateTotalPrice() {
-         // Get values from input fields
-         const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
-         const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
-         const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
-         const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
+// Function to calculate the total price
+function calculateTotalPrice() {
+   // Get values from input fields
+   const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
+   const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
+   const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
+   const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
+   const supplierCost = parseFloat($('input[name="supplier_cost"]').val()) || 0; // Add supplier cost
 
-         // Calculate the agent commission based on room price and platform commission
-         const agentCommission = (roomPrice + platformCommission) * (agentCommissionPercent / 100);
+   // Calculate the agent commission based on room price and platform commission
+   const agentCommission = (roomPrice + platformCommission) * (agentCommissionPercent / 100);
 
-         // Calculate total before tax (room price + platform commission + agent commission)
-         const totalBeforeTax = roomPrice + platformCommission + agentCommission;
+   // Calculate total before tax (room price + platform commission + agent commission + supplier cost)
+   const totalBeforeTax = roomPrice + platformCommission + agentCommission + supplierCost;
 
-         // Calculate tax amount
-         const taxAmount = totalBeforeTax * (taxPercent / 100);
+   // Calculate tax amount
+   const taxAmount = totalBeforeTax * (taxPercent / 100);
 
-         // Calculate total price (including tax)
-         const totalPrice = totalBeforeTax + taxAmount;
+   // Calculate total price (including tax)
+   const totalPrice = totalBeforeTax + taxAmount;
 
-         // Update the total price field
-         $('#bookingPrice').val(totalPrice.toFixed(2));
-      }
+   // Update the total price field
+   $('#bookingPrice').val(totalPrice.toFixed(2));
+}
 
-      // Bind change events to fields to recalculate the total price
-      $('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"]').on('input', function () {
-         calculateTotalPrice();
-      });
+// Bind change events to fields to recalculate the total price
+$('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"]').on('input', function () {
+   calculateTotalPrice();
+});
 
-      // Initial calculation when the page loads
-      calculateTotalPrice();
+// Initial calculation when the page loads
+calculateTotalPrice();
+
 
       // Handle location selection change
       $('#locationSelect').on('change', function () {
