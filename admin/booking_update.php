@@ -109,8 +109,10 @@ $title = T::booking .' '. T::edit;
                     'tax' => $_GET['tax'],
                     'agent_fee' => $_GET['agent_comission'],
                     'price_markup' => $_GET['bookingPrice'],
+                    'supplier_id' => $_GET['supplier_id'],
                     'supplier_payment_status' => $_GET['supplier_payment_status'],
-                    'due_date' => $_GET['due_date'],
+                    'supplier_cost' => $_GET['supplier_cost'],
+                    'supplier_due_date' => $_GET['supplier_due_date'],
                     'room_data' => $room_data_json
                 ],
                 ['booking_ref_no' => $_GET['booking_id']]
@@ -150,14 +152,21 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <input type="text" class="form-control" id="booking_id" name="booking_id"
                         value="<?= $data[0]['booking_ref_no'] ?? '' ?>" readonly>
-                    <label for="">Booking ID</label>
+                    <label for="">
+                        <?=T::booking?>
+                        <?=T::id?>
+                    </label>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="form-floating">
                     <input type="date" class="form-control" id="booking_date" name="booking_date"
                         value="<?= $data[0]['booking_date'] ?? '' ?>">
-                    <label for="">Booking Date</label>
+                    <label for="">
+                        <?=T::booking?>
+                        <?=T::date?>
+                    </label>
                 </div>
             </div>
 
@@ -165,7 +174,10 @@ $title = T::booking .' '. T::edit;
             <div class="col-md-3">
                 <div class="form-floating">
                     <select class="form-select booking_status" id="search_type" name="booking_status">
-                        <option value="">Select Type</option>
+                        <option value="">
+                            <?=T::select?>
+                            <?=T::type?>
+                        </option>
                         <option value="pending" <?=($data[0]['booking_status'] ?? '' )==="pending" ? "selected" : "" ;?>
                             >
                             <?=T::pending?>
@@ -185,10 +197,14 @@ $title = T::booking .' '. T::edit;
                     </label>
                 </div>
             </div>
+
             <div class="col-md-3">
                 <div class="form-floating">
                     <select id="search_type" name="payment_status" class="form-select payment_status">
-                        <option value="">Select Type</option>
+                        <option value="">
+                            <?=T::select?>
+                            <?=T::type?>
+                        </option>
                         <option value="paid" <?=($data[0]['payment_status'] ?? '' )==="paid" ? "selected" : "" ;?>>
                             <?=T::paid?>
                         </option>
@@ -206,106 +222,258 @@ $title = T::booking .' '. T::edit;
                     </label>
                 </div>
             </div>
-            <?php
-                $agents = $db->select('users', '*', [
-                    'user_type' => 'agent',  
-                    'status' => 1
-                ]);
+            <div class="col-md-12">
+                <div class="card mb-2">
+                    <div class="card-header bg-primary text-dark">
+                        <strong class="">
+                            <?=T::hotel?>
+                        </strong>
+                    </div>
 
-                $selectedAgentId = $data[0]['agent_id'] ?? null; 
-            ?>
+                    <div class="card-body p-3">
+                        <div class="row g-3">
+                            <?php $hotels = $db->select('hotels', '*', ['status' => 1]); ?>
+                            <div class="col-md-5">
+                                <div class="form-floating">
+                                    <select class="form-select" id="hotel_select" name="hotel_id">
+                                        <option value="">
+                                            <?=T::select?>
+                                            <?=T::hotel?>
+                                        </option>
+                                        <?php foreach ($hotels as $hotel): ?>
+                                        <option value="<?= $hotel['id'] ?>" <?=($data[0]['hotel_id'] ?? ''
+                                            )==$hotel['id'] ? "selected" : "" ; ?>>
+                                            <?= $hotel['name'] ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <label for="hotel_select">
+                                        <?=T::hotel?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-floating">
+                                    <select class="form-select" id="room_select" name="room_id" required>
+                                        <option value="">
+                                            <?=T::select?>
+                                            <?=T::room?>
+                                        </option>
+                                        <?php if (!empty($room_id)): ?>
+                                        <option value="<?= $room_id ?>" selected>
+                                            <?= ($room_name ?? ''); ?>
+                                        </option>
+                                        <?php endif; ?>
+                                    </select>
+                                    <label for="room_select">
+                                        <?=T::room?>
+                                    </label>
+                                </div>
+                            </div>
 
-            <div class="col-md-3">
-                <div class="form-floating">
-                <select id="supplier_payment_status" name="supplier_payment_status" class="form-select" required>
-                        <option value="" disabled selected>Supplier Payment Status</option>
-                        <option value="paid" <?=($data[0]['supplier_payment_status'] ?? '' )==="paid" ? "selected" : "";?>>
-                            <?=T::paid?>
-                        </option>
-                        <option value="unpaid" <?=($data[0]['supplier_payment_status'] ?? '' )==="unpaid" ? "selected" : "";?>>
-                            <?=T::unpaid?>
-                        </option>
-                        <!-- <option value="refunded" <?=($data[0]['payment_status'] ?? '' )==="refunded" ? "selected" : ""
-                            ;?>>
-                            <?=T::refunded?>
-                        </option> -->
-                    </select>
-                    <!-- <select class="form-select" id="agent_id" name="agent_id">
-                        <option value="">Select Agent</option>
-                        <?php foreach ($agents as $agent): ?>
-                        <option value="<?= $agent['user_id'] ?>" <?=($selectedAgentId==$agent['user_id']) ? "selected"
-                            : "" ; ?>>
-                            <?= htmlspecialchars($agent['first_name'] . ' ' . $agent['last_name']) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select> -->
-                    <label for="agent_select">Supplier Payment Status</label>
+                            <div class="col-md-2">
+                                <?php 
+                            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+                                <div class="form-floating">
+                                    <div class="input-group">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control rounded-0" id="room_price"
+                                                name="room_price" value="<?= $data[0]['price_original'] ?? '' ?>"
+                                                required>
+                                            <label for="">
+                                                <?=T::room?>
+                                                <?=T::price?>
+                                            </label>
+                                        </div>
+                                        <span class="input-group-text text-white bg-primary">
+                                            <?= $curreny[0]['name']?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-0">
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-floating">
-                <input type="date" class="form-control" id="due_date" name="due_date" autocomplete="off" value="<?=($data[0]['due_date'])?>" required>
-                     <label for="due_date">Due Date</label>
-            </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" id="agent_id" name="agent_id">
-                        <option value="">Select Agent</option>
-                        <?php foreach ($agents as $agent): ?>
-                        <option value="<?= $agent['user_id'] ?>" <?=($selectedAgentId==$agent['user_id']) ? "selected"
-                            : "" ; ?>>
-                            <?= htmlspecialchars($agent['first_name'] . ' ' . $agent['last_name']) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <label for="agent_select">Agent</label>
+
+            <div class="col-md-12">
+                <div class="card mb-2">
+                    <div class="card-header bg-primary text-dark">
+                        <strong class="">
+                            <?=T::supplier?>
+                        </strong>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="row g-3">
+                            <?php
+                            $suppliers = $db->select('users', '*', [
+                            'user_type' => 'supplier',  
+                            'status' => 1
+                        ]);
+
+                        $selectedsupplierId = $data[0]['supplier_id'] ?? null; 
+                    ?>
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="supplier_id" name="supplier_id">
+                                        <option value="">
+                                            <?=T::select?>
+                                            <?=T::supplier?>
+                                        </option>
+                                        <?php foreach ($suppliers as $supplier): ?>
+                                        <option value="<?= $supplier['user_id'] ?>"
+                                            <?=($selectedsupplierId==$supplier['user_id']) ? "selected" : "" ; ?>>
+                                            <?= htmlspecialchars($supplier['first_name'] . ' ' . $supplier['last_name']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <label for="agent_select">
+                                        <?=T::supplier?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <select id="supplier_payment_status" name="supplier_payment_status"
+                                        class="form-select" required>
+                                        <option value="" disabled selected>
+                                            <?=T::supplier?>
+                                            <?=T::payment?>
+                                            <?=T::status?>
+                                        </option>
+                                        <option value="paid" <?=($data[0]['supplier_payment_status'] ?? '' )==="paid"
+                                            ? "selected" : "" ;?>>
+                                            <?=T::paid?>
+                                        </option>
+                                        <option value="unpaid" <?=($data[0]['supplier_payment_status'] ?? ''
+                                            )==="unpaid" ? "selected" : "" ;?>>
+                                            <?=T::unpaid?>
+                                        </option>
+                                    </select>
+                                    <label for="agent_select">
+                                        <?=T::supplier?>
+                                        <?=T::payment?>
+                                        <?=T::status?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="supplier_due_date"
+                                        name="supplier_due_date" autocomplete="off"
+                                        value="<?=($data[0]['supplier_due_date'])?>" required>
+                                    <label for="supplier_due_date">
+                                        <?=T::supplier?>
+                                        <?=T::due?>
+                                        <?=T::date?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-floating">
+                                    <div class="input-group">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="supplier_cost"
+                                                name="supplier_cost" value="<?= $data[0]['supplier_cost'] ?? '' ?>"
+                                                required
+                                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                                            <label for="">
+                                                <?=T::supplier?>
+                                                <?=T::cost?>
+                                            </label>
+                                        </div>
+                                        <span class="input-group-text text-white bg-primary">
+                                            <?= $curreny[0]['name']?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-0">
                 </div>
             </div>
 
-            <?php $hotels = $db->select('hotels', '*', ['status' => 1]); ?>
-            <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" id="hotel_select" name="hotel_id">
-                        <option value="">Select Hotel</option>
-                        <?php foreach ($hotels as $hotel): ?>
-                        <option value="<?= $hotel['id'] ?>" <?=($data[0]['hotel_id'] ?? '' )==$hotel['id'] ? "selected"
-                            : "" ; ?>>
-                            <?= $hotel['name'] ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <label for="hotel_select">Hotel</label>
+
+            <div class="col-md-12">
+                <div class="card mb-2">
+                    <div class="card-header bg-primary text-dark">
+                        <strong class="">
+                            <?=T::agent?>
+                        </strong>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="row g-3">
+                            <?php
+                                $agents = $db->select('users', '*', [
+                                    'user_type' => 'agent',  
+                                    'status' => 1
+                                ]);
+
+                                $selectedAgentId = $data[0]['agent_id'] ?? null; 
+                            ?>
+
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select class="form-select" id="agent_id" name="agent_id">
+                                        <option value="">
+                                            <?=T::select?>
+                                            <?=T::agent?>
+                                        </option>
+                                        <?php foreach ($agents as $agent): ?>
+                                        <option value="<?= $agent['user_id'] ?>"
+                                            <?=($selectedAgentId==$agent['user_id']) ? "selected" : "" ; ?>>
+                                            <?= htmlspecialchars($agent['first_name'] . ' ' . $agent['last_name']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <label for="agent_select">
+                                        <?=T::agent?>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6"></div>
+                            <!-- Agent Commission -->
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="agent_comission"
+                                            name="agent_comission" value="<?= $data[0]['agent_fee'] ?? '' ?>" required
+                                            style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                                        <label for="">
+                                            <?=T::agent?>
+                                            <?=T::fee?>
+                                        </label>
+                                    </div>
+                                    <span class="input-group-text text-white bg-primary">
+                                        %
+                                    </span>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="m-0">
                 </div>
             </div>
 
-            <?php
 
-            // $room_id = $existing_room_data['room_id'] ?? '';
-            // $room_name = $existing_room_data['room_name'] ?? ''; 
 
-            ?>
 
-            <div class="col-md-6">
-                <div class="form-floating">
-                    <select class="form-select" id="room_select" name="room_id" required>
-                        <option value="">Select Room</option>
-                        <?php if (!empty($room_id)): ?>
-                        <option value="<?= $room_id ?>" selected>
-                            <?= ($room_name ?? ''); ?>
-                        </option>
-                        <?php endif; ?>
-                    </select>
-                    <label for="room_select">Room</label>
-                </div>
-            </div>
 
             <!-- Add First Name and Last Name Fields -->
 
             <div class="col-md-12">
                 <div class="card" style="margin-block-end:0px;">
                     <div class="card-header bg-primary text-black">
-                        <strong>Travellers</strong>
+                        <strong>
+                            <?=T::travellers?>
+                        </strong>
                     </div>
                     <div class="card-body p-3">
                         <div class="row g-2">
@@ -313,7 +481,9 @@ $title = T::booking .' '. T::edit;
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="first_name" name="first_name"
                                         value="<?= $first_name ?>">
-                                    <label for="first_name">First Name</label>
+                                    <label for="first_name">
+                                        <?=T::first_name?>
+                                    </label>
                                 </div>
                             </div>
 
@@ -321,22 +491,56 @@ $title = T::booking .' '. T::edit;
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="last_name" name="last_name"
                                         value="<?= $last_name ?>">
-                                    <label for="last_name">Last Name</label>
+                                    <label for="last_name">
+                                        <?=T::last_name?>
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
                                     <input type="email" class="form-control" id="email" name="email"
                                         value="<?= $email ?>">
-                                    <label for="email">Email</label>
+                                    <label for="email">
+                                        <?=T::email?>
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
                                     <input type="number" class="form-control" id="phone" name="phone"
                                         value="<?= $phone ?>">
-                                    <label for="phone">Phone</label>
+                                    <label for="phone">
+                                        <?=T::phone?>
+                                    </label>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <hr class=m-0>
+                    </div>
+                    <div class="row g-3 p-3">
+                        <!-- Check-in Date -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="checkin form-control" id="checkin" name="checkin"
+                                    autocomplete="off" value="<?= $data[0]['checkin'] ?? '' ?>">
+                                <label for="checkin">
+                                    <?=T::checkin?>
+                                    <?=T::date?>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Check-out Date -->
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input type="text" class="checkout form-control" id="checkout" name="checkout"
+                                    autocomplete="off" value="<?= $data[0]['checkout'] ?? '' ?>">
+                                <label for="checkout">
+                                    <?=T::checkout?>
+                                    <?=T::date?>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -345,7 +549,10 @@ $title = T::booking .' '. T::edit;
             <div class="col-md-12">
                 <div class="card" style="margin-block-end:0px;">
                     <div class="card-header bg-primary text-black">
-                        <strong>Booking Note </strong>
+                        <strong>
+                            <?=T::booking?>
+                            <?=T::note?>
+                        </strong>
                     </div>
                     <div class="card-body p-3">
                         <textarea name="bookingnote" class="form-control" id="bookingnote"
@@ -356,7 +563,12 @@ $title = T::booking .' '. T::edit;
             <div class="col-md-12">
                 <div class="card" style="margin-block-end:0px;">
                     <div class="card-header bg-primary text-black">
-                        <strong>Cancellation terms & policy</strong>
+                        <strong>
+                            <?=T::cancellation?>
+                            <?=T::terms?>
+                            <?=T::and?>
+                            <?=T::policy?>
+                        </strong>
                     </div>
                     <div class="card-body p-3">
                         <textarea name="cancellation_terms" class="form-control" id="cancellation_terms"
@@ -364,85 +576,65 @@ $title = T::booking .' '. T::edit;
                     </div>
                 </div>
             </div>
+
+
             <div class="col-md-2">
-                <?php 
-            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
-                <small for="">Room Price</small>
                 <div class="form-floating">
                     <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="room_price" name="room_price"
-                            value="<?= $data[0]['price_original'] ?? '' ?>" required>
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="platform_comission" name="platform_comission"
+                                value="<?= $data[0]['platform_comission'] ?? '' ?>" required
+                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                            <label for="">
+                                <?=T::net_profit?>
+                            </label>
+                        </div>
                         <span class="input-group-text text-white bg-primary">
                             <?= $curreny[0]['name']?>
                         </span>
+
                     </div>
                     <!-- <label for="">Room Price</label> -->
                 </div>
             </div>
 
             <div class="col-md-2">
-                <small for="">Platform Commission</small>
                 <div class="form-floating">
                     <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="platform_comission"
-                            name="platform_comission" value="<?= $data[0]['platform_comission'] ?? '' ?>" required>
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="tax" name="tax"
+                                value="<?= $data[0]['tax'] ?? '' ?>" required
+                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                            <label for="">
+                                <?=T::tax_?>
+                            </label>
+                        </div>
+                        <span class="input-group-text text-white bg-primary">
+                            %
+
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <div class="input-group">
+                        <div class="form-floating">
+                            <input type="number" class="form-control text-dark" id="bookingPrice"
+                                value="<?= $data[0]['price_markup'] ?? '' ?>" name="price" required
+                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                            <label class="text-dark" for="">
+                                <?=T::total?>
+                                <?=T::price?>
+                            </label>
+                        </div>
                         <span class="input-group-text text-white bg-primary">
                             <?= $curreny[0]['name']?>
                         </span>
                     </div>
-                    <!-- <label for="">Platform Commission</label> -->
-                </div>
-            </div>
-
-            <div class="col-md-2">
-                <small for="">Tax</small>
-                <div class="form-floating">
-                    <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="tax" name="tax"
-                            value="<?= $data[0]['tax'] ?? '' ?>" required>
-                        <span class="input-group-text text-white bg-primary">%</span>
-                    </div>
-                    <!-- <label for="">Tax</label> -->
-                </div>
-            </div>
-
-            <!-- Agent Commission -->
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <small for="">Agent Commission</small>
-                    <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="agent_comission" name="agent_comission"
-                            value="<?= $data[0]['agent_fee'] ?? '' ?>" required>
-                        <span class="input-group-text text-white bg-primary">%</span>
-                    </div>
-                    <!-- <label for="">Agent Commission</label> -->
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="form-floating">
-                    <small for="">Total Price</small>
-                    <div class="input-group">
-                        <input type="text" class="form-control fw-semibold text-dark" id="bookingPrice"
-                            value="<?= $data[0]['price_markup'] ?? '' ?>" name="price">
-                    </div>
-                </div>
-            </div>
-            <!-- Check-in Date -->
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="text" class="checkin form-control" id="checkin" name="checkin" autocomplete="off"
-                        value="<?= $data[0]['checkin'] ?? '' ?>">
-                    <label for="checkin">Check-in Date</label>
-                </div>
-            </div>
-
-            <!-- Check-out Date -->
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="text" class="checkout form-control" id="checkout" name="checkout" autocomplete="off"
-                        value="<?= $data[0]['checkout'] ?? '' ?>">
-                    <label for="checkout">Check-out Date</label>
                 </div>
             </div>
             <input type="hidden" id="booking_id" name="booking_id" value="<?=$_GET['booking']?>">
@@ -455,48 +647,48 @@ $title = T::booking .' '. T::edit;
             </div>
         </form>
         <script>
-$(document).ready(function () {
-    function updateRooms(hotelId, selectedRoomId) {
-        if (hotelId) {
-            $.ajax({
-                url: 'booking-ajax.php',
-                method: 'POST',
-                data: {
-                    action: 'get_rooms_update',  
-                    hotel_id: hotelId
-                },
-                dataType: 'json',
-                success: function (response) {
-                    $('#room_select').html('<option value="">Select Room</option>');
+            $(document).ready(function () {
+                function updateRooms(hotelId, selectedRoomId) {
+                    if (hotelId) {
+                        $.ajax({
+                            url: 'booking-ajax.php',
+                            method: 'POST',
+                            data: {
+                                action: 'get_rooms_update',
+                                hotel_id: hotelId
+                            },
+                            dataType: 'json',
+                            success: function (response) {
+                                $('#room_select').html('<option value="">Select Room</option>');
 
-                    if (response.length > 0) {
-                        response.forEach(function (room) {
-                            var selected = room.id == selectedRoomId ? 'selected' : '';
-                            $('#room_select').append('<option value="' + room.id + '" ' + selected + '>' + room.name + '</option>');
+                                if (response.length > 0) {
+                                    response.forEach(function (room) {
+                                        var selected = room.id == selectedRoomId ? 'selected' : '';
+                                        $('#room_select').append('<option value="' + room.id + '" ' + selected + '>' + room.name + '</option>');
+                                    });
+                                } else {
+                                    $('#room_select').append('<option value="">No rooms available</option>');
+                                }
+                            },
+                            error: function () {
+                                alert('Error fetching rooms.');
+                            }
                         });
                     } else {
-                        $('#room_select').append('<option value="">No rooms available</option>');
+                        $('#room_select').html('<option value="">Select Room</option>');
                     }
-                },
-                error: function () {
-                    alert('Error fetching rooms.');
                 }
+
+                var selectedHotelId = $('#hotel_select').val();
+                var selectedRoomId = $('#room_select').val();
+
+                updateRooms(selectedHotelId, selectedRoomId);
+
+                $('#hotel_select').change(function () {
+                    var hotelId = $(this).val();
+                    updateRooms(hotelId, selectedRoomId);
+                });
             });
-        } else {
-            $('#room_select').html('<option value="">Select Room</option>');
-        }
-    }
-
-    var selectedHotelId = $('#hotel_select').val();
-    var selectedRoomId = $('#room_select').val();
-
-    updateRooms(selectedHotelId, selectedRoomId);
-
-    $('#hotel_select').change(function () {
-        var hotelId = $(this).val();
-        updateRooms(hotelId, selectedRoomId);
-    });
-});
 
 
         </script>
@@ -524,13 +716,15 @@ $(document).ready(function () {
                 var tax = $("#tax").val();
                 var agent_comission = $("#agent_comission").val();
                 var bookingPrice = $("#bookingPrice").val();
-                var room_select = $("#room_select").val();cancellation_terms
+                var room_select = $("#room_select").val(); cancellation_terms
                 var cancellation_terms = $("#cancellation_terms").val();
+                var supplier_id = $("#supplier_id").val();
                 var supplier_payment_status = $("#supplier_payment_status").val();
-                var due_date = $("#due_date").val();
+                var supplier_cost = $("#supplier_cost").val();
+                var supplier_due_date = $("#supplier_due_date").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&due_date=" + due_date + "&cancellation_terms=" + cancellation_terms;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id;
 
             });
         </script>
