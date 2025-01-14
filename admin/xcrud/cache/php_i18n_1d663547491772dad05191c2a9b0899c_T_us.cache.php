@@ -580,6 +580,27 @@ const previous = 'Previous';
 const dropoff = 'Drop-off';
 const pickup = 'Pick-up';
 const time = 'Time';
+const rate = 'Rate';
+const comment = 'Comments';
+const fee = 'Fee';
+const platform = 'Platform';
+const commission = 'Commission';
+const due = 'Due';
+const cost = 'Cost';
+const note = 'Note';
+const terms = 'Terms';
+const and = 'And';
+const net_profit = 'Net Profit';
+const tax_ = 'Tax';
+const success = 'Success!';
+const booking_added_to_system = 'Your booking has been added to the system.';
+const select_location = 'Select A Location';
+const select_hotel = 'Select A Hotel';
+const add_more = 'Add More';
+const remove = 'Remove';
+const checkin = 'Check-in';
+const checkout = 'Check-out';
+const select_supplier = 'Select Supplier';
 public static function __callStatic($string, $args) {
     return vsprintf(constant("self::" . $string), $args);
 }

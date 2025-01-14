@@ -335,6 +335,12 @@ if (isset($user_permissions->bookings->page_access)) {
 </a>
 </li>
 
+<li class="slide">
+<a href="./suppliers_status.php" class="side-menu__item <?php if ($url_name == 'suppliers_status') { echo "active"; } ?>">
+<?= T::suppliers ?> <?= T::status ?>
+</a>
+</li>
+
 </ul>
 </li>
  <!-- End::Markups Slide -->
