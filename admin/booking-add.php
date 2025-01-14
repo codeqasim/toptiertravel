@@ -173,15 +173,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          <form method="post" action="<?=root?>booking-add.php" onsubmit="loading()">
             <!-- Select Hotel -->
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
                      <?=T::hotel?>
                   </strong>
                </div>
 
-               <div class="card-body p-3">
+               <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-3">
+                     <label for="" >Location</label>
+                      <hr>
+
                         <?php
                      $locations = $db->select("hotels", "location", ["status" => 1, "GROUP" => "location"]);
                      ?>
@@ -198,6 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                      </div>
                      <div class="col-md-3">
+                     <label for="" >Hotel</label>
+                     <hr>
                         <div class=" ">
                            <select class="select2" id="hotelSelect" name="hotel" required>
                               <option value="" disabled selected><?=T::select_hotel?></option>
@@ -205,6 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                      </div>
                      <div class="col-md-3">
+                     <label for="" >Room</label>
+                     <hr>
                         <div class=" ">
                            <select class="select2" id="roomSelect" name="room" required>
                               <option value="" disabled selected><?=T::select_room?></option>
@@ -212,18 +219,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                      </div>
                      <div class="col-md-3">
+
+                     <label for="" >Room Price</label>
+ 
                         <?php $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                         <!-- <small for="">Room Price</small> -->
-                        <div class="form-floating">
+                        <div class="form-floating mt-2">
                            <div class="input-group">
-                              <div class="form-floating">
+                              <!-- <div class="form-floating"> -->
                                  <input type="number" class="form-control" id="" name="room_price" value="0" required
                                     style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
-                                 <label for="">
-                                    <?=T::room?>
-                                    <?=T::price?>
-                                 </label>
-                              </div>
+                             
+                              <!-- </div> -->
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
                               </span>
@@ -236,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                <hr class="m-0">
             </div>
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
                      <?=T::travellers?>
                   </strong>
@@ -327,16 +334,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong>
                      <?=T::supplier?>
                   </strong>
                </div>
-               <div class="card-body p-3">
+               <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-4">
-                        <small for=""><?=T::supplier?></small>
-                        <div class="form-floating mt-2 rounded-2 h-100">
+                        <label for=""><?=T::supplier?></label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="form-select select2 pt-2" id="supplier_id" name="supplier_id" required>
                               <option value="" disabled selected><?=T::select_supplier?></option>
                               <?php // Fetch agents from users table where user_type is 'agent'
@@ -354,8 +361,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                      <!-- Supplier Payment Status (With select2) -->
                      <div class="col-md-3">
-                        <small for=""><?=T::payment?> <?=T::status?></small>
-                        <div class="form-floating mt-2 rounded-2 h-100">
+                        <label for=""><?=T::payment?> <?=T::status?></label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="form-select select2 pt-2" id="search_type" name="supplier_payment_status"
                               required>
                               <option value="" disabled selected><?=T::select?> <?=T::payment?> <?=T::status?></option>
@@ -370,19 +377,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                      </div>
                      <div class="col-md-3">
-                        <small for=""><?=T::supplier?> <?=T::due?> <?=T::date?></small>
+                        <label for=""><?=T::supplier?> <?=T::due?> <?=T::date?></label>
                         <div class="">
-                           <input type="date" class="form-control" id="supplier_due_date" name="supplier_due_date"
+                           <input type="date" class="form-control mt-2" id="supplier_due_date" name="supplier_due_date"
                               autocomplete="off" required>
                            <!-- <label for="supplier_due_date">Due Date</label> -->
                         </div>
                      </div>
                      <!-- Supplier Cost Input -->
                      <div class="col-md-2">
-                        <small for=""><?=T::supplier?> <?=T::cost?></small>
+                        <label for=""><?=T::supplier?> <?=T::cost?></label>
                         <div class="form-floating">
                            <div class="input-group">
-                              <input type="number" class="form-control rounded-0" id="supplierCost" name="supplier_cost"
+                              <input type="number" class="form-control rounded-0 mt-2" id="supplierCost" name="supplier_cost"
                                  value="0" required>
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
@@ -397,16 +404,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
                      <?=T::agent?>
                   </strong>
                </div>
-               <div class="card-body p-3">
+               <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-4">
-                        <small for=""><?=T::agent?></small>
-                        <div class="form-floating mt-2 rounded-2 h-100">
+                        <label for=""><?=T::agent?></label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="select2 pt-2" id="agentSelect" name="agent" required>
                               <option value="" selected><?=T::select?> <?=T::agent?></option>
                               <?php
@@ -428,8 +435,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                      <!-- Agent Commission -->
                      <div class="col-md-2">
-                        <small for=""><?=T::agent?> <?=T::fee?></small>
-                        <div class="form-floating">
+                        <label for=""><?=T::agent?> <?=T::fee?></label>
+                        <div class="form-floating mt-2">
                            <div class="input-group">
                               <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0"
                                  required>
@@ -512,7 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </script>
 
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
                   <?=T::booking?> <?=T::note?>
                </div>
@@ -523,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                <hr class="m-0">
             </div>
             <div class="card mb-2">
-               <div class="card-header bg-primary text-dark">
+               <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
                      <?=T::cancellation?> <?=T::terms?> <?=T::and?> <?=T::policy?>
                </div>
@@ -533,6 +540,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                </div>
                <hr class="m-0">
             </div>
+
+
+            <div class="d-block border-top pt-3"></div>
+
             <?php
             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
             <div class="d-block"></div>
@@ -579,6 +590,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   </div>
                </div>
             </div>
+
+            <div class="d-block border-top pt-3"></div>
+
             <div class="row">
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
