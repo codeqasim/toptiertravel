@@ -16,17 +16,18 @@ include "_header.php";
             <p class="m-0 page_title"><?= T::supplier ?> <?= T::payments ?></p>
         </div>
         <div class="float-end">
+            <div class="mb-3">
+            <a href="?supplier_payment_status=all" class="btn btn-primary">All</a>
+            <a href="?supplier_payment_status=paid" class="btn btn-success">Paid</a>
+            <a href="?supplier_payment_status=unpaid" class="btn btn-danger">Unpaid</a>
+        </div>
             <!-- <a href="javascript:window.history.back();" data-toggle="tooltip" data-placement="top" title="Previous Page" class="loading_effect btn btn-warning"><?=T::back?></a> -->
         </div>
     </div>
 </div>
 
 <div class="container mt-3">
-    <div class="mb-3">
-        <a href="?supplier_payment_status=all" class="btn btn-primary">All</a>
-        <a href="?supplier_payment_status=paid" class="btn btn-success">Paid</a>
-        <a href="?supplier_payment_status=unpaid" class="btn btn-danger">Unpaid</a>
-    </div>
+
 
     <?php 
     include('./xcrud/xcrud.php');
