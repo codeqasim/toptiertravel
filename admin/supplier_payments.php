@@ -12,16 +12,17 @@ include "_header.php";
 
 <div class="page_head bg-transparent">
     <div class="panel-heading">
-        <div class="float-start">
+        <div class="float-start d-flex">
             <p class="m-0 page_title"><?= T::supplier ?> <?= T::payments ?></p>
+
+            <div class="ms-4">
+                <a href="?supplier_payment_status=all" class="btn btn-primary">All</a>
+                <a href="?supplier_payment_status=paid" class="btn btn-success">Paid</a>
+                <a href="?supplier_payment_status=unpaid" class="btn btn-danger">Unpaid</a>
+            </div>
         </div>
         <div class="float-end">
-            <div class="mb-3">
-            <a href="?supplier_payment_status=all" class="btn btn-primary">All</a>
-            <a href="?supplier_payment_status=paid" class="btn btn-success">Paid</a>
-            <a href="?supplier_payment_status=unpaid" class="btn btn-danger">Unpaid</a>
-        </div>
-            <!-- <a href="javascript:window.history.back();" data-toggle="tooltip" data-placement="top" title="Previous Page" class="loading_effect btn btn-warning"><?=T::back?></a> -->
+            <a href="javascript:window.history.back();" data-toggle="tooltip" data-placement="top" title="Previous Page" class="loading_effect btn btn-warning"><?=T::back?></a>
         </div>
     </div>
 </div>
