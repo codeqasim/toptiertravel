@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      <div class="col-md-6">
                         <div class="form-floating">
                            <input type="number" class="form-control" id="clientPhone" name="phone"
-                              placeholder="Enter Phone Number" required>
+                              placeholder="Enter Phone Number">
                            <label for="clientPhone"><?=T::phone?></label>
                         </div>
                      </div>
