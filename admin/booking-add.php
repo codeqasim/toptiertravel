@@ -298,15 +298,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      <div class="col-md-6">
                         <div class="form-floating">
                            <input type="email" class="form-control" id="clientEmail" name="email"
-                              placeholder="Enter email address" required>
-                           <label for="clientEmail"><?=T::email?></label>
+                              placeholder="Enter email address">
+                           <label for="clientEmail"><?=T::email?>(<?=T::optional?>)</label>
                         </div>
                      </div>
                      <div class="col-md-6">
                         <div class="form-floating">
                            <input type="number" class="form-control" id="clientPhone" name="phone"
                               placeholder="Enter Phone Number">
-                           <label for="clientPhone"><?=T::phone?></label>
+                           <label for="clientPhone"><?=T::phone?>(<?=T::optional?>)</label>
                         </div>
                      </div>
                   </div>
