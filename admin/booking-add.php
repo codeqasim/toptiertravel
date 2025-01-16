@@ -12,130 +12,115 @@
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-   $hotel_img = $db->select("hotels_images","*",["hotel_id"=> $_POST['hotel']]);
-    // Collect main booking parameters
-    $params = [
-        "booking_ref_no" => date('Ymdhis') . rand(),
-        "location" => $_POST['location'],
-        "hotel_id" => $_POST['hotel'],
-        "hotel_img" => $hotel_img[0]['img'],
-        "price_markup" => $_POST['price'],
-        "first_name" => $_POST['adults_data'][0]['firstname'],
-        "last_name" => $_POST['adults_data'][0]['lastname'],
-        "email" => $_POST['email'],
-        "phone" => $_POST['phone'],
-        "supplier" => "hotels",
-        "checkin" => $_POST['checkin'],
-        "checkout" => $_POST['checkout'],
-        "agent_id" => $_POST['agent'],
-        "booking_date" => date('Y-m-d'),
-        "agent_fee" => $_POST['agent_comission'],
-        "tax" => $_POST['tax'],
-        "platform_comission" => $_POST['platform_comission'],
-        "price_original" => $_POST['room_price'],
-        "booking_note" => $_POST['bookingnote'],
-        "cancellation_terms" => $_POST['cancellation_terms'],
-        "supplier_cost" => $_POST['supplier_cost'],
-        "supplier_payment_status"=>$_POST['supplier_payment_status'],
-        "supplier_due_date"=>$_POST['supplier_due_date'],
-        "supplier_id" => $_POST["supplier_id"]
-    ];
+      if (!isset($_POST['hotel'])) {
+         die("Error: Hotel ID is required.");
+      }
 
-    // Collect user data
-    $user_data = [
-        "first_name" => $_POST['adults_data'][0]['firstname'], // Get first adult's first name
-        "last_name" => $_POST['adults_data'][0]['lastname'],   // Get first adult's last name
-        "email" => $_POST['email'],
-        "phone" => $_POST['phone'],
-        "address" => $_POST['address'],
-        "nationality" => $_POST['nationality'],
-        "country_code" => $_POST['country_code'],
-        "user_id" => $_POST['user_id']
-    ];
-    $params['user_data'] = json_encode($user_data);
+      $hotel_img = $db->select("hotels_images", "*", ["hotel_id" => $_POST['hotel']]);
 
-       // Collect the travelers' data in the required format
-       $travelers_data = [];
-       // Process adults data
-       if (isset($_POST['adults_data'])) {
-           foreach ($_POST['adults_data'] as $adult) {
-               $travelers_data[] = [
-                   "traveller_type" => "adults",
-                   "title" => $adult['title'],
-                   "first_name" => $adult['firstname'],
-                   "last_name" => $adult['lastname'],
-                  //  "email" => $adult['email'],
-                  //  "phone" => $adult['phone'],
-                   "age" => ""
-               ];
-           }
-       }
+      $params = [
+         "booking_ref_no" => date('Ymdhis') . rand(),
+         "location" => $_POST['location'] ?? "Unknown Location",
+         "hotel_id" => $_POST['hotel'],
+         "hotel_img" => $hotel_img[0]['img'] ?? "no-image.jpg",
+         "price_markup" => $_POST['price'] ?? 0.0,
+         "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
+         "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
+         "email" => $_POST['email'] ?? "",
+         "phone" => $_POST['phone'] ?? "",
+         "supplier" => "hotels",
+         "checkin" => $_POST['checkin'] ?? "",
+         "checkout" => $_POST['checkout'] ?? "",
+         "agent_id" => $_POST['agent'] ?? null,
+         "booking_date" => date('Y-m-d'),
+         "agent_fee" => $_POST['agent_comission'] ?? 0,
+         "tax" => $_POST['tax'] ?? 0,
+         "platform_comission" => $_POST['platform_comission'] ?? 0,
+         "price_original" => $_POST['room_price'] ?? 0.0,
+         "booking_note" => $_POST['bookingnote'] ?? "",
+         "cancellation_terms" => $_POST['cancellation_terms'] ?? "",
+         "supplier_cost" => $_POST['supplier_cost'] ?? 0.0,
+         "supplier_payment_status" => $_POST['supplier_payment_status'] ?? "unpaid",
+         "supplier_due_date" => $_POST['supplier_due_date'] ?? "",
+         "supplier_id" => $_POST["supplier_id"] ?? null
+      ];
 
-       // Encode travelers' data into JSON
-       $params['guest'] = json_encode($travelers_data);
+      $user_data = [
+         "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
+         "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
+         "email" => $_POST['email'] ?? "",
+         "phone" => $_POST['phone'] ?? "",
+         "address" => $_POST['address'] ?? "",
+         "nationality" => $_POST['nationality'] ?? "Unknown",
+         "country_code" => $_POST['country_code'] ?? "",
+         "user_id" => $_POST['user_id'] ?? null
+      ];
+      $params['user_data'] = json_encode($user_data);
 
-       // Fetch hotel name
-       $hotel_id = $_POST['hotel'];
-       $hotel_data = $db->select("hotels", ["name"], ["id" => $hotel_id]);
-       if (!empty($hotel_data)) {
-           $params['hotel_name'] = $hotel_data[0]['name'];
-       }
+      $travelers_data = [];
+      if (!empty($_POST['adults_data'])) {
+         foreach ($_POST['adults_data'] as $adult) {
+            $travelers_data[] = [
+               "traveller_type" => "adults",
+               "title" => $adult['title'] ?? "",
+               "first_name" => $adult['firstname'] ?? "Unknown",
+               "last_name" => $adult['lastname'] ?? "Unknown",
+               "age" => ""
+            ];
+         }
+      }
+      $params['guest'] = json_encode($travelers_data);
 
-       // Fetch currency
-       $currency = $db->select("currencies", ["name"], ["default" => 1]);
-       if (!empty($currency)) {
-           $params['currency_markup'] = $currency[0]['name'];
-       }
+      $hotel_id = $_POST['hotel'];
+      $hotel_data = $db->select("hotels", ["name"], ["id" => $hotel_id]);
+      $params['hotel_name'] = !empty($hotel_data) ? $hotel_data[0]['name'] : "Unknown Hotel";
 
+      $currency = $db->select("currencies", ["name"], ["default" => 1]);
+      $params['currency_markup'] = !empty($currency) ? $currency[0]['name'] : "USD";
 
-       if (isset($_POST['room'])) {
-        $room_id = $_POST['room'];
+      if (isset($_POST['room'])) {
+         $room_id = $_POST['room'];
 
-        $room_details = $db->select("hotels_rooms", [
+         $room_details = $db->select("hotels_rooms", [
             "[>]hotels_settings" => ["room_type_id" => "id"]
-        ], [
+         ], [
             "hotels_rooms.id",
             "hotels_settings.name",
             "hotels_rooms.extra_bed_charges",
             "hotels_rooms.extra_bed",
-        ], [
+         ], [
             "hotels_rooms.id" => $room_id,
             "hotels_rooms.status" => 1
-        ]);
+         ]);
 
-        $room_options = $db->select("hotels_rooms_options", ["price", "quantity"], [
+         $room_options = $db->select("hotels_rooms_options", ["price", "quantity"], [
             "room_id" => $room_id
-        ]);
+         ]);
 
-      //   if (!empty($room_options)) {
-      //       $params['price_original'] = $room_options[0]['price'];
-      //   }
-
-        if (!empty($room_details)) {
+         if (!empty($room_details)) {
             $room_data = [
-                "room_id" => $room_details[0]['id'],
-                "room_name" => $room_details[0]['name'],
-                "room_price" => $_POST['room_price'],
-                "room_quantity" => !empty($room_options) ? $room_options[0]['quantity'] : "1",
-                "room_extrabed_price" => $room_details[0]['extra_bed_charges'],
-                "room_extrabed" => $room_details[0]['extra_bed'],
-                "room_actual_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00"
+               "room_id" => $room_details[0]['id'],
+               "room_name" => $room_details[0]['name'],
+               "room_price" => $_POST['room_price'] ?? 0.0,
+               "room_quantity" => !empty($room_options) ? $room_options[0]['quantity'] : "1",
+               "room_extrabed_price" => $room_details[0]['extra_bed_charges'] ?? 0.0,
+               "room_extrabed" => $room_details[0]['extra_bed'] ?? 0,
+               "room_actual_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00"
             ];
 
             $params['room_data'] = json_encode([$room_data]);
-        }
-    }
+         }
+      }
 
-       // Insert booking into the database
-       $db->insert("hotels_bookings", [
-           $params,
-       ]);
-
-       // Get the inserted booking ID (if needed)
-       $id = $db->id();
-       if (isset($id)) {
-           $_SESSION['booking_inserted'] = true;
-       }
+      try {
+         $db->insert("hotels_bookings", $params);
+         $id = $db->id();
+         if ($id) {
+            $_SESSION['booking_inserted'] = true;
+         }
+      } catch (Exception $e) {
+         die("Error inserting booking: " . $e->getMessage());
+      }
    }
 ?>
 
