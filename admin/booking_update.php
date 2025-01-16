@@ -232,7 +232,7 @@ $title = T::booking .' '. T::edit;
 
                     <div class="card-body p-3">
                         <div class="row g-3">
-                            <?php $hotels = $db->select('hotels', '*', ['status' => 1]); ?>
+                            <?php $hotels = $db->select('hotels', '*', ['status' => 1,'location'=>$data[0]['location']]); ?>
                             <div class="col-md-5">
                                 <div class="form-floating">
                                     <select class="form-select" id="hotel_select" name="hotel_id">
