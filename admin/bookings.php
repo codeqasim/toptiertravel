@@ -51,7 +51,16 @@ function compareByTimeStamp($time1, $time2)
     <div class="mt-1">
 
     <div class="p-3">
-
+    <?php
+    
+         if (isset($_SESSION['booking_inserted'])): ?>
+         <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong><?=T::success?></strong> <?=T::booking_added_to_system?>
+         </div>
+         <?php
+         endif;
+         unset($_SESSION['booking_inserted']);
+      ?>
 
         <div class="card p-3 mb-2">
 

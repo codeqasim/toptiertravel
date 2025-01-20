@@ -233,7 +233,7 @@ $title = T::booking .' '. T::edit;
                     <div class="card-body p-3">
                         <div class="row g-3">
                             <?php $hotels = $db->select('hotels', '*', ['status' => 1,'location'=>$data[0]['location']]); ?>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <div class="form-floating">
                                     <select class="form-select" id="hotel_select" name="hotel_id">
                                         <option value="">
@@ -271,13 +271,14 @@ $title = T::booking .' '. T::edit;
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <?php 
                             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
-                                            <input type="number" class="form-control rounded-0" id="room_price"
+                                            <input type="number" class="form-control" id="room_price"
+                                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;"
                                                 name="room_price" value="<?= $data[0]['price_original'] ?? '' ?>"
                                                 required>
                                             <label for="">
@@ -337,6 +338,19 @@ $title = T::booking .' '. T::edit;
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
+                                    <input type="date" class="form-control" id="supplier_due_date"
+                                        name="supplier_due_date" autocomplete="off"
+                                        value="<?=($data[0]['supplier_due_date'])?>" required>
+                                    <label for="supplier_due_date">
+                                        <?=T::supplier?>
+                                        <?=T::due?>
+                                        <?=T::date?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="form-floating">
                                     <select id="supplier_payment_status" name="supplier_payment_status"
                                         class="form-select" required>
                                         <option value="" disabled selected>
@@ -354,25 +368,13 @@ $title = T::booking .' '. T::edit;
                                         </option>
                                     </select>
                                     <label for="agent_select">
-                                        <?=T::supplier?>
                                         <?=T::payment?>
                                         <?=T::status?>
                                     </label>
                                 </div>
                             </div>
+
                             <div class="col-md-3">
-                                <div class="form-floating">
-                                    <input type="date" class="form-control" id="supplier_due_date"
-                                        name="supplier_due_date" autocomplete="off"
-                                        value="<?=($data[0]['supplier_due_date'])?>" required>
-                                    <label for="supplier_due_date">
-                                        <?=T::supplier?>
-                                        <?=T::due?>
-                                        <?=T::date?>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
@@ -437,9 +439,9 @@ $title = T::booking .' '. T::edit;
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-6"></div>
+                            <div class="col-md-5"></div>
                             <!-- Agent Commission -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <div class="input-group">
                                     <div class="form-floating">
                                         <input type="number" class="form-control" id="agent_comission"

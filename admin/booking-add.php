@@ -117,6 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          $id = $db->id();
          if ($id) {
             $_SESSION['booking_inserted'] = true;
+            REDIRECT('./bookings.php');
          }
       } catch (Exception $e) {
          die("Error inserting booking: " . $e->getMessage());
@@ -145,15 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="mt-1">
    <div class="p-3">
       <div class="container px-5">
-         <?php
-         if (isset($_SESSION['booking_inserted'])): ?>
-         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong><?=T::success?></strong> <?=T::booking_added_to_system?>
-         </div>
-         <?php
-         endif;
-         unset($_SESSION['booking_inserted']);
-      ?>
 
          <form method="post" action="<?=root?>booking-add.php" onsubmit="loading()">
             <!-- Select Hotel -->
