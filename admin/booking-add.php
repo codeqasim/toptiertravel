@@ -16,6 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          die("Error: Hotel ID is required.");
       }
 
+      $selected_country = $db->get("countries", "*", ["id" => $_POST['country_id']]);
+      $phone_code = $selected_country['phonecode'] ?? "";
+      $iso_code = $selected_country['iso'] ?? "";
+      $nationality = $selected_country['iso'] ?? "";
+
       $hotel_img = $db->select("hotels_images", "*", ["hotel_id" => $_POST['hotel']]);
 
       $params = [
@@ -27,7 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
          "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
          "email" => $_POST['email'] ?? "",
-         "phone" => $_POST['phone'] ?? "",
+         "phone_country_code" => $phone_code,
+         "phone" => $_POST['phone'], 
+         "nationality" => $nationality,
+         "country" => $iso_code,
          "supplier" => "hotels",
          "checkin" => $_POST['checkin'] ?? "",
          "checkout" => $_POST['checkout'] ?? "",
@@ -49,12 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
          "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
          "email" => $_POST['email'] ?? "",
-         "phone" => $_POST['phone'] ?? "",
+         "phone" => $_POST['phone'],
          "address" => $_POST['address'] ?? "",
-         "nationality" => $_POST['nationality'] ?? "Unknown",
-         "country_code" => $_POST['country_code'] ?? "",
+         "nationality" => $nationality,
+         "country_code" => $phone_code,
          "user_id" => $_POST['user_id'] ?? null
       ];
+
       $params['user_data'] = json_encode($user_data);
 
       $travelers_data = [];
@@ -279,13 +288,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            <label for="clientEmail"><?=T::email?>(<?=T::optional?>)</label>
                         </div>
                      </div>
-                     <div class="col-md-6">
+                     <?php
+                     $countries = $db->select("countries", "*");
+                     ?>
+
+                     <div class="col-3">
+                        <div class="form-floating">
+                           <select name="country_id" class="form-select w-100 rounded-3" data-live-search="true"
+                              id="country_id" required>
+                              <option value="">Select Country</option>
+                              <?php foreach ($countries as $c) { ?>
+                              <option value="<?= $c['id'] ?>" data-country="<?= $c['iso'] ?>"
+                                 data-country-phonecode="<?= $c['phonecode'] ?>">
+                                 <?= $c['nicename'] ?> <strong>+
+                                    <?= $c['phonecode'] ?>
+                                 </strong>
+                              </option>
+                              <?php } ?>
+                           </select>
+                           <label for="">Select Country</label>
+
+                           <script>
+                              var requestUrl = "https://ipwhois.app/json/";
+                              fetch(requestUrl)
+                                 .then(function (response) { return response.json(); })
+                                 .then(function (c) {
+                                    var user_country = c['country_phone'];
+                                    user_country = user_country.replace('+', '');
+                                    $("[data-country-phonecode='" + user_country + "']").prop("selected", true);
+                                    console.log(user_country);
+                                 });
+                           </script>
+                        </div>
+                     </div>
+                     <div class="col-3">
+                        <div class="form-floating">
+                           <input required type="number" class="form-control rounded-3 whatsapp" id="clientPhone" name="phone" placeholder="Enter Phone Number">
+                           <label for="clientPhone"><?=T::phone?>(<?=T::optional?>)</label>
+                        </div>
+                     </div>
+
+                     <!-- <div class="col-md-6">
                         <div class="form-floating">
                            <input type="number" class="form-control" id="clientPhone" name="phone"
                               placeholder="Enter Phone Number">
                            <label for="clientPhone"><?=T::phone?>(<?=T::optional?>)</label>
                         </div>
-                     </div>
+                     </div> -->
                   </div>
                </div>
                <hr class="m-0">

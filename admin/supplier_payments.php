@@ -47,6 +47,7 @@ include "_header.php";
     $xcrud->unset_title();
     $xcrud->unset_add();
     $xcrud->unset_edit(); 
+    $xcrud->unset_remove(); 
 
     $filter = $_GET['supplier_payment_status'] ?? 'all';
     if ($filter === 'paid') {
