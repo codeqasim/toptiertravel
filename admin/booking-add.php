@@ -154,8 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
       ///// twillio credentials
-      $account_sid = "______AC7d8e150______4e88a2adf5231____178e1876b85e";
-      $auth_token = "_____69cdf72___865007de74__d05f9c8191__69d67";
+      $account_sid = "";
+      $auth_token = "";
       $twilio_number = "+19477777293";
       ///// twillio credentials
 
