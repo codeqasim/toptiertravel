@@ -10,23 +10,23 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
-///////// for send sms using twillio
-   use Twilio\Rest\Client;
+// ///////// for send sms using twillio
+//    use Twilio\Rest\Client;
 
-// Send SMS Function
-function sendSMS($to_number, $message) {
-   global $account_sid, $auth_token, $twilio_number;
+// // Send SMS Function
+// function sendSMS($to_number, $message) {
+//    global $account_sid, $auth_token, $twilio_number;
 
-   $client = new Client($account_sid, $auth_token);
-   $message = $client->messages->create(
-       $to_number,
-       [
-           'from' => $twilio_number,
-           'body' => $message,
-       ]
-   );
-   return "Message sent to $to_number: {$message->sid}";
-}
+//    $client = new Client($account_sid, $auth_token);
+//    $message = $client->messages->create(
+//        $to_number,
+//        [
+//            'from' => $twilio_number,
+//            'body' => $message,
+//        ]
+//    );
+//    return "Message sent to $to_number: {$message->sid}";
+// }
 
 
 ///////// for send sms using twillio
@@ -154,12 +154,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
       ///// twillio credentials
-      $account_sid = "";
-      $auth_token = "";
-      $twilio_number = "+19477777293";
+      // $account_sid = "";
+      // $auth_token = "";
+      // $twilio_number = "+19477777293";
       ///// twillio credentials
 
       if ($sendSMS) {
+         require_once 'send_sms.php';
+
          $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['agent']]);
          $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['supplier_id']]);
      
@@ -179,34 +181,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
      
          if (!empty($agentNum)) {
             try {
-               $room_price = $_POST['room_price'] ?? 0.0; 
-               $agent_comission = $_POST['agent_comission'] ?? 0.0;  
-               
-               $commission_amount = ($room_price * $agent_comission) / 100;
-               $subtotal = $room_price + $commission_amount;
+                $room_price = $_POST['room_price'] ?? 0.0; 
+                $agent_comission = $_POST['agent_comission'] ?? 0.0;  
+
+                $commission_amount = ($room_price * $agent_comission) / 100;
+                $subtotal = $room_price + $commission_amount;
+
+                $formattedCheckin = (new DateTime($_POST['checkin']))->format('m-d-Y');
+                $formattedCheckout = (new DateTime($_POST['checkout']))->format('m-d-Y');
+    
+               //  echo $formattedCheckin;
+               //  echo $formattedCheckout;
+               //  exit;
 
                 $commissionAmount = ($_POST['price'] ?? 0.0) * ($_POST['agent_comission'] ?? 0) / 100;
-        
-                sendSMS($agentNum, "
+
+                $message = "
 NEW SALE ALERT
-                            
+
 Great news, " . $agentDetails['first_name'] . ' ' . $agentDetails['last_name'] . "! You’ve just made a new hotel sale for " . $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'] . "’s trip to " . $_POST['location'] . ".  
-                            
+
 Hotel: " . $hotel_data[0]['name'] . " 
-                            
-Check in & out dates: " . $_POST['checkin'] . " - " . $_POST['checkout'] . "
-                            
-Sale amount: " . $subtotal . " " . $currency[0]['name'] . "
-                            
-Commission: " . number_format($commissionAmount, 2) . " " . $currency[0]['name'] . "
-                            
+
+Check in: " . $formattedCheckin. "
+Check out: " . $formattedCheckout. "
+
+Sale amount: $".$subtotal."
+
+Commission: $".number_format($commissionAmount, 2)."
+
 Log into your account to see your sales, commissions and more details about your business! www.TopTierTravel.Site/partners
-               ", $account_sid, $auth_token, $twilio_number);
+                ";
+
+                $response = sendSMS($agentNum, $message);
                 
             } catch (Exception $e) {
                 echo "Error: Failed to send SMS. Please try again later.";
                 exit;
             }
+
         }
         
      
