@@ -153,11 +153,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $sendWhatsapp = isset($_POST['sendWhatsapp']) ? true : false;
 
 
-      
-      $id = "";
-      $token = "";
-      $number = "+19477777293";
-   
+      ///// twillio credentials
+      $account_sid = "______AC7d8e150______4e88a2adf5231____178e1876b85e";
+      $auth_token = "_____69cdf72___865007de74__d05f9c8191__69d67";
+      $twilio_number = "+19477777293";
+      ///// twillio credentials
 
       if ($sendSMS) {
          $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['agent']]);
