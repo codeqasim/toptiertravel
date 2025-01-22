@@ -10,6 +10,26 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
+///////// for send sms using twillio
+   use Twilio\Rest\Client;
+
+// Send SMS Function
+function sendSMS($to_number, $message) {
+   global $account_sid, $auth_token, $twilio_number;
+
+   $client = new Client($account_sid, $auth_token);
+   $message = $client->messages->create(
+       $to_number,
+       [
+           'from' => $twilio_number,
+           'body' => $message,
+       ]
+   );
+   return "Message sent to $to_number: {$message->sid}";
+}
+
+
+///////// for send sms using twillio
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (!isset($_POST['hotel'])) {
@@ -21,19 +41,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $iso_code = $selected_country['iso'] ?? "";
       $nationality = $selected_country['iso'] ?? "";
 
+      // for remvoing 0 form starting of phone 
+      $phone_number = ltrim($_POST['phone'], '0');
+
+      $clientPhone = $phone_code .$phone_number;
+
       $hotel_img = $db->select("hotels_images", "*", ["hotel_id" => $_POST['hotel']]);
 
       $params = [
          "booking_ref_no" => date('Ymdhis') . rand(),
-         "location" => $_POST['location'] ?? "Unknown Location",
+         "location" => $_POST['location'] ?? "",
          "hotel_id" => $_POST['hotel'],
          "hotel_img" => $hotel_img[0]['img'] ?? "no-image.jpg",
          "price_markup" => $_POST['price'] ?? 0.0,
-         "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
-         "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
+         "first_name" => $_POST['adults_data'][0]['firstname'] ?? "",
+         "last_name" => $_POST['adults_data'][0]['lastname'] ?? "",
          "email" => $_POST['email'] ?? "",
          "phone_country_code" => $phone_code,
-         "phone" => $_POST['phone'], 
+         "phone" => $phone_number, 
          "nationality" => $nationality,
          "country" => $iso_code,
          "supplier" => "hotels",
@@ -57,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
          "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",
          "email" => $_POST['email'] ?? "",
-         "phone" => $_POST['phone'],
+         "phone" => $phone_number,
          "address" => $_POST['address'] ?? "",
          "nationality" => $nationality,
          "country_code" => $phone_code,
@@ -72,17 +97,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $travelers_data[] = [
                "traveller_type" => "adults",
                "title" => $adult['title'] ?? "",
-               "first_name" => $adult['firstname'] ?? "Unknown",
-               "last_name" => $adult['lastname'] ?? "Unknown",
+               "first_name" => $adult['firstname'] ?? "",
+               "last_name" => $adult['lastname'] ?? "",
                "age" => ""
             ];
          }
       }
+
       $params['guest'] = json_encode($travelers_data);
 
       $hotel_id = $_POST['hotel'];
       $hotel_data = $db->select("hotels", ["name"], ["id" => $hotel_id]);
-      $params['hotel_name'] = !empty($hotel_data) ? $hotel_data[0]['name'] : "Unknown Hotel";
+      $params['hotel_name'] = !empty($hotel_data) ? $hotel_data[0]['name'] : "";
 
       $currency = $db->select("currencies", ["name"], ["default" => 1]);
       $params['currency_markup'] = !empty($currency) ? $currency[0]['name'] : "USD";
@@ -121,18 +147,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          }
       }
 
-      try {
-         $db->insert("hotels_bookings", $params);
-         $id = $db->id();
-         if ($id) {
-            $_SESSION['booking_inserted'] = true;
-            REDIRECT('./bookings.php');
+      // for sending messages 
+      $sendEmail = isset($_POST['sendEmail']) ? true : false;
+      $sendSMS = isset($_POST['sendSMS']) ? true : false;
+      $sendWhatsapp = isset($_POST['sendWhatsapp']) ? true : false;
+
+
+      
+      $id = "";
+      $token = "";
+      $number = "+19477777293";
+   
+
+      if ($sendSMS) {
+         $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['agent']]);
+         $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['supplier_id']]);
+     
+         $clientNum = "+".$clientPhone;
+         $agentNum = isset($agentDetails["phone_country_code"]) && isset($agentDetails["phone"]) ? "+".$agentDetails["phone_country_code"] . $agentDetails["phone"] : "";
+         $supplierNum = isset($supplierDetails["phone_country_code"]) && isset($supplierDetails["phone"]) ? "+".$supplierDetails["phone_country_code"] . $supplierDetails["phone"] : "";
+         
+
+         // print_r($clientNum);
+         // print_r($agentNum);
+         // print_r($supplierNum);
+         // exit;
+         if (!empty($clientNum)) {
+             // sendSMS($clientNum, "Hello! This is a client message.", $account_sid, $auth_token, $twilio_number);
+             // echo $response;
          }
-      } catch (Exception $e) {
-         die("Error inserting booking: " . $e->getMessage());
+     
+         if (!empty($agentNum)) {
+            try {
+               $room_price = $_POST['room_price'] ?? 0.0; 
+               $agent_comission = $_POST['agent_comission'] ?? 0.0;  
+               
+               $commission_amount = ($room_price * $agent_comission) / 100;
+               $subtotal = $room_price + $commission_amount;
+
+                $commissionAmount = ($_POST['price'] ?? 0.0) * ($_POST['agent_comission'] ?? 0) / 100;
+        
+                sendSMS($agentNum, "
+NEW SALE ALERT
+                            
+Great news, " . $agentDetails['first_name'] . ' ' . $agentDetails['last_name'] . "! You’ve just made a new hotel sale for " . $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'] . "’s trip to " . $_POST['location'] . ".  
+                            
+Hotel: " . $hotel_data[0]['name'] . " 
+                            
+Check in & out dates: " . $_POST['checkin'] . " - " . $_POST['checkout'] . "
+                            
+Sale amount: " . $subtotal . " " . $currency[0]['name'] . "
+                            
+Commission: " . number_format($commissionAmount, 2) . " " . $currency[0]['name'] . "
+                            
+Log into your account to see your sales, commissions and more details about your business! www.TopTierTravel.Site/partners
+               ", $account_sid, $auth_token, $twilio_number);
+                
+            } catch (Exception $e) {
+                echo "Error: Failed to send SMS. Please try again later.";
+                exit;
+            }
+        }
+        
+     
+         if (!empty($supplierNum)) {
+            // sendSMS($supplierNum, "Hello! This is a client message.", $account_sid, $auth_token, $twilio_number);
+             // echo $response;
+         }
+     }
+     
+
+      $db->insert("hotels_bookings", $params);
+      $id = $db->id();
+
+      if ($id) {
+         $_SESSION['booking_inserted'] = true;
+         REDIRECT('./bookings.php');
+      } else {
+         die("Error inserting booking. Booking ID not generated.");
       }
-   }
+}
 ?>
+
 
 
 <!-- <div class="page_head bg-transparent">
@@ -288,16 +384,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            <label for="clientEmail"><?=T::email?>(<?=T::optional?>)</label>
                         </div>
                      </div>
-                     <?php
-                     $countries = $db->select("countries", "*");
-                     ?>
-
+            
                      <div class="col-3">
                         <div class="form-floating">
                            <select name="country_id" class="form-select w-100 rounded-3" data-live-search="true"
                               id="country_id" required>
                               <option value="">Select Country</option>
-                              <?php foreach ($countries as $c) { ?>
+                              <?php $countries = $db->select("countries", "*");
+
+                               foreach ($countries as $c) { ?>
                               <option value="<?= $c['id'] ?>" data-country="<?= $c['iso'] ?>"
                                  data-country-phonecode="<?= $c['phonecode'] ?>">
                                  <?= $c['nicename'] ?> <strong>+
@@ -372,7 +467,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="form-select select2 pt-2" id="supplier_id" name="supplier_id" required>
                               <option value="" disabled selected><?=T::select_supplier?></option>
-                              <?php // Fetch agents from users table where user_type is 'agent'
+                              <?php 
                                     $agents = $db->select("users", "*", ["user_type" => "supplier"]);
                                     foreach ($agents as $agent) {
                                     ?>
@@ -622,24 +717,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="row">
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                     <label class="form-check-label" for="flexCheckDefault">
+                     <input class="form-check-input" type="checkbox" value="" name="sendEmail" id="sendEmail">
+                     <label class="form-check-label" for="sendEmail">
                         Send Email
                      </label>
                   </div>
                </div>
                <div class="col-md-2">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                     <label class="form-check-label" for="flexCheckDefault">
+                     <input class="form-check-input" type="checkbox" value="" name="sendSMS" id="sendSMS">
+                     <label class="form-check-label" for="sendSMS">
                         Send SMS
                      </label>
                   </div>
                </div>
                <div class="col-md-4">
                   <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                     <label class="form-check-label" for="flexCheckDefault">
+                     <input class="form-check-input" type="checkbox" value="" name="sendWhatsapp" id="sendWhatsapp">
+                     <label class="form-check-label" for="sendWhatsapp">
                         Send Whatsapp
                      </label>
                   </div>
