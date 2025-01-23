@@ -193,9 +193,9 @@ Commission: $".number_format($commissionAmount, 2)."
 
 Log into your account to see your sales, commissions and more details about your business! www.TopTierTravel.Site/partners
          ";
-      $response = sendSMS($agentNum, $message);
-         echo $response;
-         exit;
+      sendSMS($agentNum, $message);
+         // echo $response;
+         // exit;
       }
 
 
@@ -565,8 +565,7 @@ Log into your account to see your sales, commissions and more details about your
                      <!-- for IATA -->
                      <div class="col-md-4">
                         <label for="">
-                           <?=T::iata?> (
-                           <?=T::numeric_value?>)
+                           <?=T::iata?>
                         </label>
                         <div class="form-floating">
                            <div class="input-group mt-2">
