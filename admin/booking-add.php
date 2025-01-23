@@ -520,7 +520,7 @@ Log into your account to see your sales, commissions and more details about your
                            <?=T::type?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="form-select select2 pt-2" id="payment_type" name="supplier_payment_type"
+                           <select class="form-select select2 pt-2" id="supplier_payment_type" name="supplier_payment_type"
                               required>
                               <option value="" disabled selected>
                                  <?=T::select?>

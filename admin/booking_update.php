@@ -113,6 +113,8 @@ $title = T::booking .' '. T::edit;
                     'supplier_payment_status' => $_GET['supplier_payment_status'],
                     'supplier_cost' => $_GET['supplier_cost'],
                     'supplier_due_date' => $_GET['supplier_due_date'],
+                    'supplier_payment_type' => $_GET['supplier_payment_type'],
+                    'iata' => $_GET['iata'],
                     'room_data' => $room_data_json
                 ],
                 ['booking_ref_no' => $_GET['booking_id']]
@@ -336,20 +338,8 @@ $title = T::booking .' '. T::edit;
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="form-floating">
-                                    <input type="date" class="form-control" id="supplier_due_date"
-                                        name="supplier_due_date" autocomplete="off"
-                                        value="<?=($data[0]['supplier_due_date'])?>" required>
-                                    <label for="supplier_due_date">
-                                        <?=T::supplier?>
-                                        <?=T::due?>
-                                        <?=T::date?>
-                                    </label>
-                                </div>
-                            </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <div class="form-floating">
                                     <select id="supplier_payment_status" name="supplier_payment_status"
                                         class="form-select" required>
@@ -374,7 +364,71 @@ $title = T::booking .' '. T::edit;
                                 </div>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <select id="supplier_payment_type" name="supplier_payment_type"
+                                        class="form-select" required>
+                                        <option value="" disabled selected>
+                                            <?=T::select?>
+                                            <?=T::payment?>
+                                            <?=T::type?>
+                                        </option>
+                                        <option value="stripe" <?=($data[0]['supplier_payment_type'] ?? '' )==="stripe"
+                                            ? "selected" : "" ;?>>
+                                            <?=T::stripe?>
+                                        </option>
+                                        <option value="wire" <?=($data[0]['supplier_payment_type'] ?? ''
+                                            )==="wire" ? "selected" : "" ;?>>
+                                            <?=T::wire?>
+                                        </option>
+                                        <option value="zelle" <?=($data[0]['supplier_payment_type'] ?? ''
+                                            )==="zelle" ? "selected" : "" ;?>>
+                                            <?=T::zelle?>
+                                        </option>
+                                        <option value="venmo" <?=($data[0]['supplier_payment_type'] ?? ''
+                                            )==="venmo" ? "selected" : "" ;?>>
+                                            <?=T::venmo?>
+                                        </option>
+                                        <option value="paypal" <?=($data[0]['supplier_payment_type'] ?? ''
+                                            )==="paypal" ? "selected" : "" ;?>>
+                                            <?=T::paypal?>
+                                        </option>
+                                        <option value="cash" <?=($data[0]['supplier_payment_type'] ?? ''
+                                            )==="cash" ? "selected" : "" ;?>>
+                                            <?=T::cash?>
+                                        </option>
+                                    </select>
+                                    <label for="agent_select">
+                                        <?=T::payment?>
+                                        <?=T::type?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" id="supplier_due_date"
+                                        name="supplier_due_date" autocomplete="off"
+                                        value="<?=($data[0]['supplier_due_date'])?>" required>
+                                    <label for="supplier_due_date">
+                                        <?=T::supplier?>
+                                        <?=T::due?>
+                                        <?=T::date?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-floating">
+                                    <input type="number" class="form-control" id="iata" name="iata"
+                                        value="<?= $data[0]['iata'] ?? '' ?>">
+                                    <label for="iata">
+                                        <?=T::iata?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
@@ -724,9 +778,11 @@ $title = T::booking .' '. T::edit;
                 var supplier_payment_status = $("#supplier_payment_status").val();
                 var supplier_cost = $("#supplier_cost").val();
                 var supplier_due_date = $("#supplier_due_date").val();
+                var supplier_payment_type = $("#supplier_payment_type").val();
+                var iata =  $("#iata").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id + "&supplier_payment_type=" + supplier_payment_type + "&iata=" + iata;
 
             });
         </script>
