@@ -747,65 +747,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <hr class="m-0">
             </div>
-
-
-            <div class="d-block border-top pt-3"></div>
-
-            <?php
-            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
-            <div class="d-block"></div>
-            <div class="row mb-3 g-3">
-
-
-
-               <div class="col-md-2">
-                  <small for="">
-                     <?=T::net_profit?>
-                  </small>
-                  <div class="form-floating">
-                     <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0"
-                           required>
-                        <span class="input-group-text text-white bg-primary">
-                           <?= $curreny[0]['name']?>
-                        </span>
-                     </div>
-                     <!-- <label for="">Platform Commission</label> -->
-                  </div>
-               </div>
-
-               <div class="col-md-2">
-                  <small for="">
-                     <?=T::tax_?>
-                  </small>
-                  <div class="form-floating">
-                     <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="" name="tax" value="14" required>
-                        <span class="input-group-text text-white bg-primary">%</span>
-                     </div>
-                     <!-- <label for="">Tax</label> -->
-                  </div>
-               </div>
-
-               <div class="col-md-4">
-                  <small for="">
-                     <?=T::total?>
-                     <?=T::price?>
-                  </small>
-                  <div class="form-floating">
-                     <div class="input-group">
-                        <input type="number" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
-                           name="price" readonly>
-                        <span class="input-group-text text-white bg-primary">
-                           <?= $curreny[0]['name']?>
-                        </span>
-                     </div>
-                     <!-- <label for="">Tax</label> -->
-                  </div>
-               </div>
-            </div>
-
-            <div class="d-block border-top pt-3"></div>
+            
             <!-- for agent -->
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
@@ -888,6 +830,64 @@ Log into your account to see your sales, commissions and more details about your
                <hr class="m-0">
             </div>
             <!-- for client -->
+
+            <div class="d-block border-top pt-3"></div>
+            <?php
+            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+            <div class="d-block"></div>
+            <div class="row mb-3 g-3">
+
+
+
+               <div class="col-md-2">
+                  <small for="">
+                     <?=T::net_profit?>
+                  </small>
+                  <div class="form-floating">
+                     <div class="input-group">
+                        <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0"
+                           required>
+                        <span class="input-group-text text-white bg-primary">
+                           <?= $curreny[0]['name']?>
+                        </span>
+                     </div>
+                     <!-- <label for="">Platform Commission</label> -->
+                  </div>
+               </div>
+
+               <div class="col-md-2">
+                  <small for="">
+                     <?=T::tax_?>
+                  </small>
+                  <div class="form-floating">
+                     <div class="input-group">
+                        <input type="number" class="form-control rounded-0" id="" name="tax" value="14" required>
+                        <span class="input-group-text text-white bg-primary">%</span>
+                     </div>
+                     <!-- <label for="">Tax</label> -->
+                  </div>
+               </div>
+
+               <div class="col-md-4">
+                  <small for="">
+                     <?=T::total?>
+                     <?=T::price?>
+                  </small>
+                  <div class="form-floating">
+                     <div class="input-group">
+                        <input type="number" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
+                           name="price" readonly>
+                        <span class="input-group-text text-white bg-primary">
+                           <?= $curreny[0]['name']?>
+                        </span>
+                     </div>
+                     <!-- <label for="">Tax</label> -->
+                  </div>
+               </div>
+            </div>
+
+            <div class="d-block border-top pt-3"></div>
+
             <hr>
             <!-- Submit Button -->
             <div class="text-start">
