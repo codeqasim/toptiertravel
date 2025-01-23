@@ -1,6 +1,6 @@
 <style>
-   .select2-selection__rendered{
-      margin-top:4px;
+   .select2-selection__rendered {
+      margin-top: 4px;
    }
 </style>
 <?php
@@ -9,25 +9,6 @@
 
    $title = T::add .' '. T::booking;
    include "_header.php";
-
-// ///////// for send sms using twillio
-//    use Twilio\Rest\Client;
-
-// // Send SMS Function
-// function sendSMS($to_number, $message) {
-//    global $account_sid, $auth_token, $twilio_number;
-
-//    $client = new Client($account_sid, $auth_token);
-//    $message = $client->messages->create(
-//        $to_number,
-//        [
-//            'from' => $twilio_number,
-//            'body' => $message,
-//        ]
-//    );
-//    return "Message sent to $to_number: {$message->sid}";
-// }
-
 
 ///////// for send sms using twillio
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -75,7 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "supplier_cost" => $_POST['supplier_cost'] ?? 0.0,
          "supplier_payment_status" => $_POST['supplier_payment_status'] ?? "unpaid",
          "supplier_due_date" => $_POST['supplier_due_date'] ?? "",
-         "supplier_id" => $_POST["supplier_id"] ?? null
+         "supplier_id" => $_POST["supplier_id"] ?? "",
+         "supplier_payment_type" => $_POST["supplier_payment_type"],
+         "iata" => $_POST["iata"]
       ];
 
       $user_data = [
@@ -148,55 +131,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       }
 
       // for sending messages 
-      $sendEmail = isset($_POST['sendEmail']) ? true : false;
-      $sendSMS = isset($_POST['sendSMS']) ? true : false;
-      $sendWhatsapp = isset($_POST['sendWhatsapp']) ? true : false;
+      $sendEmail_agent = isset($_POST['sendEmail_agent']) ? true : false;
+      $sendSMS_agent = isset($_POST['sendSMS_agent']) ? true : false;
+      $sendWhatsapp_agent = isset($_POST['sendWhatsapp_agent']) ? true : false;
+
+      $sendEmail_client = isset($_POST['sendEmail_client']) ? true : false;
+      $sendSMS_client = isset($_POST['sendSMS_client']) ? true : false;
+      $sendWhatsapp_client = isset($_POST['sendWhatsapp_client']) ? true : false;
 
 
-      ///// twillio credentials
-      // $account_sid = "";
-      // $auth_token = "";
-      // $twilio_number = "+19477777293";
-      ///// twillio credentials
+      $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['agent']]);
+      $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['supplier_id']]);
 
-      if ($sendSMS) {
+      $clientNum = "+".$clientPhone;
+      $agentNum = isset($agentDetails["phone_country_code"]) && isset($agentDetails["phone"]) ? "+".$agentDetails["phone_country_code"] . $agentDetails["phone"] : "";
+      $supplierNum = isset($supplierDetails["phone_country_code"]) && isset($supplierDetails["phone"]) ? "+".$supplierDetails["phone_country_code"] . $supplierDetails["phone"] : "";
+
+      $commissionAmount = ($_POST['price'] ?? 0.0) * ($_POST['agent_comission'] ?? 0) / 100;
+
+      /////////// for agent ///////////
+      // send email to agent 
+      if ($sendEmail_agent) {
+         $contentArray = [
+            'client_name' => $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'], 
+            'total_price' => $_POST['price'] ?? 0.0, 
+            'hotel_name' => $hotel_data[0]['name'],
+            'agentComission' => $commissionAmount,  
+         ];        
+
+         // SEND EMAIL
+         $title = "NEW SALE ALERT";
+         $template = "agent_new_sale";
+         $content = $contentArray;
+         $receiver_email = $agentDetails['email'];
+         $receiver_name =  $agentDetails['first_name'].' '.$agentDetails['last_name'];
+         MAILER($template,$title,$content,$receiver_email,$receiver_name);
+      }
+      // send sms to agent 
+      if ($sendSMS_agent) {
+
          require_once 'send_sms.php';
-
-         $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['agent']]);
-         $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name"], ["user_id" => $_POST['supplier_id']]);
-     
-         $clientNum = "+".$clientPhone;
-         $agentNum = isset($agentDetails["phone_country_code"]) && isset($agentDetails["phone"]) ? "+".$agentDetails["phone_country_code"] . $agentDetails["phone"] : "";
-         $supplierNum = isset($supplierDetails["phone_country_code"]) && isset($supplierDetails["phone"]) ? "+".$supplierDetails["phone_country_code"] . $supplierDetails["phone"] : "";
-         
-
-         // print_r($clientNum);
-         // print_r($agentNum);
-         // print_r($supplierNum);
-         // exit;
-         if (!empty($clientNum)) {
-             // sendSMS($clientNum, "Hello! This is a client message.", $account_sid, $auth_token, $twilio_number);
-             // echo $response;
-         }
-     
-         if (!empty($agentNum)) {
-            try {
-                $room_price = $_POST['room_price'] ?? 0.0; 
-                $agent_comission = $_POST['agent_comission'] ?? 0.0;  
-
-                $commission_amount = ($room_price * $agent_comission) / 100;
-                $subtotal = $room_price + $commission_amount;
-
-                $formattedCheckin = (new DateTime($_POST['checkin']))->format('m-d-Y');
-                $formattedCheckout = (new DateTime($_POST['checkout']))->format('m-d-Y');
-    
-               //  echo $formattedCheckin;
-               //  echo $formattedCheckout;
-               //  exit;
-
-                $commissionAmount = ($_POST['price'] ?? 0.0) * ($_POST['agent_comission'] ?? 0) / 100;
-
-                $message = "
+         $room_price = $_POST['room_price'] ?? 0.0; 
+         $agent_comission = $_POST['agent_comission'] ?? 0.0;  
+         $commission_amount = ($room_price * $agent_comission) / 100;
+         $subtotal = $room_price + $commission_amount;
+         $formattedCheckin = (new DateTime($_POST['checkin']))->format('m-d-Y');
+         $formattedCheckout = (new DateTime($_POST['checkout']))->format('m-d-Y');
+         $message = "
 NEW SALE ALERT
 
 Great news, " . $agentDetails['first_name'] . ' ' . $agentDetails['last_name'] . "! You’ve just made a new hotel sale for " . $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'] . "’s trip to " . $_POST['location'] . ".  
@@ -211,24 +192,12 @@ Sale amount: $".$subtotal."
 Commission: $".number_format($commissionAmount, 2)."
 
 Log into your account to see your sales, commissions and more details about your business! www.TopTierTravel.Site/partners
-                ";
+         ";
+      $response = sendSMS($agentNum, $message);
+         echo $response;
+         exit;
+      }
 
-                $response = sendSMS($agentNum, $message);
-                
-            } catch (Exception $e) {
-                echo "Error: Failed to send SMS. Please try again later.";
-                exit;
-            }
-
-        }
-        
-     
-         if (!empty($supplierNum)) {
-            // sendSMS($supplierNum, "Hello! This is a client message.", $account_sid, $auth_token, $twilio_number);
-             // echo $response;
-         }
-     }
-     
 
       $db->insert("hotels_bookings", $params);
       $id = $db->id();
@@ -277,15 +246,17 @@ Log into your account to see your sales, commissions and more details about your
                <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-3">
-                     <label for="" >Location</label>
-                      <hr>
+                        <label for="">Location</label>
+                        <hr>
 
                         <?php
                      $locations = $db->select("hotels", "location", ["status" => 1, "GROUP" => "location"]);
                      ?>
                         <div class="">
                            <select class="select2 form-select" id="locationSelect" name="location" required>
-                              <option value="" disabled selected><?=T::select_location?></option>
+                              <option value="" disabled selected>
+                                 <?=T::select_location?>
+                              </option>
                               <?php foreach($locations as $location) { ?>
                               <option value="<?= $location ?>">
                                  <?= $location ?>
@@ -296,35 +267,39 @@ Log into your account to see your sales, commissions and more details about your
                         </div>
                      </div>
                      <div class="col-md-3">
-                     <label for="" >Hotel</label>
-                     <hr>
+                        <label for="">Hotel</label>
+                        <hr>
                         <div class=" ">
                            <select class="select2" id="hotelSelect" name="hotel" required>
-                              <option value="" disabled selected><?=T::select_hotel?></option>
+                              <option value="" disabled selected>
+                                 <?=T::select_hotel?>
+                              </option>
                            </select>
                         </div>
                      </div>
                      <div class="col-md-3">
-                     <label for="" >Room</label>
-                     <hr>
+                        <label for="">Room</label>
+                        <hr>
                         <div class=" ">
                            <select class="select2" id="roomSelect" name="room" required>
-                              <option value="" disabled selected><?=T::select_room?></option>
+                              <option value="" disabled selected>
+                                 <?=T::select_room?>
+                              </option>
                            </select>
                         </div>
                      </div>
                      <div class="col-md-3">
 
-                     <label for="" >Room Price</label>
- 
+                        <label for="">Room Price</label>
+
                         <?php $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                         <!-- <small for="">Room Price</small> -->
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <!-- <div class="form-floating"> -->
-                                 <input type="number" class="form-control" id="" name="room_price" value="0" required
-                                    style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
-                             
+                              <input type="number" class="form-control" id="" name="room_price" value="0" required
+                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+
                               <!-- </div> -->
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
@@ -340,7 +315,7 @@ Log into your account to see your sales, commissions and more details about your
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
-                     <?=T::travellers?>
+                     <?=T::travelers?>
                   </strong>
                </div>
                <div class="card-body p-3">
@@ -352,25 +327,37 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="col-md-2">
                            <div class="form-floating">
                               <select name="adults_data[0][title]" class="form-select">
-                                 <option value="Mr"><?=T::mr?></option>
-                                 <option value="Miss"><?=T::miss?></option>
-                                 <option value="Mrs"><?=T::mrs?></option>
+                                 <option value="Mr">
+                                    <?=T::mr?>
+                                 </option>
+                                 <option value="Miss">
+                                    <?=T::miss?>
+                                 </option>
+                                 <option value="Mrs">
+                                    <?=T::mrs?>
+                                 </option>
                               </select>
-                              <label for=""><?=T::title?></label>
+                              <label for="">
+                                 <?=T::title?>
+                              </label>
                            </div>
                         </div>
                         <div class="col-md-4">
                            <div class="form-floating">
                               <input type="text" name="adults_data[0][firstname]" class="form-control"
                                  placeholder="First Name" value="" required />
-                              <label for=""><?=T::first_name?></label>
+                              <label for="">
+                                 <?=T::first_name?>
+                              </label>
                            </div>
                         </div>
                         <div class="col-md-4">
                            <div class="form-floating">
                               <input type="text" name="adults_data[0][lastname]" class="form-control"
                                  placeholder="Last Name" value="" required />
-                              <label for=""><?=T::last_name?></label>
+                              <label for="">
+                                 <?=T::last_name?>
+                              </label>
                            </div>
                         </div>
                         <div class="col-md-2">
@@ -394,10 +381,13 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating">
                            <input type="email" class="form-control" id="clientEmail" name="email"
                               placeholder="Enter email address">
-                           <label for="clientEmail"><?=T::email?>(<?=T::optional?>)</label>
+                           <label for="clientEmail">
+                              <?=T::email?>(
+                              <?=T::optional?>)
+                           </label>
                         </div>
                      </div>
-            
+
                      <div class="col-3">
                         <div class="form-floating">
                            <select name="country_id" class="form-select w-100 rounded-3" data-live-search="true"
@@ -405,9 +395,11 @@ Log into your account to see your sales, commissions and more details about your
                               <option value="">Select Country</option>
                               <?php $countries = $db->select("countries", "*");
 
-                               foreach ($countries as $c) { ?>
+                              foreach ($countries as $c) { ?>
                               <option value="<?= $c['id'] ?>" data-country="<?= $c['iso'] ?>"
-                                 data-country-phonecode="<?= $c['phonecode'] ?>">
+                                 data-country-phonecode="<?= $c['phonecode'] ?>" <?php
+                                 if($c['nicename']=='United States' ) echo 'selected' ; ?>>
+                                 <!-- United States by name -->
                                  <?= $c['nicename'] ?> <strong>+
                                     <?= $c['phonecode'] ?>
                                  </strong>
@@ -415,26 +407,20 @@ Log into your account to see your sales, commissions and more details about your
                               <?php } ?>
                            </select>
                            <label for="">Select Country</label>
-
-                           <script>
-                              var requestUrl = "https://ipwhois.app/json/";
-                              fetch(requestUrl)
-                                 .then(function (response) { return response.json(); })
-                                 .then(function (c) {
-                                    var user_country = c['country_phone'];
-                                    user_country = user_country.replace('+', '');
-                                    $("[data-country-phonecode='" + user_country + "']").prop("selected", true);
-                                    console.log(user_country);
-                                 });
-                           </script>
                         </div>
                      </div>
+
                      <div class="col-3">
                         <div class="form-floating">
-                           <input required type="number" class="form-control rounded-3 whatsapp" id="clientPhone" name="phone" placeholder="Enter Phone Number">
-                           <label for="clientPhone"><?=T::phone?>(<?=T::optional?>)</label>
+                           <input type="number" class="form-control rounded-3 whatsapp" id="clientPhone" name="phone"
+                              placeholder="Enter Phone Number">
+                           <label for="clientPhone">
+                              <?=T::phone?>(
+                              <?=T::optional?>)
+                           </label>
                         </div>
                      </div>
+
 
                      <!-- <div class="col-md-6">
                         <div class="form-floating">
@@ -452,14 +438,20 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating">
                            <input type="text" class="checkin form-control" id="" name="checkin" autocomplete="off"
                               required value="<?php $d=strtotime(" +3 Days"); echo date("d-m-Y", $d); ?>">
-                           <label for="checkinDate"><?=T::checkin?> <?=T::date?></label>
+                           <label for="checkinDate">
+                              <?=T::checkin?>
+                              <?=T::date?>
+                           </label>
                         </div>
                      </div>
                      <div class="col-md-6">
                         <div class="form-floating">
                            <input type="text" class="checkout form-control" id="" name="checkout" required
                               autocomplete="off" value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
-                           <label for="checkoutDate"><?=T::checkout?> <?=T::date?></label>
+                           <label for="checkoutDate">
+                              <?=T::checkout?>
+                              <?=T::date?>
+                           </label>
                         </div>
                      </div>
                   </div>
@@ -471,20 +463,26 @@ Log into your account to see your sales, commissions and more details about your
                <div class="card-header bg-primary text-dark py-3">
                   <strong>
                      <?=T::supplier?>
+                     <?=T::payment?>
+                     <?=T::details?>
                   </strong>
                </div>
                <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-4">
-                        <label for=""><?=T::supplier?></label>
+                        <label for="">
+                           <?=T::supplier?>
+                        </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="form-select select2 pt-2" id="supplier_id" name="supplier_id" required>
-                              <option value="" disabled selected><?=T::select_supplier?></option>
+                              <option value="" disabled selected>
+                                 <?=T::select_supplier?>
+                              </option>
                               <?php 
                                     $agents = $db->select("users", "*", ["user_type" => "supplier"]);
                                     foreach ($agents as $agent) {
                                     ?>
-                           
+
                               <option value="<?= $agent['user_id']?>">
                                  <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
                               </option>
@@ -494,12 +492,19 @@ Log into your account to see your sales, commissions and more details about your
                      </div>
 
                      <!-- Supplier Payment Status (With select2) -->
-                     <div class="col-md-3">
-                        <label for=""><?=T::payment?> <?=T::status?></label>
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::payment?>
+                           <?=T::status?>
+                        </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="form-select select2 pt-2" id="search_type" name="supplier_payment_status"
+                           <select class="form-select select2 pt-2" id="payment_status" name="supplier_payment_status"
                               required>
-                              <option value="" disabled selected><?=T::select?> <?=T::payment?> <?=T::status?></option>
+                              <option value="" disabled selected>
+                                 <?=T::select?>
+                                 <?=T::payment?>
+                                 <?=T::status?>
+                              </option>
                               <option value="paid">
                                  <?=T::paid?>
                               </option>
@@ -507,23 +512,80 @@ Log into your account to see your sales, commissions and more details about your
                                  <?=T::unpaid?>
                               </option>
                            </select>
-                           <!-- <label for="search_type">Supplier Payment Status</label> -->
                         </div>
                      </div>
-                     <div class="col-md-3">
-                        <label for=""><?=T::supplier?> <?=T::due?> <?=T::date?></label>
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::payment?>
+                           <?=T::type?>
+                        </label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
+                           <select class="form-select select2 pt-2" id="payment_type" name="supplier_payment_type"
+                              required>
+                              <option value="" disabled selected>
+                                 <?=T::select?>
+                                 <?=T::payment?>
+                                 <?=T::type?>
+                              </option>
+                              <option value="Stripe">
+                                 <?=T::stripe?>
+                              </option>
+                              <option value="Wire">
+                                 <?=T::wire?>
+                              </option>
+                              <option value="Zelle">
+                                 <?=T::zelle?>
+                              </option>
+                              <option value="Venmo">
+                                 <?=T::venmo?>
+                              </option>
+                              <option value="PayPal">
+                                 <?=T::paypal?>
+                              </option>
+                              <option value="Cash">
+                                 <?=T::cash?>
+                              </option>
+                           </select>
+                        </div>
+                     </div>
+
+
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::supplier?>
+                           <?=T::due?>
+                           <?=T::date?>
+                        </label>
                         <div class="">
                            <input type="date" class="form-control mt-2" id="supplier_due_date" name="supplier_due_date"
                               autocomplete="off" required>
                            <!-- <label for="supplier_due_date">Due Date</label> -->
                         </div>
                      </div>
-                     <!-- Supplier Cost Input -->
-                     <div class="col-md-2">
-                        <label for=""><?=T::supplier?> <?=T::cost?></label>
+                     <!-- for IATA -->
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::iata?> (
+                           <?=T::numeric_value?>)
+                        </label>
                         <div class="form-floating">
-                           <div class="input-group">
-                              <input type="number" class="form-control rounded-0 mt-2" id="supplierCost" name="supplier_cost"
+                           <div class="input-group mt-2">
+                              <input type="number" class="form-control " id="iata" name="iata"
+                                 value="0" required>
+                           </div>
+                        </div>
+                     </div>
+
+
+                     <!-- Supplier Cost Input -->
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::supplier?>
+                           <?=T::cost?>
+                        </label>
+                        <div class="form-floating">
+                           <div class="input-group mt-2">
+                              <input type="number" class="form-control rounded-0" id="supplierCost" name="supplier_cost"
                                  value="0" required>
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
@@ -546,10 +608,15 @@ Log into your account to see your sales, commissions and more details about your
                <div class="card-body p-4">
                   <div class="row g-3">
                      <div class="col-md-4">
-                        <label for=""><?=T::agent?></label>
+                        <label for="">
+                           <?=T::agent?>
+                        </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="select2 pt-2" id="agentSelect" name="agent" required>
-                              <option value="" selected><?=T::select?> <?=T::agent?></option>
+                              <option value="" selected>
+                                 <?=T::select?>
+                                 <?=T::agent?>
+                              </option>
                               <?php
                            // Fetch agents from users table where user_type is 'agent'
                            $agents = $db->select("users", "*", ["user_type" => "agent"]);
@@ -569,7 +636,10 @@ Log into your account to see your sales, commissions and more details about your
 
                      <!-- Agent Commission -->
                      <div class="col-md-2">
-                        <label for=""><?=T::agent?> <?=T::fee?></label>
+                        <label for="">
+                           <?=T::agent?>
+                           <?=T::fee?>
+                        </label>
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0"
@@ -655,7 +725,8 @@ Log into your account to see your sales, commissions and more details about your
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
-                  <?=T::booking?> <?=T::note?>
+                     <?=T::booking?>
+                     <?=T::note?>
                </div>
                <div class="card-body p-3">
                   <textarea name="bookingnote" class="form-control" id="bookingnote" rows="4"
@@ -666,7 +737,10 @@ Log into your account to see your sales, commissions and more details about your
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
-                     <?=T::cancellation?> <?=T::terms?> <?=T::and?> <?=T::policy?>
+                     <?=T::cancellation?>
+                     <?=T::terms?>
+                     <?=T::and?>
+                     <?=T::policy?>
                </div>
                <div class="card-body p-3">
                   <textarea name="cancellation_terms" class="form-control" id="cancellation_terms" rows="4"
@@ -686,7 +760,9 @@ Log into your account to see your sales, commissions and more details about your
 
 
                <div class="col-md-2">
-                  <small for=""><?=T::net_profit?></small>
+                  <small for="">
+                     <?=T::net_profit?>
+                  </small>
                   <div class="form-floating">
                      <div class="input-group">
                         <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0"
@@ -700,7 +776,9 @@ Log into your account to see your sales, commissions and more details about your
                </div>
 
                <div class="col-md-2">
-                  <small for=""><?=T::tax_?></small>
+                  <small for="">
+                     <?=T::tax_?>
+                  </small>
                   <div class="form-floating">
                      <div class="input-group">
                         <input type="number" class="form-control rounded-0" id="" name="tax" value="14" required>
@@ -711,7 +789,10 @@ Log into your account to see your sales, commissions and more details about your
                </div>
 
                <div class="col-md-4">
-                  <small for=""><?=T::total?> <?=T::price?></small>
+                  <small for="">
+                     <?=T::total?>
+                     <?=T::price?>
+                  </small>
                   <div class="form-floating">
                      <div class="input-group">
                         <input type="number" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
@@ -726,33 +807,88 @@ Log into your account to see your sales, commissions and more details about your
             </div>
 
             <div class="d-block border-top pt-3"></div>
-
-            <div class="row">
-               <div class="col-md-2">
-                  <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" name="sendEmail" id="sendEmail">
-                     <label class="form-check-label" for="sendEmail">
-                        Send Email
-                     </label>
+            <!-- for agent -->
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark py-3">
+                  <strong class="">
+                     <?=T::agent?>
+                     <?=T::notifications?>
+               </div>
+               <div class="card-body p-3">
+                  <div class="row">
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendEmail_agent"
+                              id="sendEmail_agent">
+                           <label class="form-check-label" for="sendEmail">
+                              Email Sale Alert
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendSMS_agent"
+                              id="sendSMS_agent">
+                           <label class="form-check-label" for="sendSMS">
+                              SMS Sale Alert
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendWhatsapp_agent"
+                              id="sendWhatsapp_agent">
+                           <label class="form-check-label" for="sendWhatsapp">
+                              WhatsApp Sale Alert
+                           </label>
+                        </div>
+                     </div>
                   </div>
                </div>
-               <div class="col-md-2">
-                  <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" name="sendSMS" id="sendSMS">
-                     <label class="form-check-label" for="sendSMS">
-                        Send SMS
-                     </label>
-                  </div>
-               </div>
-               <div class="col-md-4">
-                  <div class="form-check d-flex gap-3 align-items-center">
-                     <input class="form-check-input" type="checkbox" value="" name="sendWhatsapp" id="sendWhatsapp">
-                     <label class="form-check-label" for="sendWhatsapp">
-                        Send Whatsapp
-                     </label>
-                  </div>
-               </div>
+               <hr class="m-0">
             </div>
+            <!-- for agent -->
+
+            <!-- for client -->
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark py-3">
+                  <strong class="">
+                     <?=T::client?>
+                     <?=T::notifications?>
+               </div>
+               <div class="card-body p-3">
+                  <div class="row ">
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendEmail_client"
+                              id="sendEmail_client">
+                           <label class="form-check-label" for="sendEmail">
+                              Email Confirmation
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendSMS" id="sendSMS_client">
+                           <label class="form-check-label" for="sendSMS">
+                              SMS Confirmation
+                           </label>
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+                        <div class="form-check d-flex gap-3 align-items-center">
+                           <input class="form-check-input" type="checkbox" value="" name="sendWhatsapp"
+                              id="sendWhatsapp_client">
+                           <label class="form-check-label" for="sendWhatsapp">
+                              WhatsApp Confirmation
+                           </label>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <hr class="m-0">
+            </div>
+            <!-- for client -->
             <hr>
             <!-- Submit Button -->
             <div class="text-start">
