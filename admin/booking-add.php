@@ -10,7 +10,6 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
-///////// for send sms using twillio
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (!isset($_POST['hotel'])) {
@@ -191,7 +190,7 @@ Sale amount: $".$subtotal."
 
 Commission: $".number_format($commissionAmount, 2)."
 
-Log into your account to see your sales, commissions and more details about your business! www.TopTierTravel.Site/partners
+Log into your account to see your sales, commissions and more details about your business! https://toptiertravel.site/admin/login.php
          ";
       sendSMS($agentNum, $message);
          // echo $response;
