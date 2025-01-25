@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "supplier_due_date" => $_POST['supplier_due_date'] ?? "",
          "supplier_id" => $_POST["supplier_id"] ?? "",
          "supplier_payment_type" => $_POST["supplier_payment_type"],
+         "customer_payment_type" => $_POST["customer_payment_type"],
          "iata" => $_POST["iata"]
       ];
 
@@ -244,10 +245,9 @@ Log into your account to see your sales, commissions and more details about your
 
                <div class="card-body p-4">
                   <div class="row g-3">
-                     <div class="col-md-3">
+                     <div class="col-md-4">
                         <label for="">Location</label>
                         <hr>
-
                         <?php
                      $locations = $db->select("hotels", "location", ["status" => 1, "GROUP" => "location"]);
                      ?>
@@ -265,7 +265,7 @@ Log into your account to see your sales, commissions and more details about your
                            <!-- <label for="locationSelect">Select Location</label> -->
                         </div>
                      </div>
-                     <div class="col-md-3">
+                     <div class="col-md-4">
                         <label for="">Hotel</label>
                         <hr>
                         <div class=" ">
@@ -276,7 +276,7 @@ Log into your account to see your sales, commissions and more details about your
                            </select>
                         </div>
                      </div>
-                     <div class="col-md-3">
+                     <div class="col-md-4">
                         <label for="">Room</label>
                         <hr>
                         <div class=" ">
@@ -287,7 +287,22 @@ Log into your account to see your sales, commissions and more details about your
                            </select>
                         </div>
                      </div>
-                     <div class="col-md-3">
+                     <div class="col-md-6">
+                     <label for=""><?=T::customer?> <?=T::payment?> <?=T::type?></label>
+                     <hr>
+                     <div class=" ">
+                        <select class="select2" id="customer_payment_type" name="customer_payment_type" required>
+                           <option disabled selected value=""><?=T::select?> <?=T::payment?> <?=T::type?></option>
+                           <option value="stripe"><?=T::stripe?></option>
+                           <option value="wire"><?=T::wire?></option>
+                           <option value="zelle"><?=T::zelle?></option>
+                           <option value="venmo"><?=T::venmo?></option>
+                           <option value="paypal"><?=T::paypal?></option>
+                           <option value="cash"><?=T::cash?></option>
+                        </select>
+                        </div>
+                     </div>
+                     <div class="col-md-6">
 
                         <label for="">Room Price</label>
 
@@ -526,23 +541,10 @@ Log into your account to see your sales, commissions and more details about your
                                  <?=T::payment?>
                                  <?=T::type?>
                               </option>
-                              <option value="Stripe">
-                                 <?=T::stripe?>
+                              <option value="credit card"><?=T::credit?> <?=T::card?>
                               </option>
-                              <option value="Wire">
+                              <option value="wire">
                                  <?=T::wire?>
-                              </option>
-                              <option value="Zelle">
-                                 <?=T::zelle?>
-                              </option>
-                              <option value="Venmo">
-                                 <?=T::venmo?>
-                              </option>
-                              <option value="PayPal">
-                                 <?=T::paypal?>
-                              </option>
-                              <option value="Cash">
-                                 <?=T::cash?>
                               </option>
                            </select>
                         </div>
@@ -830,7 +832,7 @@ Log into your account to see your sales, commissions and more details about your
             </div>
             <!-- for client -->
 
-            <div class="d-block border-top pt-3"></div>
+            <div class="d-block"></div>
             <?php
             $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
             <div class="d-block"></div>
@@ -885,7 +887,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
             </div>
 
-            <div class="d-block border-top pt-3"></div>
+            <div class="d-block "></div>
 
             <hr>
             <!-- Submit Button -->

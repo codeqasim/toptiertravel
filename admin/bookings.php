@@ -141,10 +141,10 @@ function compareByTimeStamp($time1, $time2)
         </script>
         <?php
         // Query for the Hotel table
-        $hotel_data = $db->select("hotels_bookings", "*");
-        $flight_data = $db->select("flights_bookings", "*");
-        $cars_data = $db->select("cars_bookings", "*");
-        $tours_data = $db->select("tours_bookings", "*");
+        $hotel_data = $db->select("hotels_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
+        $flight_data = $db->select("flights_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
+        $cars_data = $db->select("cars_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
+        $tours_data = $db->select("tours_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
         $data = array_merge($hotel_data,$flight_data,$tours_data,$cars_data);
         $is_search=false;
 
@@ -166,10 +166,10 @@ function compareByTimeStamp($time1, $time2)
                 $parm['payment_status'] = $_GET['payment_status'] ?? '';
             }
 
-            $hotel_data = $db->select("hotels_bookings", "*",$parm);
-            $flight_data = $db->select("flights_bookings", "*",$parm);
-            $cars_data = $db->select("cars_bookings", "*",$parm);
-            $tours_data = $db->select("tours_bookings", "*",$parm);
+            $hotel_data = $db->select("hotels_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
+            $flight_data = $db->select("flights_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
+            $cars_data = $db->select("cars_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
+            $tours_data = $db->select("tours_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
             $data =  array_merge($hotel_data,$flight_data,$tours_data,$cars_data);
             $is_search=true;
         }
