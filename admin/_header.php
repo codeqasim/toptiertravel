@@ -213,14 +213,45 @@
             <!-- End::slide__category -->
 
             <!-- Start::slide -->
-            <li class="slide">
+            
+            <li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-home side-menu__icon"></i>
+<span class="side-menu__label"><?= T::dashboard ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+
+<ul class="slide-menu child1">
+
+<li class="slide">
+<a href="./dashboard.php" class="side-menu__item <?php if ($url_name == 'dashboard') { echo "active"; } ?>">
+<?= T::admin ?> <?= T::dashboard ?>
+</a>
+</li>
+
+<li class="slide">
+<a href="./agent_dashboard.php" class="side-menu__item <?php if ($url_name == 'agent_dashboard') { echo "active"; } ?>">
+<?= T::agent ?> <?= T::dashboard ?>
+</a>
+</li>
+
+</ul>
+</li>
+
+
+
+
+             
+            <!-- <li class="slide">
             <a href="./dashboard.php" class="side-menu__item">
                 <span class="shape1"></span>
                 <span class="shape2"></span>
                 <i class="ti-home side-menu__icon"></i>
                 <span class="side-menu__label">Dashboard</span>
             </a>
-         </li>
+         </li> -->
             <!-- End::slide -->
              <!-- start slide -->
              <?php
@@ -290,7 +321,8 @@ function notification(name) {
 
 
 <!-- Bookings -->
- <!-- <?php
+ <!--
+  <?php
 if (isset($user_permissions->bookings->page_access)) {
 ?>
 <li class="slide">

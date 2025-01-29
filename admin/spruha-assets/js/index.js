@@ -4,8 +4,8 @@ var options = {
 		name: "Total Budget",
 		data: [20, 38, 38, 72, 55, 63, 43, 76, 55, 80, 40, 80]
 	}, {
-		name: "Amount Used",
-		data: [85, 65, 75, 38, 85, 35, 62, 40, 40, 64, 50, 89]
+		// name: "Amount Used",
+		// data: [85, 65, 75, 38, 85, 35, 62, 40, 40, 64, 50, 89]
 	}],
 	chart: {
 		height: 320,
