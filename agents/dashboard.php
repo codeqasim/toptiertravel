@@ -1,3 +1,18 @@
+<style>
+        /* Adding space to the search box */
+        .dataTables_filter {
+            margin-top: 10px;  
+            margin-bottom: 10px; 
+        }
+        .dataTables_paginate {
+            margin-top: 10px !important;    
+            margin-bottom: 10px !important;
+        }
+    #bookingTable tbody td {
+    font-size: 14px !important;
+}
+        
+</style>
 <?php
 require_once '_config.php';
 auth_check();
@@ -436,67 +451,45 @@ $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_count
                                             
                                             </div>
                                             </div>
-                                            <div class="ms-auto d-flex flex-wrap gap-2">
-                                                <div class="contact-search3 me-3 ">
-                                                    <button type="button" class="btn border-0"><i class="fe fe-search fw-semibold text-muted" aria-hidden="true"></i></button>
-                                                    <input type="text" class="form-control h-6" id="typehead1" placeholder="Search here..." autocomplete="off">
-                                                </div>
-                                                <div class="ms-auto d-flex dropdown">
-                                                    <a href="javascript:void(0);" class="btn dropdown-toggle btn-sm btn-wave waves-effect waves-light btn-primary d-inline-flex align-items-center" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false"><i class="ri-equalizer-line me-1"></i>Sort by</a>
-                                                    <!-- <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                                        <li><a class="dropdown-item" href="javascript:void(0);">Task</a></li>
-                                                        <li><a class="dropdown-item" href="javascript:void(0);">Team</a></li>
-                                                        <li><a class="dropdown-item" href="javascript:void(0);">Status</a></li>
-                                                        <li class="dropdown-divider"></li>
-                                                        <li><a class="dropdown-item" href="javascript:void(0);"><i class="fa fa-cog me-2"></i>Settings</a></li>
-                                                    </ul> -->
-                                                </div>
-                                            </div>
+                                            <!-- 
+                                             -->
                                         </div>
+
                                         <?php
                                         $reservation = $db->select('hotels_bookings', ['first_name', 'last_name', 'hotel_name', 'booking_date', 'booking_status'], [
                                             "agent_id" => $agent_id,
-                                            "LIMIT" => 4,
                                             "ORDER" => ["booking_id" => "DESC"]
                                         ]);
                                         ?>
 
                                         <div class="table-responsive tasks">
-                                            <table class="table card-table table-vcenter text-nowrap mb-0 border">
-                                                <thead>
+                                            <table id="bookingTable" class="table table-striped table-bordered">
+                                                <thead class="table-dark">
                                                     <tr>
-                                                        <th class="wd-lg-10p">Name</th>
-                                                        <th class="wd-lg-20p text-center">Hotel</th>
-                                                        <th class="wd-lg-20p text-center">Date</th>
-                                                        <th class="wd-lg-20p">Priority</th>
-                                                        <th class="wd-lg-20p">Status</th>
+                                                        <th>Name</th>
+                                                        <th class="text-center">Hotel</th>
+                                                        <th class="text-center">Date</th>
+                                                        <th>Priority</th>
+                                                        <th>Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <?php foreach ($reservation as $booking): ?>
                                                         <tr>
-                                                            <td class="fw-medium">
-                                                                <div class="form-check">
-                                                                    <label class="form-check-label"><?php echo $booking['first_name'] . ' ' . $booking['last_name']; ?></label>
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-nowrap">
-                                                                <?php echo $booking['hotel_name']; ?>
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <?php echo date('M d', strtotime($booking['booking_date'])); ?>
-                                                            </td>
+                                                            <td><?php echo $booking['first_name'] . ' ' . $booking['last_name']; ?></td>
+                                                            <td class="text-nowrap"><?php echo $booking['hotel_name']; ?></td>
+                                                            <td class="text-center"><?php echo date('M d', strtotime($booking['booking_date'])); ?></td>
                                                             <td class="text-secondary">Normal</td>
                                                             <td>
                                                                 <?php
                                                                 $status_classes = [
-                                                                    'confirmed' => 'bg-primary-transparent',
-                                                                    'pending' => 'bg-warning-transparent',
-                                                                    'cancelled' => 'bg-danger-transparent'
+                                                                    'confirmed' => 'bg-primary',
+                                                                    'pending' => 'bg-warning',
+                                                                    'cancelled' => 'bg-danger'
                                                                 ];
-                                                                $status_class = $status_classes[$booking['booking_status']] ?? 'bg-secondary-transparent';
+                                                                $status_class = $status_classes[$booking['booking_status']] ?? 'bg-secondary';
                                                                 ?>
-                                                                <span class="badge bg-pill rounded-pill <?php echo $status_class; ?>">
+                                                                <span class="badge rounded-pill <?php echo $status_class; ?>">
                                                                     <?php echo ucfirst($booking['booking_status']); ?>
                                                                 </span>
                                                             </td>
@@ -506,30 +499,24 @@ $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_count
                                             </table>
                                         </div>
 
-                                        <div class="float-end mt-3">
-                                            <nav aria-label="Page navigation" class="pagination-style-3">
-                                                <ul class="pagination mb-0 flex-wrap">
-                                                    <li class="page-item disabled">
-                                                        <a class="page-link" href="javascript:void(0);">
-                                                            Prev
-                                                        </a>
-                                                    </li>
-                                                    <li class="page-item active"><a class="page-link" href="javascript:void(0);">1</a></li>
-                                                    <li class="page-item"><a class="page-link" href="javascript:void(0);">2</a></li>
-                                                    <li class="page-item">
-                                                        <a class="page-link" href="javascript:void(0);">
-                                                            <i class="bi bi-three-dots"></i>
-                                                        </a>
-                                                    </li>
-                                                    <li class="page-item"><a class="page-link" href="javascript:void(0);">16</a></li>
-                                                    <li class="page-item">
-                                                        <a class="page-link text-primary" href="javascript:void(0);">
-                                                            next
-                                                        </a>
-                                                    </li>
-                                                </ul>
-                                            </nav>
-                                        </div>
+                                        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                                        <!-- DataTables JS -->
+                                        <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+                                        <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
+                                        <script>
+                                            $(document).ready(function () {
+                                                $('#bookingTable').DataTable({
+                                                    "paging": true,        
+                                                    "searching": true,     
+                                                    "ordering": true,      
+                                                    "info": true,          
+                                                    "lengthChange": false, 
+                                                    "pageLength": 4        
+                                                });
+                                            });
+                                        </script>
+                                        
                                     </div>
                                 </div>
 
