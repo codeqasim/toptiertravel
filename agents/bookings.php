@@ -10,6 +10,10 @@ auth_check();
 $title = T::bookings;
 include "_header.php";
 
+$agent_id = $USER_SESSION->backend_user_id;
+// echo $agent_id;
+// exit;
+
 // Split the REQUEST_URI into an array of strings using the forward slash (/) character as the separator
 $uri = explode('/', $_SERVER['REQUEST_URI']);
 
@@ -141,7 +145,7 @@ function compareByTimeStamp($time1, $time2)
         </script>
         <?php
         // Query for the Hotel table
-        $hotel_data = $db->select("hotels_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
+        $hotel_data = $db->select("hotels_bookings", "*", ["agent_id" => $agent_id,"ORDER" => ["booking_id" => "DESC"]]);
         $flight_data = $db->select("flights_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
         $cars_data = $db->select("cars_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
         $tours_data = $db->select("tours_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
@@ -165,8 +169,8 @@ function compareByTimeStamp($time1, $time2)
             }else{
                 $parm['payment_status'] = $_GET['payment_status'] ?? '';
             }
-
-            $hotel_data = $db->select("hotels_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
+            
+            $hotel_data = $db->select("hotels_bookings", "*", array_merge($parm, ["agent_id" => $agent_id,"ORDER" => ["booking_id" => "DESC"]]));
             $flight_data = $db->select("flights_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
             $cars_data = $db->select("cars_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
             $tours_data = $db->select("tours_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));

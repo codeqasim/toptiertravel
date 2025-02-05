@@ -8,6 +8,9 @@ auth_check();
 $title = T::supplier . " " . T::payments;
 include "_header.php";
 
+// Get the agent_id from the session
+$agent_id = $USER_SESSION->backend_user_id;
+
 ?>
 
 <div class="page_head bg-transparent">
@@ -28,7 +31,6 @@ include "_header.php";
 </div>
 
 <div class="container mt-3">
-
 
     <?php 
     include('./xcrud/xcrud.php');
@@ -55,6 +57,8 @@ include "_header.php";
     } elseif ($filter === 'unpaid') {
         $xcrud->where('supplier_payment_status =', 'unpaid');
     }
+
+    $xcrud->where('agent_id =', $agent_id);  
 
     echo $xcrud->render();
     ?>

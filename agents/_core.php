@@ -232,6 +232,18 @@ function cms_get($name,$params){
         "dashboard" => array(
             "page_access"=>"",
         ),
+        "bookings" => array(
+            "page_access"=>"",
+        ),
+        "booking_add" => array(
+            "page_access"=>"",
+        ),
+        "all_bookings" => array(
+            "page_access"=>"",
+        ),
+        "supplier_payments" => array(
+            "page_access"=>"",
+        ),
         "settings" => array(
             "page_access"=>"",
             "edit"=>""

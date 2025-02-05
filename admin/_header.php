@@ -323,7 +323,9 @@ if (isset($user_permissions->bookings->page_access)) {
 
 <!-- Start::slide -->
 <!-- Start::Markups Slide -->
-
+<?php
+if (isset($user_permissions->bookings->page_access)) {
+?>
 <li class="slide has-sub">
 <a href="javascript:void(0);" class="side-menu__item">
 <span class="shape1"></span>
@@ -332,27 +334,43 @@ if (isset($user_permissions->bookings->page_access)) {
 <span class="side-menu__label"><?= T::bookings ?></span>
 <i class="fe fe-chevron-right side-menu__angle"></i>
 </a>
-
+<?php
+}
+?>
 <ul class="slide-menu child1">
-
+<?php
+if (isset($user_permissions->booking_add->page_access)) {
+?>
 <li class="slide">
-<a href="./booking-add.php" class="side-menu__item <?php if ($url_name == 'booking-add') { echo "active"; } ?>">
+<a href="./booking_add.php" class="side-menu__item <?php if ($url_name == 'booking_add') { echo "active"; } ?>">
 <?= T::add ?> <?= T::booking ?>
 </a>
 </li>
-
+<?php
+}
+?>
+<?php
+if (isset($user_permissions->all_bookings->page_access)) {
+?>
 <li class="slide">
 <a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
 <?= T::all ?> <?= T::bookings ?>
 </a>
 </li>
-
+<?php
+}
+?>
+<?php
+if (isset($user_permissions->supplier_payments->page_access)) {
+?>
 <li class="slide">
 <a href="./supplier_payments.php" class="side-menu__item <?php if ($url_name == 'supplier_payments') { echo "active"; } ?>">
 <?= T::supplier ?> <?= T::payments?>
 </a>
 </li>
-
+<?php
+}
+?>
 </ul>
 </li>
  <!-- End::Markups Slide -->

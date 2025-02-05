@@ -51,7 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ 
             $desc = "user logged into account";
             logs($user_id,$log_type,$datetime,$desc);
 
-            REDIRECT('dashboard.php');
+            if ($user[0]['user_type'] == 'Agent') {
+                REDIRECT('../agents/dashboard.php');
+            }else {
+                REDIRECT('dashboard.php');
+            }
 
         // REDIRECT TO USER VERIFICATION PAGE
         } else {

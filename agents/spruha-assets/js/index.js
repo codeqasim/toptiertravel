@@ -84,71 +84,93 @@ function project() {
 		colors: ["rgb(" + myVarVal + ")", "rgba(" + myVarVal + ", 0.3)"],
 	})
 }
-/* project budget Chart */
 
 /* web design chart */
+// Function to get the last 6 months and current month
+function getLast6Months() {
+    let months = [];
+    let date = new Date();
+    for (let i = 0; i < 6; i++) {
+        // Get month name (e.g., 'January', 'February', etc.)
+        let month = date.toLocaleString('default', { month: 'short' });
+        months.push(month);
+        
+        // Go back to the previous month
+        date.setMonth(date.getMonth() - 1);
+    }
+    return months.reverse(); // Reverse to get the correct order (from oldest to newest)
+}
+
+// Get the categories for the x-axis
+let Mname = getLast6Months();
+const currentYear = new Date().getFullYear();
+
+const previousYear = currentYear - 1;
+
+
+// Your options object with dynamically generated categories
 var options = {
-	series: [{
-		name: 'Total Projects',
-		data: [44, 42, 57, 86, 58, 55, 70],
-	}, {
-		name: 'On Going',
-		data: [-34, -22, -37, -56, -21, -35, -60],
-	}],
-	chart: {
-		stacked: true,
-		type: 'bar',
-		height: 175,
-	},
-	grid: {
-		show: false,
-		borderColor: '#f2f6f7',
-	},
-	colors: ["#e9e9e9", "rgb(98, 89, 202)"],                        
-	plotOptions: {
-		bar: {
-			columnWidth: '15%',
-			borderRadius: 5,
-			borderRadiusApplication: 'end',
-			borderRadiusWhenStacked: 'all',
-			colors: {
-				ranges: [{
-					from: -100,
-					to: -46,
-					color: 'rgb(98, 89, 202)'
-				}, {
-					from: -45,
-					to: 0,
-					color: 'rgb(98, 89, 202)'
-				}]
-			},
-			
-		}
-	},
-	dataLabels: {
-		enabled: false,
-	},
-	legend: {
-		show: false,
-		position: 'top',
-	},
-	yaxis: {
-		Show: false,
-		labels: {
-			show: false,
-		}
-	},
-	xaxis: {
-		show: false,
-		type: 'day',
-		categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-		axisBorder: {
-			show: false,
-			color: 'rgba(119, 119, 142, 0.05)',
-			offsetX: 0,
-			offsetY: 0,
-		},
-	}
+    series: [{
+		name:  previousYear,
+		data: window.previous_year_paid_agent_fee_js,
+
+    }, {
+        name: currentYear,
+        data: window.window.current_year_paid_agent_fee_js,
+    }],
+    chart: {
+        stacked: true,
+        type: 'bar',
+        height: 175,
+    },
+    grid: {
+        show: false,
+        borderColor: '#f2f6f7',
+    },
+    colors: ["#e9e9e9", "rgb(98, 89, 202)"],                         
+    plotOptions: {
+        bar: {
+            columnWidth: '15%',
+            borderRadius: 5,
+            borderRadiusApplication: 'end',
+            borderRadiusWhenStacked: 'all',
+            colors: {
+                ranges: [{
+                    from: -100,
+                    to: -46,
+                    color: 'rgb(98, 89, 202)'
+                }, {
+                    from: -45,
+                    to: 0,
+                    color: 'rgb(98, 89, 202)'
+                }]
+            },
+        }
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    legend: {
+        show: false,
+        position: 'top',
+    },
+    yaxis: {
+        show: false,
+        labels: {
+            show: false,
+        }
+    },
+    xaxis: {
+        show: false,
+        type: 'category',
+        categories: Mname, // Dynamic categories based on the last 6 months
+        axisBorder: {
+            show: false,
+            color: 'rgba(119, 119, 142, 0.05)',
+            offsetX: 0,
+            offsetY: 0,
+        },
+    }
 };
 
 // document.getElementById('website-design').innerHTML = ''

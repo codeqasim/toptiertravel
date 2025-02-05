@@ -214,16 +214,16 @@
 
             <!-- Start::slide -->
 
-<li class="slide">
-    <a href="./dashboard.php" class="side-menu__item <?php if ($url_name == 'dashboard') { echo "active"; } ?>">
-    <span class="shape1"></span>
-    <span class="shape2"></span>
-    <i class="ti-home side-menu__icon"></i>
-    <span class="side-menu__label"><?= T::dashboard ?></span>
-    </a>
+            <li class="slide">
+<a href="./dashboard.php" class="side-menu__item <?php if ($url_name == 'dashboard') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-home side-menu__icon"></i>
+<span class="side-menu__label"><?= T::dashboard ?></span>
+</a>
 </li>
-
-             
+            
+        
             <!-- <li class="slide">
             <a href="./dashboard.php" class="side-menu__item">
                 <span class="shape1"></span>
@@ -323,7 +323,9 @@ if (isset($user_permissions->bookings->page_access)) {
 
 <!-- Start::slide -->
 <!-- Start::Markups Slide -->
-
+<?php
+if (isset($user_permissions->bookings->page_access)) {
+?>
 <li class="slide has-sub">
 <a href="javascript:void(0);" class="side-menu__item">
 <span class="shape1"></span>
@@ -332,33 +334,152 @@ if (isset($user_permissions->bookings->page_access)) {
 <span class="side-menu__label"><?= T::bookings ?></span>
 <i class="fe fe-chevron-right side-menu__angle"></i>
 </a>
-
+<?php
+}
+?>
 <ul class="slide-menu child1">
-
+<?php
+if (isset($user_permissions->booking_add->page_access)) {
+?>
 <li class="slide">
-<a href="./booking-add.php" class="side-menu__item <?php if ($url_name == 'booking-add') { echo "active"; } ?>">
+<a href="./booking_add.php" class="side-menu__item <?php if ($url_name == 'booking_add') { echo "active"; } ?>">
 <?= T::add ?> <?= T::booking ?>
 </a>
 </li>
-
+<?php
+}
+?>
+<?php
+if (isset($user_permissions->all_bookings->page_access)) {
+?>
 <li class="slide">
 <a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
 <?= T::all ?> <?= T::bookings ?>
 </a>
 </li>
-
+<?php
+}
+?>
+<?php
+if (isset($user_permissions->supplier_payments->page_access)) {
+?>
 <li class="slide">
 <a href="./supplier_payments.php" class="side-menu__item <?php if ($url_name == 'supplier_payments') { echo "active"; } ?>">
 <?= T::supplier ?> <?= T::payments?>
 </a>
 </li>
-
+<?php
+}
+?>
 </ul>
 </li>
  <!-- End::Markups Slide -->
  <?php } ?>
 
+
+
+
 <!-- end slide -->
+<!-- Start::slide -->
+<?php
+if (
+    isset($user_permissions->settings->page_access) ||
+    isset($user_permissions->payment_gateways->page_access) ||
+    isset($user_permissions->currencies->page_access) ||
+    isset($user_permissions->locations->page_access) ||
+    isset($user_permissions->email_settings->page_access) ||
+    isset($user_permissions->languages->page_access) ||
+    isset($user_permissions->users_roles->page_access) ||
+    isset($user_permissions->countries->page_access)
+) { ?>
+<!-- Start::Settings Slide -->
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="ti-settings side-menu__icon"></i>
+        <span class="side-menu__label">Settings</span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)">Settings</a>
+        </li>
+        <!-- General Settings -->
+        <?php if (isset($user_permissions->settings->page_access)) { ?>
+        <li class="slide">
+            <a href="./settings.php" class="side-menu__item <?= $url_name == 'settings' ? 'active' : '' ?>">
+                <?= T::general ?> <?= T::settings ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Users & Roles -->
+        <?php if (isset($user_permissions->users_roles->page_access)) { ?>
+        <li class="slide">
+            <a href="./users_roles.php" class="side-menu__item <?= $url_name == 'users_roles' ? 'active' : '' ?>">
+                <?= T::users_roles ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Payment Gateways -->
+        <?php if (isset($user_permissions->payment_gateways->page_access)) { ?>
+        <li class="slide">
+            <a href="./payment_gateways.php" class="side-menu__item <?= in_array($url_name, ['payment_gateways', 'payment_gateway']) ? 'active' : '' ?>">
+                <?= T::payment_gateways ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Currencies -->
+        <?php if (isset($user_permissions->currencies->page_access)) { ?>
+        <li class="slide">
+            <a href="./currencies.php" class="side-menu__item <?= $url_name == 'currencies' ? 'active' : '' ?>">
+                <?= T::currencies ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Email Settings -->
+        <?php if (isset($user_permissions->email_settings->page_access)) { ?>
+        <li class="slide">
+            <a href="./email_settings.php" class="side-menu__item <?= $url_name == 'email_settings' ? 'active' : '' ?>">
+                <?= T::email_settings ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Locations -->
+        <?php if (isset($user_permissions->locations->page_access)) { ?>
+        <li class="slide">
+            <a href="./locations.php" class="side-menu__item <?= $url_name == 'locations' ? 'active' : '' ?>">
+                <?= T::locations ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Languages -->
+        <?php if (isset($user_permissions->languages->page_access)) { ?>
+        <li class="slide">
+            <a href="./languages.php" class="side-menu__item <?= $url_name == 'languages' ? 'active' : '' ?>">
+                <?= T::languages ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Countries -->
+        <?php if (isset($user_permissions->countries->page_access)) { ?>
+        <li class="slide">
+            <a href="./countries.php" class="side-menu__item <?= $url_name == 'countries' ? 'active' : '' ?>">
+                <?= T::countries ?>
+            </a>
+        </li>
+        <?php } ?>
+    </ul>
+</li>
+<?php } ?>
+<!-- End::Settings Slide -->
 
 <!-- Start::slide -->
 <?php
@@ -379,6 +500,341 @@ if (isset($user_permissions->modules->page_access)) {
 ?>
 
 <!-- End::slide -->
+
+<!-- Start::slide -->
+<!-- Start::Markups Slide -->
+<?php
+if (isset($user_permissions->markups->page_access)) {
+?>
+<li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-layers side-menu__icon"></i>
+<span class="side-menu__label"><?= T::markups ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+
+<ul class="slide-menu child1">
+<li class="slide side-menu__label1">
+<a href="javascript:void(0)">Markups</a>
+</li>
+
+<!-- Users -->
+<li class="slide">
+<a href="./markups.php?module=users" class="side-menu__item
+    <?php if (isset($_GET['module']) && $_GET['module'] == 'users') { echo 'active'; } ?>">
+    <?= T::users ?>
+</a>
+</li>
+
+<!-- Dynamic Modules -->
+<?php foreach ($module_status as $module) { ?>
+
+<?php if (isset($module->type)) { ?>
+    <?php if ($module->type == "hotels") { ?>
+        <li class="slide">
+            <a href="./markups.php?module=hotels" class="side-menu__item
+                <?php if (isset($_GET['module']) && $_GET['module'] == 'hotels') { echo 'active'; } ?>">
+                <?= T::hotels ?>
+            </a>
+        </li>
+    <?php } ?>
+
+    <?php if ($module->type == "flights") { ?>
+        <li class="slide">
+            <a href="./markups.php?module=flights" class="side-menu__item
+                <?php if (isset($_GET['module']) && $_GET['module'] == 'flights') { echo 'active'; } ?>">
+                <?= T::flights ?>
+            </a>
+        </li>
+    <?php } ?>
+
+    <?php if ($module->type == "tours") { ?>
+        <li class="slide">
+            <a href="./markups.php?module=tours" class="side-menu__item
+                <?php if (isset($_GET['module']) && $_GET['module'] == 'tours') { echo 'active'; } ?>">
+                <?= T::tours ?>
+            </a>
+        </li>
+    <?php } ?>
+
+    <?php if ($module->type == "cars") { ?>
+        <li class="slide">
+            <a href="./markups.php?module=cars" class="side-menu__item
+                <?php if (isset($_GET['module']) && $_GET['module'] == 'cars') { echo 'active'; } ?>">
+                <?= T::cars ?>
+            </a>
+        </li>
+    <?php } ?>
+
+    <!-- Optional Visa Module -->
+    <?php if ($module->type == "visa") { ?>
+        <li class="slide">
+            <a href="./markups.php?module=visa" class="side-menu__item
+                <?php if (isset($_GET['module']) && $_GET['module'] == 'visa') { echo 'active'; } ?>">
+                <?= T::visa ?>
+            </a>
+        </li>
+    <?php } ?>
+
+<?php } ?>
+
+<?php } ?>
+</ul>
+</li>
+<?php } ?>
+<!-- End::Markups Slide -->
+
+<!-- Start::Users Slide -->
+<?php
+if (isset($user_permissions->users->page_access)) {
+    $params = array();
+    $users_roles = GET('users_roles', $params);
+?>
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="fa fa-user side-menu__icon"></i>
+        <span class="side-menu__label"><?= T::users ?></span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
+
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)">Users</a>
+        </li>
+
+        <!-- All Users Page -->
+        <?php if (isset($user_permissions->users->page_access)) { ?>
+        <li class="slide">
+            <a href="./users.php?users=all-users"
+               class="side-menu__item <?php if (isset($_GET['users']) && $_GET['users'] == 'all-users') { echo 'active'; } ?>">
+                <?= T::all . ' ' . T::users ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <hr class="m-0 my-1 mt-2 user_roles">
+
+        <!-- Dynamic User Roles -->
+        <?php foreach ($users_roles as $u) { ?>
+        <li class="slide user_roles">
+            <a href="./users.php?user_type=<?= strtolower($u->type_name) ?>"
+               class="side-menu__item <?php if (isset($_GET['user_type']) && $_GET['user_type'] == $u->type_name) { echo 'active'; } ?>">
+                <?= $u->type_name ?>
+            </a>
+        </li>
+        <?php } ?>
+    </ul>
+</li>
+<?php } ?>
+<!-- End::Users Slide -->
+
+<!-- Start::CMS Slide -->
+<?php
+if (isset($user_permissions->cms->page_access)) {
+?>
+<li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-book side-menu__icon"></i>
+<span class="side-menu__label"><?= T::cms ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+
+<ul class="slide-menu child1">
+<li class="slide side-menu__label1">
+<a href="javascript:void(0)">CMS</a>
+</li>
+
+<!-- Add Page -->
+<?php
+if (isset($user_permissions->cms->add) || isset($user_permissions->cms->add)) {
+?>
+<li class="slide">
+<a href="./cms.php?addpage=1" class="side-menu__item
+    <?php if (isset($_GET['addpage'])) { echo 'active'; } ?>">
+    <?= T::cms_add_page ?>
+</a>
+</li>
+<?php } ?>
+
+<!-- Pages -->
+<li class="slide">
+<a href="./cms.php?pages=1" class="side-menu__item
+    <?php if (isset($_GET['pages']) || isset($_GET['page'])) { echo 'active'; } ?>">
+    <?= T::cms_pages ?>
+</a>
+</li>
+
+<!-- Menu -->
+<li class="slide">
+<a href="./cms.php?menu=1" class="side-menu__item
+    <?php if (isset($_GET['menu'])) { echo 'active'; } ?>">
+    <?= T::cms_menu ?>
+</a>
+</li>
+</ul>
+</li>
+<?php } ?>
+<!-- End::CMS Slide -->
+<!-- Start::Blog Slide -->
+<?php
+if (isset($user_permissions->blogs->page_access)) {
+    if (!empty($blog_active) && $blog_active == 1) {
+?>
+<li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-write side-menu__icon"></i>
+<span class="side-menu__label"><?= T::blog ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+<ul class="slide-menu child1">
+<li class="slide side-menu__label1">
+<a href="javascript:void(0)">Blogs</a>
+</li>
+
+<!-- Add Blog Page -->
+<?php
+if (isset($user_permissions->blogs->add) || isset($user_permissions->blogs->add)) {
+?>
+<li class="slide">
+<a href="./blogs.php?addpage=1" class="side-menu__item <?php if (isset($_GET['addpage'])) { echo 'active'; } ?>">
+    <?= T::Blog_add_page ?>
+</a>
+</li>
+<?php
+}
+?>
+
+<!-- Blog Pages -->
+<li class="slide">
+<a href="./blogs.php?pages=1" class="side-menu__item <?php if (isset($_GET['pages']) || isset($_GET['page'])) { echo 'active'; } ?>">
+    <?= T::Blog_pages ?>
+</a>
+</li>
+
+<!-- Blog Categories -->
+<li class="slide">
+<a href="./blogs.php?category=1" class="side-menu__item <?php if (isset($_GET['category'])) { echo 'active'; } ?>">
+    <?= T::blog_category ?>
+</a>
+</li>
+</ul>
+</li>
+<?php
+    }
+}
+?>
+<!-- End::Blog Slide -->
+
+<!-- Newsletter -->
+<?php
+if (isset($user_permissions->newsletter->page_access)) {
+?>
+<li class="slide">
+<a href="./newsletter.php" class="side-menu__item <?php if ($url_name == 'newsletter') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-email side-menu__icon"></i>
+<span class="side-menu__label"><?= T::newsletter ?></span>
+</a>
+</li>
+<?php } ?>
+<!-- End Newsletter -->
+
+<!-- Transactions -->
+<?php
+if (isset($user_permissions->transactions->page_access)) {
+?>
+<li class="slide">
+<a href="./transactions.php" class="side-menu__item <?php if ($url_name == 'transactions') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-money side-menu__icon"></i>
+<span class="side-menu__label"><?= T::transactions ?></span>
+</a>
+</li>
+<?php } ?>
+<!-- End Transactions -->
+
+<!-- Flights -->
+<?php
+if (
+    isset($user_permissions->flights->page_access) ||
+    isset($user_permissions->flights_airports->page_access) ||
+    isset($user_permissions->flights_airlines->page_access) ||
+    isset($user_permissions->flights_featured->page_access) ||
+    isset($user_permissions->flights_suggestions->page_access)
+) {
+    if(!empty($flight_active) && $flight_active == 1){
+?>
+<li class="slide has-sub">
+<a href="javascript:void(0);" class="side-menu__item">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="fa fa-plane side-menu__icon"></i>
+<span class="side-menu__label"><?= T::flights ?></span>
+<i class="fe fe-chevron-right side-menu__angle"></i>
+</a>
+<ul class="slide-menu child1">
+<li class="slide side-menu__label1">
+<a href="javascript:void(0)">Flights</a>
+</li>
+
+<!-- Flights Page -->
+<?php if (isset($user_permissions->flights->page_access)) { ?>
+<li class="slide">
+<a href="./flights.php" class="side-menu__item <?php if ($url_name == "flights") { echo 'active'; } ?>">
+    <?= T::flights ?>
+</a>
+</li>
+<?php } ?>
+
+<!-- Flights Airports Page -->
+<?php if (isset($user_permissions->flights_airports->page_access)) { ?>
+<li class="slide">
+<a href="./flights_airports.php" class="side-menu__item <?php if ($url_name == "flights_airports") { echo 'active'; } ?>">
+    <?= T::flights . ' ' . T::airports ?>
+</a>
+</li>
+<?php } ?>
+
+<!-- Flights Airlines Page -->
+<?php if (isset($user_permissions->flights_airlines->page_access)) { ?>
+<li class="slide">
+<a href="./flights_airlines.php" class="side-menu__item <?php if ($url_name == "flights_airlines") { echo 'active'; } ?>">
+    <?= T::flights . ' ' . T::airlines ?>
+</a>
+</li>
+<?php } ?>
+
+<!-- Flights Featured Page -->
+<?php if (isset($user_permissions->flights_featured->page_access)) { ?>
+<li class="slide">
+<a href="./flights_featured.php" class="side-menu__item <?php if ($url_name == "flights_featured") { echo 'active'; } ?>">
+    <?= T::flights . ' ' . T::featured ?>
+</a>
+</li>
+<?php } ?>
+
+<!-- Flights Suggestions Page -->
+<?php if (isset($user_permissions->flights_suggestions->page_access)) { ?>
+<li class="slide">
+<a href="./flights_suggestions.php" class="side-menu__item <?php if ($url_name == "flights_suggestions") { echo 'active'; } ?>">
+    <?= T::flights_suggestions ?>
+</a>
+</li>
+<?php } ?>
+</ul>
+</li>
+<?php } } ?>
+<!-- End Flights -->
 
 <!-- Hotels -->
 <?php
@@ -430,6 +886,151 @@ if (
 <?php } } ?>
 <!-- End Hotels -->
 
+<!-- tours -->
+<?php
+if (
+    isset($user_permissions->tours->page_access) ||
+    isset($user_permissions->tours_settings->page_access) ||
+    isset($user_permissions->tours_suggestions->page_access)
+) {
+    if (!empty($tours_active) && $tours_active == 1) {
+?>
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="ti-map side-menu__icon"></i>
+        <span class="side-menu__label"><?= T::tours ?></span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
+
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)"><?= T::tours ?></a>
+        </li>
+
+        <?php if (isset($user_permissions->tours->page_access)) { ?>
+            <li class="slide">
+                <a href="./tours.php" class="side-menu__item <?php if ($url_name == "tours") { echo 'active'; } ?>">
+                    <?= T::tours ?>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if (isset($user_permissions->tours_settings->page_access)) { ?>
+            <li class="slide">
+                <a href="./tours_settings.php" class="side-menu__item <?php if ($url_name == "tours_settings") { echo 'active'; } ?>">
+                    <?= T::tours . ' ' . T::settings ?>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if (isset($user_permissions->tours_suggestions->page_access)) { ?>
+            <li class="slide">
+                <a href="./tours_suggestions.php" class="side-menu__item <?php if ($url_name == "tours_suggestions") { echo 'active'; } ?>">
+                    <?= T::tours . ' ' . T::suggestions ?>
+                </a>
+            </li>
+        <?php } ?>
+    </ul>
+</li>
+<?php
+    }
+}
+?>
+<!-- tours -->
+
+<!-- cars -->
+<?php
+if (
+    isset($user_permissions->cars->page_access) ||
+    isset($user_permissions->cars_settings->page_access) ||
+    isset($user_permissions->cars_suggestions->page_access)
+) {
+    if (!empty($cars_active) && $cars_active == 1) {
+?>
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="ti-car side-menu__icon"></i>
+        <span class="side-menu__label"><?= T::cars ?></span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
+
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)"><?= T::cars ?></a>
+        </li>
+
+        <?php if (isset($user_permissions->cars->page_access)) { ?>
+            <li class="slide">
+                <a href="./cars.php" class="side-menu__item <?php if ($url_name == "cars") { echo 'active'; } ?>">
+                    <?= T::cars ?>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if (isset($user_permissions->cars_suggestions->page_access)) { ?>
+            <li class="slide">
+                <a href="./cars_suggestions.php" class="side-menu__item <?php if ($url_name == "cars_suggestions") { echo 'active'; } ?>">
+                    <?= T::cars . ' ' . T::suggestions ?>
+                </a>
+            </li>
+        <?php } ?>
+    </ul>
+</li>
+<?php
+    }
+}
+?>
+<!-- cars -->
+
+<!-- visa -->
+<?php
+if (
+    isset($user_permissions->visa->page_access) ||
+    isset($user_permissions->visa_countries->page_access) ||
+    isset($user_permissions->visa_submissions->page_access)
+) {
+    if (!empty($visa_active) && $visa_active == 1) {
+?>
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="ti-credit-card side-menu__icon"></i>
+        <span class="side-menu__label"><?= T::visa ?></span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
+
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)"><?= T::visa ?></a>
+        </li>
+
+        <?php if (isset($user_permissions->visa_countries->page_access)) { ?>
+            <li class="slide">
+                <a href="./visa_countries.php" class="side-menu__item <?php if ($url_name == "visa_countries") { echo 'active'; } ?>">
+                    <?= T::visa . ' ' . T::countries ?>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if (isset($user_permissions->visa_submissions->page_access)) { ?>
+            <li class="slide">
+                <a href="./visa_submissions.php" class="side-menu__item <?php if ($url_name == "visa_submissions") { echo 'active'; } ?>">
+                    <?= T::visa . ' ' . T::bookings ?>
+                </a>
+            </li>
+        <?php } ?>
+    </ul>
+</li>
+<?php
+    }
+}
+?>
+<!-- visa -->
 
 <!-- reports -->
 <?php
@@ -577,31 +1178,34 @@ if (
 
         </ul>
         <hr class="my-2">
-    <div class="dropdown p-2 mb-2 mx-2">
-        <a style="font-weight: 400; font-size: 14px;" href="#"
-        class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1"
-        data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="./assets/img/user.png" alt="" width="24" height="24" class="user_circle me-2">
-            <?= $USER_SESSION->backend_user_name ?>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-            <li><a class="dropdown-item loadeffect" href="./dashboard.php"><?= T::dashboard ?></a></li>
-            <?php if (isset($user_permissions->settings->page_access)) { ?>
-                <li><a class="dropdown-item loadeffect" href="./settings.php"><?= T::settings ?></a></li>
-            <?php } ?>
-            <?php if (isset($user_permissions->logs->page_access)) { ?>
-                <li><a class="dropdown-item loadeffect" href="./logs.php"><?= T::logs ?></a></li>
-            <?php } ?>
-            <?php if (isset($user_permissions->profile->page_access)) { ?>
-                <li><a class="dropdown-item loadeffect" href="./profile.php"><?= T::profile ?></a></li>
-            <?php } ?>
-            <li>
-                <hr class="dropdown-divider">
-            </li>
-            <li><a class="dropdown-item loadeffect" href="login-logout.php"><?= T::logout ?></a></li>
-        </ul>
-    </div>
+        <div class="dropdown p-2 mb-2 mx-2">
+            <a style="font-weight: 400;font-size: 14px;" href="#"
+               class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="./assets/img/user.png" alt="" width="24" height="24" class="user_circle me-2">
+                <?= $USER_SESSION->backend_user_name ?>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                <li><a class="dropdown-item loadeffect" href="./dashboard.php"><?= T::dashboard ?></a></li>
 
+                <?php if (isset($user_permissions->settings->page_access)) { ?>
+                    <li><a class="dropdown-item loadeffect" href="./settings.php"><?= T::settings ?></a></li>
+                <?php } ?>
+
+                <?php if (isset($user_permissions->logs->page_access)) { ?>
+                    <li><a class="dropdown-item loadeffect" href="./logs.php"><?= T::logs ?></a></li>
+                <?php } ?>
+
+                <?php if (isset($user_permissions->profile->page_access)) { ?>
+                    <li><a class="dropdown-item loadeffect" href="./profile.php"><?= T::profile ?></a></li>
+                <?php } ?>
+
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item loadeffect" href="login-logout.php"><?= T::logout ?></a></li>
+            </ul>
+        </div>
 </div>
 <!-- End::main-sidebar -->
             </div>
