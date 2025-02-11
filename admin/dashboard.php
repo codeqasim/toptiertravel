@@ -1,8 +1,11 @@
 <?php
 
 require_once '_config.php';
+
 auth_check();
+
 $title = "Dashboard";
+
 include "_header.php";
 
 // dd(DECODE($_SESSION['phptravels_backend_user']));

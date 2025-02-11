@@ -51,6 +51,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">-->
 </head>
 
+<?php
+if (DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "Agent" || DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "agent"){
+    REDIRECT("./login-logout.php");
+    exit;
+}else {
+
+?>
+
 <?php if($USER_SESSION->backend_user_language_position=="rtl"){?>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="./assets/css/rtl.css" />
@@ -1226,8 +1234,10 @@ if (
 <?= T::content_editing_role ?>
 </div> -->
 <?php } ?>
+<?php
 
-
+}
+?>
   <script>
 
     // POPUP ALERTS MATERIAL STYLE
