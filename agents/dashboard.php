@@ -17,7 +17,7 @@
 <?php
 require_once '_config.php';
 auth_check();
-$title = "Agent Dashboard";
+$title = "Agen Dashboard";
 include "_header.php";
 
 $agent_id = $USER_SESSION->backend_user_id;
