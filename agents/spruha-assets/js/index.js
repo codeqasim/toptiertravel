@@ -1,7 +1,7 @@
 /* project budget Chart */
 var options = {
 	series: [{
-		name: "Total Budget",
+		name: "Yearly Bookings",
 		data: window.permonthbookingcounts
 	}, {
 		// name: "Amount Used",
