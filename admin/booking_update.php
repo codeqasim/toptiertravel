@@ -116,6 +116,7 @@ $title = T::booking .' '. T::edit;
                     'supplier_payment_type' => $_GET['supplier_payment_type'],
                     'customer_payment_type' => $_GET['customer_payment_type'],
                     'iata' => $_GET['iata'],
+                    'subtotal' => $_GET['subtotal'],
                     'room_data' => $room_data_json
                 ],
                 ['booking_ref_no' => $_GET['booking_id']]
@@ -313,7 +314,7 @@ $title = T::booking .' '. T::edit;
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
-                                            <input type="number" class="form-control" id="room_price"
+                                            <input type="number" class="form-control" id="room_price" step="any" min="0"
                                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;"
                                                 name="room_price" value="<?= $data[0]['price_original'] ?? '' ?>"
                                                 required>
@@ -437,7 +438,7 @@ $title = T::booking .' '. T::edit;
 
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <input type="number" class="form-control" id="iata" name="iata"
+                                    <input type="number" class="form-control" id="iata" name="iata" step="any" min="0"
                                         value="<?= $data[0]['iata'] ?? '' ?>">
                                     <label for="iata">
                                         <?=T::iata?>
@@ -449,7 +450,7 @@ $title = T::booking .' '. T::edit;
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
-                                            <input type="number" class="form-control" id="supplier_cost"
+                                            <input type="number" class="form-control" id="supplier_cost" step="any" min="0"
                                                 name="supplier_cost" value="<?= $data[0]['supplier_cost'] ?? '' ?>"
                                                 required
                                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
@@ -515,7 +516,7 @@ $title = T::booking .' '. T::edit;
                             <div class="col-md-3">
                                 <div class="input-group">
                                     <div class="form-floating">
-                                        <input type="number" class="form-control" id="agent_comission"
+                                        <input type="number" class="form-control" id="agent_comission" step="any" min="0"
                                             name="agent_comission" value="<?= $data[0]['agent_fee'] ?? '' ?>" required
                                             style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                                         <label for="">
@@ -580,7 +581,7 @@ $title = T::booking .' '. T::edit;
                             </div>
                             <div class="col-md-3">
                                 <div class="form-floating">
-                                    <input type="number" class="form-control" id="phone" name="phone"
+                                    <input type="number" class="form-control" id="phone" name="phone" 
                                         value="<?= $phone ?>">
                                     <label for="phone">
                                         <?=T::phone?>
@@ -655,7 +656,7 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="platform_comission" name="platform_comission"
+                            <input type="number" class="form-control" id="platform_comission" name="platform_comission" step="any" min="0"
                                 value="<?= $data[0]['platform_comission'] ?? '' ?>" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
@@ -675,11 +676,31 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="tax" name="tax"
+                            <input type="number" class="form-control" id="tax" name="tax" step="any" min="0"
                                 value="<?= $data[0]['tax'] ?? '' ?>" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
                                 <?=T::tax_?>
+                            </label>
+                        </div>
+                        <span class="input-group-text text-white bg-primary">
+                            %
+
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <div class="input-group">
+                        <div class="form-floating">
+                            <input type="number" class="form-control" id="tax" name="tax" step="any" min="0"
+                                value="<?= $data[0]['subtotal'] ?? '' ?>" required
+                                style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                            <label for="">
+                                <?=T::sub?> <?=T::total?>
                             </label>
                         </div>
                         <span class="input-group-text text-white bg-primary">
@@ -696,7 +717,7 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control text-dark" id="bookingPrice"
+                            <input type="number" class="form-control text-dark" id="bookingPrice" step="any" min="0"
                                 value="<?= $data[0]['price_markup'] ?? '' ?>" name="price" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label class="text-dark" for="">
@@ -798,9 +819,10 @@ $title = T::booking .' '. T::edit;
                 var supplier_payment_type = $("#supplier_payment_type").val();
                 var customer_payment_type = $("#customer_payment_type").val();
                 var iata =  $("#iata").val();
+                var subtotal =  $("#subtotal").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id + "&supplier_payment_type=" + supplier_payment_type + "&customer_payment_type=" + customer_payment_type + "&iata=" + iata;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id + "&supplier_payment_type=" + supplier_payment_type + "&customer_payment_type=" + customer_payment_type + "&iata=" + iata + "&subtotal=" + subtotal;
 
             });
         </script>

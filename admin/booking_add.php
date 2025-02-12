@@ -58,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "supplier_id" => $_POST["supplier_id"] ?? "",
          "supplier_payment_type" => $_POST["supplier_payment_type"],
          "customer_payment_type" => $_POST["customer_payment_type"],
-         "iata" => $_POST["iata"]
+         "iata" => $_POST["iata"],
+         "subtotal" => $_POST['subtotal']
       ];
 
       $user_data = [
@@ -174,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          $room_price = $_POST['room_price'] ?? 0.0; 
          $agent_comission = $_POST['agent_comission'] ?? 0.0;  
          $commission_amount = ($room_price * $agent_comission) / 100;
-         $subtotal = $room_price + $commission_amount;
+         $subtotal = $_POST['subtotal'];
          $formattedCheckin = (new DateTime($_POST['checkin']))->format('m-d-Y');
          $formattedCheckout = (new DateTime($_POST['checkout']))->format('m-d-Y');
          $message = "
@@ -288,18 +289,38 @@ Log into your account to see your sales, commissions and more details about your
                         </div>
                      </div>
                      <div class="col-md-6">
-                     <label for=""><?=T::customer?> <?=T::payment?> <?=T::type?></label>
-                     <hr>
-                     <div class=" ">
-                        <select class="select2" id="customer_payment_type" name="customer_payment_type" required>
-                           <option disabled selected value=""><?=T::select?> <?=T::payment?> <?=T::type?></option>
-                           <option value="stripe"><?=T::stripe?></option>
-                           <option value="wire"><?=T::wire?></option>
-                           <option value="zelle"><?=T::zelle?></option>
-                           <option value="venmo"><?=T::venmo?></option>
-                           <option value="paypal"><?=T::paypal?></option>
-                           <option value="cash"><?=T::cash?></option>
-                        </select>
+                        <label for="">
+                           <?=T::customer?>
+                           <?=T::payment?>
+                           <?=T::type?>
+                        </label>
+                        <hr>
+                        <div class=" ">
+                           <select class="select2" id="customer_payment_type" name="customer_payment_type" required>
+                              <option disabled selected value="">
+                                 <?=T::select?>
+                                 <?=T::payment?>
+                                 <?=T::type?>
+                              </option>
+                              <option value="stripe">
+                                 <?=T::stripe?>
+                              </option>
+                              <option value="wire">
+                                 <?=T::wire?>
+                              </option>
+                              <option value="zelle">
+                                 <?=T::zelle?>
+                              </option>
+                              <option value="venmo">
+                                 <?=T::venmo?>
+                              </option>
+                              <option value="paypal">
+                                 <?=T::paypal?>
+                              </option>
+                              <option value="cash">
+                                 <?=T::cash?>
+                              </option>
+                           </select>
                         </div>
                      </div>
                      <div class="col-md-6">
@@ -311,8 +332,9 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <!-- <div class="form-floating"> -->
-                              <input type="number" class="form-control" id="" name="room_price" value="0" step="any" min="0" required 
-                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;" >
+                              <input type="number" class="form-control" id="" name="room_price" value="0" step="any"
+                                 min="0" required
+                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
 
                               <!-- </div> -->
                               <span class="input-group-text text-white bg-primary">
@@ -450,8 +472,8 @@ Log into your account to see your sales, commissions and more details about your
                   <div class="row g-3">
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="date" class=" form-control" id="" name="checkin" autocomplete="off"
-                              required value="<?php $d=strtotime(" +3 Days"); echo date("Y-m-d", $d); ?>">
+                           <input type="date" class=" form-control" id="" name="checkin" autocomplete="off" required
+                              value="<?php $d=strtotime(" +3 Days"); echo date("Y-m-d", $d); ?>">
                            <label for="checkinDate">
                               <?=T::checkin?>
                               <?=T::date?>
@@ -460,8 +482,8 @@ Log into your account to see your sales, commissions and more details about your
                      </div>
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="date" class=" form-control" id="" name="checkout" required
-                              autocomplete="off" value="<?php $d=strtotime(" +4 Days"); echo date("Y-m-d", $d); ?>">
+                           <input type="date" class=" form-control" id="" name="checkout" required autocomplete="off"
+                              value="<?php $d=strtotime(" +4 Days"); echo date("Y-m-d", $d); ?>">
                            <label for="checkoutDate">
                               <?=T::checkout?>
                               <?=T::date?>
@@ -534,14 +556,16 @@ Log into your account to see your sales, commissions and more details about your
                            <?=T::type?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="form-select select2 pt-2" id="supplier_payment_type" name="supplier_payment_type"
-                              required>
+                           <select class="form-select select2 pt-2" id="supplier_payment_type"
+                              name="supplier_payment_type" required>
                               <option value="" disabled selected>
                                  <?=T::select?>
                                  <?=T::payment?>
                                  <?=T::type?>
                               </option>
-                              <option value="credit card"><?=T::credit?> <?=T::card?>
+                              <option value="credit card">
+                                 <?=T::credit?>
+                                 <?=T::card?>
                               </option>
                               <option value="wire">
                                  <?=T::wire?>
@@ -564,18 +588,22 @@ Log into your account to see your sales, commissions and more details about your
                         </div>
                      </div>
                      <!-- for IATA -->
+
                      <div class="col-md-4">
                         <label for="">
                            <?=T::iata?>
                         </label>
                         <div class="form-floating">
                            <div class="input-group mt-2">
-                              <input type="number" class="form-control " id="iata" name="iata" step="any" min="0"
-                                 value="0" required>
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="iata"
+                                 name="iata" value="0" required>
+                              <span class="input-group-text text-white bg-primary">
+                                 <?= $curreny[0]['name']?>
+                              </span>
                            </div>
+                           <!-- <label for="supplierCost">Supplier Cost</label> -->
                         </div>
                      </div>
-
 
                      <!-- Supplier Cost Input -->
                      <div class="col-md-4">
@@ -585,8 +613,8 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating">
                            <div class="input-group mt-2">
-                              <input type="number" step="any" min="0" class="form-control rounded-0" id="supplierCost" name="supplier_cost"
-                                 value="0" required>
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="supplierCost"
+                                 name="supplier_cost" value="0" required>
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
                               </span>
@@ -642,8 +670,8 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating mt-2">
                            <div class="input-group">
-                              <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="agent_comission" value="0"
-                                 required>
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id=""
+                                 name="agent_comission" value="0" required>
                               <span class="input-group-text text-white bg-primary">%</span>
                            </div>
                            <!-- <label for="">Agent Commission</label> -->
@@ -748,7 +776,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <hr class="m-0">
             </div>
-            
+
             <!-- for agent -->
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
@@ -846,8 +874,8 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="platform_comission" value="0"
-                           required>
+                        <input type="number" step="any" min="0" class="form-control rounded-0" id=""
+                           name="platform_comission" value="0" required>
                         <span class="input-group-text text-white bg-primary">
                            <?= $curreny[0]['name']?>
                         </span>
@@ -862,8 +890,27 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax" value="14" required>
+                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax"
+                           value="14" required>
                         <span class="input-group-text text-white bg-primary">%</span>
+                     </div>
+                     <!-- <label for="">Tax</label> -->
+                  </div>
+               </div>
+
+
+               <div class="col-md-2">
+                  <small for="">
+                     <?=T::sub?>
+                     <?=T::total?>
+                  </small>
+                  <div class="form-floating">
+                     <div class="input-group">
+                        <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0"
+                           id="subtotal" name="subtotal" readonly>
+                        <span class="input-group-text text-white bg-primary">
+                           <?= $curreny[0]['name']?>
+                        </span>
                      </div>
                      <!-- <label for="">Tax</label> -->
                   </div>
@@ -876,8 +923,8 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
-                           name="price" readonly>
+                        <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0"
+                           id="bookingPrice" name="price" readonly>
                         <span class="input-group-text text-white bg-primary">
                            <?= $curreny[0]['name']?>
                         </span>
@@ -903,38 +950,39 @@ Log into your account to see your sales, commissions and more details about your
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
 
-      // Function to calculate the total price
       function calculateTotalPrice() {
-         // Get values from input fields
-         const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
-         const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
-         const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
-         const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
-         const supplierCost = parseFloat($('input[name="supplier_cost"]').val()) || 0; // Add supplier cost
+    const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
+    const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
+    const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
+    const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
+    const supplierCost = parseFloat($('input[name="supplier_cost"]').val()) || 0;
+    const iata = parseFloat($('input[name="iata"]').val()) || 0;
 
-         // Calculate the agent commission based on room price and platform commission
-         const agentCommission = (roomPrice + platformCommission) * (agentCommissionPercent / 100);
+    // Base total before agent fee
+    let totalBeforeAgentFee = roomPrice + platformCommission + supplierCost + iata;
 
-         // Calculate total before tax (room price + platform commission + agent commission + supplier cost)
-         const totalBeforeTax = roomPrice + platformCommission + agentCommission + supplierCost;
+    // Calculate agent commission
+    let agentCommission = totalBeforeAgentFee * (agentCommissionPercent / 100);
+    let totalBeforeTax = totalBeforeAgentFee + agentCommission;
 
-         // Calculate tax amount
-         const taxAmount = totalBeforeTax * (taxPercent / 100);
+    // Calculate tax amount based on room price only
+    let taxAmount = roomPrice * (taxPercent / 100);
 
-         // Calculate total price (including tax)
-         const totalPrice = totalBeforeTax + taxAmount;
+    // Final total price
+    let totalPrice = totalBeforeTax + taxAmount;
+    $('#bookingPrice').val(totalPrice.toFixed(2));
 
-         // Update the total price field
-         $('#bookingPrice').val(totalPrice.toFixed(2));
-      }
+    // Calculate Subtotal (room price + tax on room price)
+    let subTotal = roomPrice + taxAmount;
+    $('#subtotal').val(subTotal.toFixed(2));
+}
 
-      // Bind change events to fields to recalculate the total price
-      $('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"]').on('input', function () {
-         calculateTotalPrice();
-      });
+$('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', function () {
+    calculateTotalPrice();
+});
 
-      // Initial calculation when the page loads
-      calculateTotalPrice();
+calculateTotalPrice();
+
 
 
       // Handle location selection change
