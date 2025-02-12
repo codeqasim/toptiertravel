@@ -234,7 +234,7 @@ Log into your account to see your sales, commissions and more details about your
    <div class="p-3">
       <div class="container px-5">
 
-         <form method="post" action="<?=root?>booking-add.php" onsubmit="loading()">
+         <form method="post" action="<?=root?>booking_add.php" onsubmit="loading()">
             <!-- Select Hotel -->
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
@@ -311,8 +311,8 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <!-- <div class="form-floating"> -->
-                              <input type="number" class="form-control" id="" name="room_price" value="0" required
-                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                              <input type="number" class="form-control" id="" name="room_price" value="0" step="any" min="0" required 
+                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;" >
 
                               <!-- </div> -->
                               <span class="input-group-text text-white bg-primary">
@@ -450,8 +450,8 @@ Log into your account to see your sales, commissions and more details about your
                   <div class="row g-3">
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="text" class="checkin form-control" id="" name="checkin" autocomplete="off"
-                              required value="<?php $d=strtotime(" +3 Days"); echo date("d-m-Y", $d); ?>">
+                           <input type="date" class=" form-control" id="" name="checkin" autocomplete="off"
+                              required value="<?php $d=strtotime(" +3 Days"); echo date("Y-m-d", $d); ?>">
                            <label for="checkinDate">
                               <?=T::checkin?>
                               <?=T::date?>
@@ -460,8 +460,8 @@ Log into your account to see your sales, commissions and more details about your
                      </div>
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="text" class="checkout form-control" id="" name="checkout" required
-                              autocomplete="off" value="<?php $d=strtotime(" +4 Days"); echo date("d-m-Y", $d); ?>">
+                           <input type="date" class=" form-control" id="" name="checkout" required
+                              autocomplete="off" value="<?php $d=strtotime(" +4 Days"); echo date("Y-m-d", $d); ?>">
                            <label for="checkoutDate">
                               <?=T::checkout?>
                               <?=T::date?>
@@ -570,7 +570,7 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating">
                            <div class="input-group mt-2">
-                              <input type="number" class="form-control " id="iata" name="iata"
+                              <input type="number" class="form-control " id="iata" name="iata" step="any" min="0"
                                  value="0" required>
                            </div>
                         </div>
@@ -585,7 +585,7 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating">
                            <div class="input-group mt-2">
-                              <input type="number" class="form-control rounded-0" id="supplierCost" name="supplier_cost"
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="supplierCost" name="supplier_cost"
                                  value="0" required>
                               <span class="input-group-text text-white bg-primary">
                                  <?= $curreny[0]['name']?>
@@ -642,7 +642,7 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating mt-2">
                            <div class="input-group">
-                              <input type="number" class="form-control rounded-0" id="" name="agent_comission" value="0"
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="agent_comission" value="0"
                                  required>
                               <span class="input-group-text text-white bg-primary">%</span>
                            </div>
@@ -846,7 +846,7 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="" name="platform_comission" value="0"
+                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="platform_comission" value="0"
                            required>
                         <span class="input-group-text text-white bg-primary">
                            <?= $curreny[0]['name']?>
@@ -862,7 +862,7 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" class="form-control rounded-0" id="" name="tax" value="14" required>
+                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax" value="14" required>
                         <span class="input-group-text text-white bg-primary">%</span>
                      </div>
                      <!-- <label for="">Tax</label> -->
@@ -876,7 +876,7 @@ Log into your account to see your sales, commissions and more details about your
                   </small>
                   <div class="form-floating">
                      <div class="input-group">
-                        <input type="number" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
+                        <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0" id="bookingPrice"
                            name="price" readonly>
                         <span class="input-group-text text-white bg-primary">
                            <?= $curreny[0]['name']?>

@@ -437,7 +437,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         <div class="card-header d-block border-bottom-0 pb-0">
                             <div>
                                 <div class="d-md-flex">
-                                    <label class="main-content-label my-auto pt-2">Commission Paid</label>
+                                    <label class="main-content-label my-auto pt-2">Commission</label>
                                     <div class="ms-auto mt-3 d-flex">
                                         <div class="me-3 d-flex text-muted fs-13"><span
                                                 class="legend bg-primary rounded-circle"></span>Paid
@@ -472,7 +472,6 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                 </div><!-- col end -->
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
                 <?php
-// Step 1: Fetch current and previous month bookings
 $current_month_start = date('Y-m-01');
 $current_month_end = date('Y-m-t');
 $previous_month_start = date('Y-m-01', strtotime("first day of last month"));
@@ -492,7 +491,6 @@ $previous_bookings = $db->select("hotels_bookings", ["email", "price_markup"], [
 
 $client_markup = [];
 
-// Step 2: Process current month bookings
 foreach ($current_bookings as $booking) {
     $email = $booking["email"];
     
@@ -575,8 +573,6 @@ $top_clients = array_slice($unique_clients, 0, 3);
         <?php endforeach; ?>
     </div>
 </div>
-
-
                 </div>
                 <!-- col end -->
                 <div class="col-lg-12">
