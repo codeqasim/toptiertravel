@@ -59,7 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "supplier_payment_type" => $_POST["supplier_payment_type"],
          "customer_payment_type" => $_POST["customer_payment_type"],
          "iata" => $_POST["iata"],
-         "subtotal" => $_POST['subtotal']
+         "subtotal" => $_POST['subtotal'],
+         "agent_payment_status" => $_POST['agent_payment_status'],
+         "agent_payment_type" => $_POST['agent_payment_type'],
       ];
 
       $user_data = [
@@ -348,6 +350,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <hr class="m-0">
             </div>
+
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
@@ -494,7 +497,6 @@ Log into your account to see your sales, commissions and more details about your
                </div>
             </div>
 
-
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong>
@@ -635,7 +637,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <div class="card-body p-4">
                   <div class="row g-3">
-                     <div class="col-md-4">
+                     <div class="col-md-3">
                         <label for="">
                            <?=T::agent?>
                         </label>
@@ -658,9 +660,50 @@ Log into your account to see your sales, commissions and more details about your
                            <!-- <label for="agentSelect">Select an Agent</label> -->
                         </div>
                      </div>
-                     <div class="col-md-6">
 
+                     <div class="col-md-3">
+                        <label for="agentPaymentType">
+                        <?= T::payment?> <?= T::type?>
+                        </label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
+                           <select class="select2 pt-2" id="agentPaymentType" name="agent_payment_type" required>
+                                 <option value="" selected>
+                                    <?= T::select ?> <?= T::payment?> <?= T::type?>
+                                 </option>
+                                 <option value="wire"><?= T::wire ?></option>
+                                 <option value="zelle"><?= T::zelle ?></option>
+                                 <option value="paypal"><?= T::paypal ?></option>
+                                 <option value="venmo"><?= T::venmo ?></option>
+                           </select>
+                        </div>
                      </div>
+
+                     <div class="col-md-2">
+                        <label for="agentPaymentStatus">
+                           <?= T::payment?> <?= T::status?>
+                        </label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
+                           <select class="select2 pt-2" id="agentPaymentStatus" name="agent_payment_status" required>
+                                 <option selected value="pending"><?= T::pending ?></option>
+                                 <option value="paid"><?= T::paid ?></option>
+                                 <option value="cancelled"><?= T::cancelled ?></option>
+                           </select>
+                        </div>
+                     </div>
+
+                     <div class="col-md-2">
+                        <label for="">
+                           <?=T::amount?>
+                        </label>
+                        <div class="form-floating mt-2">
+                           <div class="input-group">
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="agentCommissionAmount"
+                                 name="agent_commission_amount" value="0" required readonly>
+                              <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
+                           </div>
+                        </div>
+                     </div>
+
 
                      <!-- Agent Commission -->
                      <div class="col-md-2">
@@ -682,8 +725,6 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <hr class="m-0">
             </div>
-
-
 
             <!-- Number of Travelers -->
 
@@ -762,6 +803,7 @@ Log into your account to see your sales, commissions and more details about your
                </div>
                <hr class="m-0">
             </div>
+
             <div class="card mb-2">
                <div class="card-header bg-primary text-dark py-3">
                   <strong class="">
@@ -948,55 +990,60 @@ Log into your account to see your sales, commissions and more details about your
       const roomSelect = $('#roomSelect');
 
       function calculateTotalPrice() {
-    const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
+         const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-    // Get input values
-    const roomPrice = getInputValue("room_price");
-    const agentCommissionPercent = getInputValue("agent_comission");
-    const taxPercent = getInputValue("tax");
-    const supplierCost = getInputValue("supplier_cost");
-    const iata = getInputValue("iata");
+         // Get input values
+         const roomPrice = getInputValue("room_price");
+         const agentCommissionPercent = getInputValue("agent_comission");
+         const taxPercent = getInputValue("tax");
+         const supplierCost = getInputValue("supplier_cost");
+         const iata = getInputValue("iata");
 
-    // If all values are zero, set everything to zero
-    if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
-        $('#bookingPrice').val("0.00");
-        $('#subtotal').val("0.00");
-        $('input[name="net_profit"]').val("0.00");
-        return;
-    }
+         // If all values are zero, set everything to zero
+         if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
+            $('#bookingPrice').val("0.00");
+            $('#subtotal').val("0.00");
+            $('input[name="net_profit"]').val("0.00");
+            $('input[name="agent_commission_amount"]').val("0.00"); // Agent commission field reset
+            return;
+         }
 
-    // Tax calculations
-    const taxMultiplier = 1 + taxPercent / 100;
-    const roomPriceWithoutTax = roomPrice / taxMultiplier;
+         // Tax calculations
+         const taxMultiplier = 1 + taxPercent / 100;
+         const roomPriceWithoutTax = roomPrice / taxMultiplier;
 
-    // Subtotal (before taxes & fees)
-    const subtotal = roomPriceWithoutTax;
+         // Subtotal (before taxes & fees)
+         const subtotal = roomPriceWithoutTax;
 
-    // Agent commission calculation
-    const agentCommission = (subtotal + supplierCost) * (agentCommissionPercent / 100);
+         // Agent commission calculation
+         const agentCommission = (subtotal + supplierCost) * (agentCommissionPercent / 100);
 
-    // Total before tax
-    const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
-    const taxAmount = subtotal * (taxPercent / 100);
+         // Total before tax
+         const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
+         const taxAmount = subtotal * (taxPercent / 100);
 
-    // Final total price
-    let totalPrice = totalBeforeTax + taxAmount;
-    let ccFee = (totalPrice * 0.029) + 0.3;
-    totalPrice += ccFee;
+         // Final total price
+         let totalPrice = totalBeforeTax + taxAmount;
+         let ccFee = (totalPrice * 0.029) + 0.3;
+         totalPrice += ccFee;
 
-    // Net profit calculation (Fixed iata duplication issue)
-    let netProfit = totalPrice - supplierCost - agentCommission - ccFee;
-    if (totalPrice <= 0) netProfit = 0;
+         // Net profit calculation (Fixed iata duplication issue)
+         let netProfit = totalPrice - supplierCost - agentCommission - ccFee;
+         if (totalPrice <= 0) netProfit = 0;
 
-    $('#bookingPrice').val(totalPrice.toFixed(2));
-    $('#subtotal').val(subtotal.toFixed(2));
-    $('input[name="net_profit"]').val(netProfit.toFixed(2));
-}
+         // Set calculated values in respective input fields
+         $('#bookingPrice').val(totalPrice.toFixed(2));
+         $('#subtotal').val(subtotal.toFixed(2));
+         $('input[name="net_profit"]').val(netProfit.toFixed(2));
+         $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2)); // Agent commission field updated
+      }
 
-$('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
+      // Event listeners for input fields
+      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
 
-// Initial calculation
-calculateTotalPrice();
+      // Initial calculation
+      calculateTotalPrice();
+
 
 
       // Handle location selection change
