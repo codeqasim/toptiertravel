@@ -35,6 +35,8 @@ $xcrud->relation('country_code','countries','id','nicename');
 $xcrud->relation('user_type','users_roles','type_name','type_name');
 $xcrud->relation('phone_country_code','countries','id','nicename');
 
+$xcrud->column_callback('email', 'format_email');
+
 // USER PERMISSIONS
 if (!isset($permission_delete)){ $xcrud->unset_remove(); }
 if (!isset($permission_add)){ $xcrud->unset_add(); }

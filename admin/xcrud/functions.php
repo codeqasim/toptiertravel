@@ -541,6 +541,10 @@ function country_code($postdata, $primary, $xcrud){
 
 }
 
+function format_email($value, $fieldname, $primary_key, $row, $xcrud) {
+    return '<a href="mailto:' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</a>';
+}
+
 function location_id($value, $fieldname, $primary_key, $row, $xcrud)
 {
 
