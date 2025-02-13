@@ -948,55 +948,56 @@ Log into your account to see your sales, commissions and more details about your
       const roomSelect = $('#roomSelect');
 
       function calculateTotalPrice() {
-         const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
+    const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-         // Get input values
-         const roomPrice = getInputValue("room_price");
-         const agentCommissionPercent = getInputValue("agent_comission");
-         const taxPercent = getInputValue("tax");
-         const supplierCost = getInputValue("supplier_cost");
-         const iata = getInputValue("iata");
+    // Get input values
+    const roomPrice = getInputValue("room_price");
+    const agentCommissionPercent = getInputValue("agent_comission");
+    const taxPercent = getInputValue("tax");
+    const supplierCost = getInputValue("supplier_cost");
+    const iata = getInputValue("iata");
 
-         // If all values are zero, set everything to zero
-         if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
-            $('#bookingPrice').val("0.00");
-            $('#subtotal').val("0.00");
-            $('input[name="net_profit"]').val("0.00");
-            return;
-         }
+    // If all values are zero, set everything to zero
+    if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
+        $('#bookingPrice').val("0.00");
+        $('#subtotal').val("0.00");
+        $('input[name="net_profit"]').val("0.00");
+        return;
+    }
 
-         // Tax calculations
-         const taxMultiplier = 1 + taxPercent / 100;
-         const roomPriceWithoutTax = roomPrice / taxMultiplier;
+    // Tax calculations
+    const taxMultiplier = 1 + taxPercent / 100;
+    const roomPriceWithoutTax = roomPrice / taxMultiplier;
 
-         // Subtotal (before taxes & fees)
-         const subtotal = roomPriceWithoutTax;
+    // Subtotal (before taxes & fees)
+    const subtotal = roomPriceWithoutTax;
 
-         // Agent commission calculation
-         const agentCommission = (subtotal + supplierCost + iata) * (agentCommissionPercent / 100);
+    // Agent commission calculation
+    const agentCommission = (subtotal + supplierCost) * (agentCommissionPercent / 100);
 
-         // Total before tax
-         const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
-         const taxAmount = subtotal * (taxPercent / 100);
+    // Total before tax
+    const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
+    const taxAmount = subtotal * (taxPercent / 100);
 
-         // Final total price
-         let totalPrice = totalBeforeTax + taxAmount;
-         let ccFee = (totalPrice * 0.029) + 0.3;
-         totalPrice += ccFee;
+    // Final total price
+    let totalPrice = totalBeforeTax + taxAmount;
+    let ccFee = (totalPrice * 0.029) + 0.3;
+    totalPrice += ccFee;
 
-         // Net profit calculation
-         let netProfit = totalPrice - supplierCost - agentCommission - ccFee + iata;
-         if (totalPrice <= 0) netProfit = 0;
+    // Net profit calculation (Fixed iata duplication issue)
+    let netProfit = totalPrice - supplierCost - agentCommission - ccFee;
+    if (totalPrice <= 0) netProfit = 0;
 
-         $('#bookingPrice').val(totalPrice.toFixed(2));
-         $('#subtotal').val(subtotal.toFixed(2));
-         $('input[name="net_profit"]').val(netProfit.toFixed(2));
-      }
+    $('#bookingPrice').val(totalPrice.toFixed(2));
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('input[name="net_profit"]').val(netProfit.toFixed(2));
+}
 
-      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
+$('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
 
-      // Initial calculation
-      calculateTotalPrice();
+// Initial calculation
+calculateTotalPrice();
+
 
       // Handle location selection change
       $('#locationSelect').on('change', function () {
