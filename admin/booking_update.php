@@ -105,7 +105,7 @@ $title = T::booking .' '. T::edit;
                     'phone' => $_GET['phone'],
                     'user_data' => $user_data_json,
                     'price_original' => $_GET['room_price'],
-                    'platform_comission' => $_GET['platform_comission'],
+                    'net_profit' => $_GET['net_profit'],
                     'tax' => $_GET['tax'],
                     'agent_fee' => $_GET['agent_comission'],
                     'price_markup' => $_GET['bookingPrice'],
@@ -117,6 +117,8 @@ $title = T::booking .' '. T::edit;
                     'customer_payment_type' => $_GET['customer_payment_type'],
                     'iata' => $_GET['iata'],
                     'subtotal' => $_GET['subtotal'],
+                    'agent_payment_type' => $_GET['agent_payment_type'],
+                    'agent_payment_status' => $_GET['agent_payment_status'],
                     'room_data' => $room_data_json
                 ],
                 ['booking_ref_no' => $_GET['booking_id']]
@@ -492,7 +494,7 @@ $title = T::booking .' '. T::edit;
                             ?>
 
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="form-floating">
                                     <select class="form-select" id="agent_id" name="agent_id">
                                         <option value="">
@@ -511,7 +513,42 @@ $title = T::booking .' '. T::edit;
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-5"></div>
+                            
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <select id="agent_payment_type" name="agent_payment_type" class="form-select" required>
+                                        <option value="" disabled selected>
+                                            <?=T::select?> <?=T::payment?> <?=T::type?>
+                                        </option>
+                                        <option value="wire" <?=($data[0]['agent_payment_type'] ?? '' )==="wire" ? "selected" : "" ;?>><?=T::wire?></option>
+                                        <option value="zelle" <?=($data[0]['agent_payment_type'] ?? '' )==="zelle" ? "selected" : "" ;?>><?=T::zelle?></option>
+                                        <option value="paypal" <?=($data[0]['agent_payment_type'] ?? '' )==="paypal" ? "selected" : "" ;?>><?=T::paypal?></option>
+                                        <option value="venmo" <?=($data[0]['agent_payment_type'] ?? '' )==="venmo" ? "selected" : "" ;?>><?=T::venmo?></option>
+                                    </select>
+                                    <label for="agent_payment_type">
+                                        <?=T::payment?> <?=T::type?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-floating">
+                                    <select id="agent_payment_status" name="agent_payment_status" class="form-select" required>
+                                        <option value="" disabled selected>
+                                            <?=T::select?> <?=T::payment?> <?=T::status?>
+                                        </option>
+                                        <option value="Paid" <?=($data[0]['agent_payment_status'] ?? '' )==="paid" ? "selected" : "" ;?>><?=T::paid?></option>
+                                        <option value="Pending" <?=($data[0]['agent_payment_status'] ?? '' )==="pending" ? "selected" : "" ;?>><?=T::pending?></option>
+                                        <option value="Cancelled" <?=($data[0]['agent_payment_status'] ?? '' )==="cancelled" ? "selected" : "" ;?>><?=T::cancelled?></option>
+                                    </select>
+                                    <label for="agent_payment_status">
+                                        <?=T::payment?> <?=T::status?>
+                                    </label>
+                                </div>
+                            </div>
+
+                            
+                            <!-- <div class="col-md-5"></div> -->
                             <!-- Agent Commission -->
                             <div class="col-md-3">
                                 <div class="input-group">
@@ -656,8 +693,8 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="platform_comission" name="platform_comission" step="any" min="0"
-                                value="<?= $data[0]['platform_comission'] ?? '' ?>" required
+                            <input type="number" class="form-control" id="net_profit" name="net_profit" step="any" min="0"
+                                value="<?= $data[0]['net_profit'] ?? '' ?>" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
                                 <?=T::net_profit?>
@@ -806,7 +843,7 @@ $title = T::booking .' '. T::edit;
                 var agent_id = $("#agent_id").val();
 
                 var room_price = $("#room_price").val();
-                var platform_comission = $("#platform_comission").val();
+                var net_profit = $("#net_profit").val();
                 var tax = $("#tax").val();
                 var agent_comission = $("#agent_comission").val();
                 var bookingPrice = $("#bookingPrice").val();
@@ -820,9 +857,11 @@ $title = T::booking .' '. T::edit;
                 var customer_payment_type = $("#customer_payment_type").val();
                 var iata =  $("#iata").val();
                 var subtotal =  $("#subtotal").val();
+                var agent_payment_type =  $("#agent_payment_type").val();
+                var agent_payment_status = $("#agent_payment_status").val();
 
                 // Send the updated data back to the server via query parameters or AJAX
-                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&platform_comission=" + platform_comission + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id + "&supplier_payment_type=" + supplier_payment_type + "&customer_payment_type=" + customer_payment_type + "&iata=" + iata + "&subtotal=" + subtotal;
+                window.location.href = "<?=$root?>/admin/booking_update.php?booking_id=" + booking_id + "&module=" + module + "&booking_date=" + booking_date + "&booking_status=" + booking_status + "&payment_status=" + payment_status + "&checkin=" + checkin + "&checkout=" + checkout + "&hotel_id=" + hotel_id + "&first_name=" + first_name + "&last_name=" + last_name + "&email=" + email + "&phone=" + phone + "&room_price=" + room_price + "&net_profit=" + net_profit + "&tax=" + tax + "&agent_comission=" + agent_comission + "&bookingPrice=" + bookingPrice + "&bookingnote=" + bookingnote + "&agent_id=" + agent_id + "&room_select=" + room_select + "&supplier_payment_status=" + supplier_payment_status + "&supplier_due_date=" + supplier_due_date + "&cancellation_terms=" + cancellation_terms + "&supplier_cost=" + supplier_cost + "&supplier_id=" + supplier_id + "&supplier_payment_type=" + supplier_payment_type + "&customer_payment_type=" + customer_payment_type + "&iata=" + iata + "&subtotal=" + subtotal + "&agent_payment_type=" + agent_payment_type + "&agent_payment_status=" + agent_payment_status;
 
             });
         </script>
