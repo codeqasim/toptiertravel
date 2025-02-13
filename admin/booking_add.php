@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "booking_date" => date('Y-m-d'),
          "agent_fee" => $_POST['agent_comission'] ?? 0,
          "tax" => $_POST['tax'] ?? 0,
-         "platform_comission" => $_POST['platform_comission'] ?? 0,
+         "net_profit" => $_POST['net_profit'] ?? 0,
          "price_original" => $_POST['room_price'] ?? 0.0,
          "booking_note" => $_POST['bookingnote'] ?? "",
          "cancellation_terms" => $_POST['cancellation_terms'] ?? "",
@@ -866,40 +866,21 @@ Log into your account to see your sales, commissions and more details about your
             <div class="d-block"></div>
             <div class="row mb-3 g-3">
 
-
-
                <div class="col-md-2">
                   <small for="">
-                     <?=T::net_profit?>
+                        <?=T::tax_?>
                   </small>
                   <div class="form-floating">
-                     <div class="input-group">
-                        <input type="number" step="any" min="0" class="form-control rounded-0" id=""
-                           name="platform_comission" value="0" required>
-                        <span class="input-group-text text-white bg-primary">
-                           <?= $curreny[0]['name']?>
-                        </span>
-                     </div>
-                     <!-- <label for="">Platform Commission</label> -->
+                        <div class="input-group">
+                           <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax"
+                              value="14" required>
+                           <span class="input-group-text text-white bg-primary">%</span>
+                        </div>
+                        <!-- <label for="">Tax</label> -->
                   </div>
                </div>
 
-               <div class="col-md-2">
-                  <small for="">
-                     <?=T::tax_?>
-                  </small>
-                  <div class="form-floating">
-                     <div class="input-group">
-                        <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax"
-                           value="14" required>
-                        <span class="input-group-text text-white bg-primary">%</span>
-                     </div>
-                     <!-- <label for="">Tax</label> -->
-                  </div>
-               </div>
-
-
-               <div class="col-md-2">
+               <div class="col-md-3">
                   <small for="">
                      <?=T::sub?>
                      <?=T::total?>
@@ -913,6 +894,22 @@ Log into your account to see your sales, commissions and more details about your
                         </span>
                      </div>
                      <!-- <label for="">Tax</label> -->
+                  </div>
+               </div>
+
+               <div class="col-md-3">
+                  <small for="">
+                     <?=T::net_profit?>
+                  </small>
+                  <div class="form-floating">
+                     <div class="input-group">
+                        <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0" id=""
+                           name="net_profit" value="0" required readonly>
+                        <span class="input-group-text text-white bg-primary">
+                           <?= $curreny[0]['name']?>
+                        </span>
+                     </div>
+                     <!-- <label for="">Platform Commission</label> -->
                   </div>
                </div>
 
@@ -951,39 +948,55 @@ Log into your account to see your sales, commissions and more details about your
       const roomSelect = $('#roomSelect');
 
       function calculateTotalPrice() {
-    const roomPrice = parseFloat($('input[name="room_price"]').val()) || 0;
-    const platformCommission = parseFloat($('input[name="platform_comission"]').val()) || 0;
-    const agentCommissionPercent = parseFloat($('input[name="agent_comission"]').val()) || 0;
-    const taxPercent = parseFloat($('input[name="tax"]').val()) || 0;
-    const supplierCost = parseFloat($('input[name="supplier_cost"]').val()) || 0;
-    const iata = parseFloat($('input[name="iata"]').val()) || 0;
+         const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-    // Base total before agent fee
-    let totalBeforeAgentFee = roomPrice + platformCommission + supplierCost + iata;
+         // Get input values
+         const roomPrice = getInputValue("room_price");
+         const agentCommissionPercent = getInputValue("agent_comission");
+         const taxPercent = getInputValue("tax");
+         const supplierCost = getInputValue("supplier_cost");
+         const iata = getInputValue("iata");
 
-    // Calculate agent commission
-    let agentCommission = totalBeforeAgentFee * (agentCommissionPercent / 100);
-    let totalBeforeTax = totalBeforeAgentFee + agentCommission;
+         // If all values are zero, set everything to zero
+         if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
+            $('#bookingPrice').val("0.00");
+            $('#subtotal').val("0.00");
+            $('input[name="net_profit"]').val("0.00");
+            return;
+         }
 
-    // Calculate tax amount based on room price only
-    let taxAmount = roomPrice * (taxPercent / 100);
+         // Tax calculations
+         const taxMultiplier = 1 + taxPercent / 100;
+         const roomPriceWithoutTax = roomPrice / taxMultiplier;
 
-    // Final total price
-    let totalPrice = totalBeforeTax + taxAmount;
-    $('#bookingPrice').val(totalPrice.toFixed(2));
+         // Subtotal (before taxes & fees)
+         const subtotal = roomPriceWithoutTax;
 
-    // Calculate Subtotal (room price + tax on room price)
-    let subTotal = roomPrice + taxAmount;
-    $('#subtotal').val(subTotal.toFixed(2));
-}
+         // Agent commission calculation
+         const agentCommission = (subtotal + supplierCost + iata) * (agentCommissionPercent / 100);
 
-$('input[name="room_price"], input[name="platform_comission"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', function () {
-    calculateTotalPrice();
-});
+         // Total before tax
+         const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
+         const taxAmount = subtotal * (taxPercent / 100);
 
-calculateTotalPrice();
+         // Final total price
+         let totalPrice = totalBeforeTax + taxAmount;
+         let ccFee = (totalPrice * 0.029) + 0.3;
+         totalPrice += ccFee;
 
+         // Net profit calculation
+         let netProfit = totalPrice - supplierCost - agentCommission - ccFee + iata;
+         if (totalPrice <= 0) netProfit = 0;
 
+         $('#bookingPrice').val(totalPrice.toFixed(2));
+         $('#subtotal').val(subtotal.toFixed(2));
+         $('input[name="net_profit"]').val(netProfit.toFixed(2));
+      }
+
+      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
+
+      // Initial calculation
+      calculateTotalPrice();
 
       // Handle location selection change
       $('#locationSelect').on('change', function () {
