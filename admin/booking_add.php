@@ -1022,55 +1022,54 @@ Log into your account to see your sales, commissions and more details about your
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
 
-   function calculateTotalPrice() {
-    const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
+      function calculateTotalPrice() {
+         const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-    // Get input values
-    const roomPrice = getInputValue("room_price");
-    const agentCommissionPercent = getInputValue("agent_comission");
-    const taxPercent = getInputValue("tax");
-    const supplierCost = getInputValue("supplier_cost");
-    const iata = getInputValue("iata");
+         // Get input values
+         const roomPrice = getInputValue("room_price");
+         const agentCommissionPercent = getInputValue("agent_comission");
+         const taxPercent = getInputValue("tax");
+         const supplierCost = getInputValue("supplier_cost");
+         const iata = getInputValue("iata");
 
-    // If room price is zero, reset values
-    if (roomPrice === 0) {
-        $('#bookingPrice').val("0.00");
-        $('#subtotal').val("0.00");
-        $('input[name="net_profit"]').val("0.00");
-        return;
-    }
+         // If room price is zero, reset values
+         if (roomPrice === 0) {
+            $('#bookingPrice').val("0.00");
+            $('#subtotal').val("0.00");
+            $('input[name="net_profit"]').val("0.00");
+            return;
+         }
+         
+         // Total Price should be the same as Room Price
+         let totalPrice = roomPrice;
 
-    // Total Price should be the same as Room Price
-    let totalPrice = roomPrice;
+         // Calculate Credit Card Fee
+         let ccFee = (totalPrice * 0.029) + 0.3;
 
-    // Calculate CC Fee
-    let ccFee = (totalPrice * 0.029) + 0.3;
+         // Add CC Fee to total value
+         totalPrice += ccFee;
 
-    // Add CC Fee to total value
-    totalPrice += ccFee;
+         // Subtotal calculation: total price divided by (1 + taxPercent/100)
+         const subtotal = roomPrice / (1 + taxPercent / 100);
 
-    // Subtotal calculation: total price divided by (1 + taxPercent/100)
-    const subtotal = roomPrice / (1 + taxPercent / 100);
+         // Agent commission amount calculation
+         const agentCommission = (subtotal * agentCommissionPercent) / 100;
 
-    // Agent commission amount calculation
-    const agentCommission = (subtotal * agentCommissionPercent) / 100;
+         // Net Profit Calculation: roomPrice - supplierCost - agentCommission + iata - ccFee
+         let netProfit = roomPrice - supplierCost - agentCommission + iata - ccFee;
 
-    // Net Profit Calculation: totalPrice - supplierCost - agentCommission + iata
-    let netProfit = roomPrice - supplierCost - agentCommission + iata;
+         // Set calculated values in respective input fields
+         $('#bookingPrice').val(totalPrice.toFixed(2));
+         $('#subtotal').val(subtotal.toFixed(2));
+         $('input[name="net_profit"]').val(netProfit.toFixed(2));
+         $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2));
+      }
 
-    // Set calculated values in respective input fields
-    $('#bookingPrice').val(totalPrice.toFixed(2));
-    $('#subtotal').val(subtotal.toFixed(2));
-    $('input[name="net_profit"]').val(netProfit.toFixed(2));
-    $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2));
-   }
+      // Event listeners for input fields
+      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
 
-   // Event listeners for input fields
-   $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
-
-   // Initial calculation
-   calculateTotalPrice();
-
+      // Initial calculation
+      calculateTotalPrice();
 
 
       // Handle location selection change
