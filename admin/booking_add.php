@@ -726,6 +726,39 @@ Log into your account to see your sales, commissions and more details about your
                <hr class="m-0">
             </div>
 
+            <script>
+               document.addEventListener("DOMContentLoaded", function () {
+                  const paymentStatus = document.getElementById("agentPaymentStatus");
+                  const agentCommission = document.querySelector("input[name='agent_comission']");
+
+                  if (paymentStatus && agentCommission) {
+                     paymentStatus.addEventListener("change", function () {
+                        updateCommission(this.value);
+                     });
+
+                     if (jQuery && $.fn.select2) {
+                        $('#agentPaymentStatus').on('select2:select', function (e) {
+                           updateCommission(e.params.data.id);
+                        });
+                     }
+                  }
+
+                  function updateCommission(value) {
+                     if (value === "cancelled") {
+                        agentCommission.value = 0;
+                        agentCommission.setAttribute("readonly", true);
+
+                        $(agentCommission).trigger("input");
+                     } else {
+                        agentCommission.removeAttribute("readonly");
+                     }
+
+                     calculateTotalPrice(); 
+                  }
+
+               });
+            </script>
+
             <!-- Number of Travelers -->
 
             <!-- Client Details -->
@@ -989,60 +1022,54 @@ Log into your account to see your sales, commissions and more details about your
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
 
-      function calculateTotalPrice() {
-         const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
+   function calculateTotalPrice() {
+    const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-         // Get input values
-         const roomPrice = getInputValue("room_price");
-         const agentCommissionPercent = getInputValue("agent_comission");
-         const taxPercent = getInputValue("tax");
-         const supplierCost = getInputValue("supplier_cost");
-         const iata = getInputValue("iata");
+    // Get input values
+    const roomPrice = getInputValue("room_price");
+    const agentCommissionPercent = getInputValue("agent_comission");
+    const taxPercent = getInputValue("tax");
+    const supplierCost = getInputValue("supplier_cost");
+    const iata = getInputValue("iata");
 
-         // If all values are zero, set everything to zero
-         if (roomPrice === 0 && supplierCost === 0 && iata === 0) {
-            $('#bookingPrice').val("0.00");
-            $('#subtotal').val("0.00");
-            $('input[name="net_profit"]').val("0.00");
-            $('input[name="agent_commission_amount"]').val("0.00"); // Agent commission field reset
-            return;
-         }
+    // If room price is zero, reset values
+    if (roomPrice === 0) {
+        $('#bookingPrice').val("0.00");
+        $('#subtotal').val("0.00");
+        $('input[name="net_profit"]').val("0.00");
+        return;
+    }
 
-         // Tax calculations
-         const taxMultiplier = 1 + taxPercent / 100;
-         const roomPriceWithoutTax = roomPrice / taxMultiplier;
+    // Total Price should be the same as Room Price
+    let totalPrice = roomPrice;
 
-         // Subtotal (before taxes & fees)
-         const subtotal = roomPriceWithoutTax;
+    // Calculate CC Fee
+    let ccFee = (totalPrice * 0.029) + 0.3;
 
-         // Agent commission calculation
-         const agentCommission = (subtotal + supplierCost) * (agentCommissionPercent / 100);
+    // Add CC Fee to total value
+    totalPrice += ccFee;
 
-         // Total before tax
-         const totalBeforeTax = subtotal + supplierCost + iata + agentCommission;
-         const taxAmount = subtotal * (taxPercent / 100);
+    // Subtotal calculation: total price divided by (1 + taxPercent/100)
+    const subtotal = roomPrice / (1 + taxPercent / 100);
 
-         // Final total price
-         let totalPrice = totalBeforeTax + taxAmount;
-         let ccFee = (totalPrice * 0.029) + 0.3;
-         totalPrice += ccFee;
+    // Agent commission amount calculation
+    const agentCommission = (subtotal * agentCommissionPercent) / 100;
 
-         // Net profit calculation (Fixed iata duplication issue)
-         let netProfit = totalPrice - supplierCost - agentCommission - ccFee;
-         if (totalPrice <= 0) netProfit = 0;
+    // Net Profit Calculation: totalPrice - supplierCost - agentCommission + iata
+    let netProfit = roomPrice - supplierCost - agentCommission + iata;
 
-         // Set calculated values in respective input fields
-         $('#bookingPrice').val(totalPrice.toFixed(2));
-         $('#subtotal').val(subtotal.toFixed(2));
-         $('input[name="net_profit"]').val(netProfit.toFixed(2));
-         $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2)); // Agent commission field updated
-      }
+    // Set calculated values in respective input fields
+    $('#bookingPrice').val(totalPrice.toFixed(2));
+    $('#subtotal').val(subtotal.toFixed(2));
+    $('input[name="net_profit"]').val(netProfit.toFixed(2));
+    $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2));
+   }
 
-      // Event listeners for input fields
-      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
+   // Event listeners for input fields
+   $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
 
-      // Initial calculation
-      calculateTotalPrice();
+   // Initial calculation
+   calculateTotalPrice();
 
 
 
