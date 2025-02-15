@@ -1032,14 +1032,13 @@ Log into your account to see your sales, commissions and more details about your
          const supplierCost = getInputValue("supplier_cost");
          const iata = getInputValue("iata");
 
-         // If room price is zero, reset values
          if (roomPrice === 0) {
             $('#bookingPrice').val("0.00");
             $('#subtotal').val("0.00");
             $('input[name="net_profit"]').val("0.00");
             return;
          }
-         
+
          // Total Price should be the same as Room Price
          let totalPrice = roomPrice;
 
@@ -1047,7 +1046,7 @@ Log into your account to see your sales, commissions and more details about your
          let ccFee = (totalPrice * 0.029) + 0.3;
 
          // Add CC Fee to total value
-         totalPrice += ccFee;
+         // totalPrice += ccFee;
 
          // Subtotal calculation: total price divided by (1 + taxPercent/100)
          const subtotal = roomPrice / (1 + taxPercent / 100);
