@@ -49,6 +49,8 @@ include "_header.php";
     $xcrud->unset_edit(); 
     $xcrud->unset_remove(); 
 
+    $xcrud->order_by('booking_id', 'desc');
+    
     $filter = $_GET['supplier_payment_status'] ?? 'all';
     if ($filter === 'paid') {
         $xcrud->where('supplier_payment_status =', 'paid');
