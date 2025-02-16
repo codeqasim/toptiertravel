@@ -244,7 +244,9 @@ function cms_get($name,$params){
         "supplier_payments" => array(
             "page_access"=>"",
         ),
-
+        "agents_commissions" => array(
+            "page_access"=>"",
+        ),
         "settings" => array(
             "page_access"=>"",
             "edit"=>""

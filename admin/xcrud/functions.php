@@ -545,6 +545,16 @@ function format_email($value, $fieldname, $primary_key, $row, $xcrud) {
     return '<a href="mailto:' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '</a>';
 }
 
+function agent_fee_cal($value, $fieldname, $primary_key, $row, $xcrud) {
+    
+    $subtotal = floatval($row['hotels_bookings.subtotal'] ?? 0);
+    $agent_fee_percentage = floatval($row['hotels_bookings.agent_fee'] ?? 0); 
+    
+    $agent_fee = ($subtotal * $agent_fee_percentage) / 100;
+
+    return number_format($agent_fee, 2)." USD";
+}
+
 function location_id($value, $fieldname, $primary_key, $row, $xcrud)
 {
 
