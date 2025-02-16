@@ -537,9 +537,9 @@ $title = T::booking .' '. T::edit;
                                         <option value="" disabled selected>
                                             <?=T::select?> <?=T::payment?> <?=T::status?>
                                         </option>
-                                        <option value="Paid" <?=($data[0]['agent_payment_status'] ?? '' )==="paid" ? "selected" : "" ;?>><?=T::paid?></option>
-                                        <option value="Pending" <?=($data[0]['agent_payment_status'] ?? '' )==="pending" ? "selected" : "" ;?>><?=T::pending?></option>
-                                        <option value="Cancelled" <?=($data[0]['agent_payment_status'] ?? '' )==="cancelled" ? "selected" : "" ;?>><?=T::cancelled?></option>
+                                        <option value="paid" <?=($data[0]['agent_payment_status'] ?? '' )==="paid" ? "selected" : "" ;?>><?=T::paid?></option>
+                                        <option value="pending" <?=($data[0]['agent_payment_status'] ?? '' )==="pending" ? "selected" : "" ;?>><?=T::pending?></option>
+                                        <option value="cancelled" <?=($data[0]['agent_payment_status'] ?? '' )==="cancelled" ? "selected" : "" ;?>><?=T::cancelled?></option>
                                     </select>
                                     <label for="agent_payment_status">
                                         <?=T::payment?> <?=T::status?>
