@@ -47,7 +47,7 @@ include "_header.php";
     $xcrud->unset_title();
     $xcrud->unset_add();
     $xcrud->unset_edit(); 
-    $xcrud->unset_remove(); 
+    // $xcrud->unset_remove(); 
 
     $xcrud->order_by('booking_id', 'desc');
     
