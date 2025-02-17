@@ -670,6 +670,7 @@ Log into your account to see your sales, commissions and more details about your
                                  <option value="" selected>
                                     <?= T::select ?> <?= T::payment?> <?= T::type?>
                                  </option>
+                                 <option value="pending"><?= T::pending ?></option>
                                  <option value="wire"><?= T::wire ?></option>
                                  <option value="zelle"><?= T::zelle ?></option>
                                  <option value="paypal"><?= T::paypal ?></option>

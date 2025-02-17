@@ -520,6 +520,7 @@ $title = T::booking .' '. T::edit;
                                         <option value="" disabled selected>
                                             <?=T::select?> <?=T::payment?> <?=T::type?>
                                         </option>
+                                        <option value="pending" <?=($data[0]['agent_payment_type'] ?? '' )==="pending" ? "selected" : "" ;?>><?=T::pending?></option>
                                         <option value="wire" <?=($data[0]['agent_payment_type'] ?? '' )==="wire" ? "selected" : "" ;?>><?=T::wire?></option>
                                         <option value="zelle" <?=($data[0]['agent_payment_type'] ?? '' )==="zelle" ? "selected" : "" ;?>><?=T::zelle?></option>
                                         <option value="paypal" <?=($data[0]['agent_payment_type'] ?? '' )==="paypal" ? "selected" : "" ;?>><?=T::paypal?></option>
