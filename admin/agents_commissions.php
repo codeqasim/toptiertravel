@@ -73,7 +73,7 @@ include "_header.php";
     $xcrud->unset_title();
     $xcrud->unset_csv(); 
     $xcrud->unset_add();
-    $xcrud->unset_edit(); 
+    // $xcrud->unset_edit(); 
     $xcrud->unset_remove(); 
     
     $xcrud->order_by('booking_id', 'desc');
