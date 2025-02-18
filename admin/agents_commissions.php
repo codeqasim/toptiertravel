@@ -25,7 +25,22 @@ include "_header.php";
 <div class="">
         <form method="GET">
             <div class="row g-3 align-items-center">
-                <div class="col-md-3">
+            <div class="col-md-3">
+                    <div class="form-floating">
+                        <select class="form-select" id="agent_id" name="agent_id">
+                            <option value="all">All Agents</option>
+                            <?php
+                            $agents = $db->query("SELECT DISTINCT u.user_id, u.first_name, u.last_name, u.email FROM users u INNER JOIN hotels_bookings h ON u.user_id = h.agent_id")->fetchAll();
+                            foreach ($agents as $agent) {
+                                $selected = ($_GET['agent_id'] ?? 'all') == $agent['user_id'] ? 'selected' : '';
+                                echo "<option value='{$agent['user_id']}' $selected>{$agent['first_name']} {$agent['last_name']} ({$agent['email']})</option>";
+                            }
+                            ?>
+                        </select>
+                        <label for="agent_id">Select Agent</label>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="form-floating">
                         <select class="form-select" id="agent_payment_status" name="agent_payment_status" required>
                             <option value="all" <?= ($_GET['agent_payment_status'] ?? 'all') == 'all' ? 'selected' : '' ?>><?= T::all ?></option>
@@ -36,7 +51,7 @@ include "_header.php";
                         <label for="agent_payment_status">Payment Status</label>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-floating">
                         <select class="form-select" id="agent_payment_type" name="agent_payment_type" required>
                             <option value="all" <?= ($_GET['agent_payment_type'] ?? 'all') == 'all' ? 'selected' : '' ?>><?= T::all ?></option>
@@ -87,6 +102,11 @@ include "_header.php";
     $filter_type = $_GET['agent_payment_type'] ?? 'all';
     if ($filter_type !== 'all' && !empty($filter_type)) {
         $xcrud->where('agent_payment_type =', $filter_type);
+    }
+
+    $filter_agent = $_GET['agent_id'] ?? 'all';
+    if ($filter_agent !== 'all' && !empty($filter_agent)) {
+        $xcrud->where('agent_id =', $filter_agent);
     }
 
     echo $xcrud->render();
