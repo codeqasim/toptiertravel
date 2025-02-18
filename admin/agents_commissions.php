@@ -51,7 +51,7 @@ include "_header.php";
                 <div class="form-floating">
                     <select class="form-select" id="agent_payment_type" name="agent_payment_type" required>
                         <option value="all" <?= ($_GET['agent_payment_type'] ?? 'all') == 'all' ? 'selected' : '' ?>><?= T::all ?></option>
-                        <option value="pending" <?= ($_GET['agent_payment_type'] ?? 'pending') == 'pending' ? 'selected' : '' ?>><?= T::pending ?></option>
+                        <option value="pending" <?= ($_GET['agent_payment_type'] ?? '') == 'pending' ? 'selected' : '' ?>><?= T::pending ?></option>
                         <option value="wire" <?= ($_GET['agent_payment_type'] ?? '') == 'wire' ? 'selected' : '' ?>><?= T::wire ?></option>
                         <option value="zelle" <?= ($_GET['agent_payment_type'] ?? '') == 'zelle' ? 'selected' : '' ?>><?= T::zelle ?></option>
                         <option value="paypal" <?= ($_GET['agent_payment_type'] ?? '') == 'paypal' ? 'selected' : '' ?>><?= T::paypal ?></option>
@@ -104,6 +104,7 @@ if ($filter_agent !== 'all' && !empty($filter_agent)) {
 }
 
 $xcrud->where($filter_conditions);
+
 echo $xcrud->render();
 
 $total_fee_query = $db->query("SELECT SUM(agent_fee) as agent_fee FROM hotels_bookings WHERE $filter_conditions")->fetch();
@@ -111,8 +112,8 @@ $total_fee = $total_fee_query['agent_fee'] ?? 0;
 ?>
 
 <div class="container mt-3">
-    <div class="alert alert-primary text-center">
-        <h4>Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> %</strong></h4>
+    <div class="bg-primary text-center">
+        <h4 class="py-2">Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> %</strong></h4>
     </div>
 </div>
 
