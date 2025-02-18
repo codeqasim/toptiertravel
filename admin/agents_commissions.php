@@ -111,10 +111,10 @@ $total_fee_query = $db->query("SELECT SUM(agent_fee) as agent_fee FROM hotels_bo
 $total_fee = $total_fee_query['agent_fee'] ?? 0;
 ?>
 
-<div class="container mt-3">
+<!-- <div class="container mt-3">
     <div class="bg-primary text-center">
         <h4 class="py-2">Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> %</strong></h4>
     </div>
-</div>
+</div> -->
 
 <?php include "_footer.php" ?>
