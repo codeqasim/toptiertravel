@@ -727,8 +727,9 @@ Log into your account to see your sales, commissions and more details about your
                document.addEventListener("DOMContentLoaded", function () {
                   const paymentStatus = document.getElementById("agentPaymentStatus");
                   const agentCommission = document.querySelector("input[name='agent_comission']");
+                  const agentCommissionAmount = document.getElementById("agentCommissionAmount");
 
-                  if (paymentStatus && agentCommission) {
+                  if (paymentStatus && agentCommission && agentCommissionAmount) {
                      paymentStatus.addEventListener("change", function () {
                         updateCommission(this.value);
                      });
@@ -743,16 +744,20 @@ Log into your account to see your sales, commissions and more details about your
                   function updateCommission(value) {
                      if (value === "cancelled") {
                         agentCommission.value = 0;
+                        agentCommissionAmount.value = 0;
+
                         agentCommission.setAttribute("readonly", true);
+                        agentCommissionAmount.setAttribute("readonly", true);
 
                         $(agentCommission).trigger("input");
+                        $(agentCommissionAmount).trigger("input");
                      } else {
                         agentCommission.removeAttribute("readonly");
+                        agentCommissionAmount.removeAttribute("readonly");
                      }
 
                      calculateTotalPrice(); 
                   }
-
                });
             </script>
 
@@ -1159,6 +1164,31 @@ Log into your account to see your sales, commissions and more details about your
          }
       });
    });
+
+   $(document).ready(function () {
+   const agentFeeInput = $('input[name="agent_comission"]');
+   const agentAmountInput = $('input[name="agent_commission_amount"]'); 
+   const subtotalInput = $('#subtotal'); 
+
+   function updateAmountFromFee() {
+      let feePercent = parseFloat(agentFeeInput.val()) || 0;
+      let subtotal = parseFloat(subtotalInput.val()) || 0;
+      let commissionAmount = (subtotal * feePercent) / 100;
+      agentAmountInput.val(commissionAmount.toFixed(2));
+   }
+
+   function updateFeeFromAmount() {
+      let amount = parseFloat(agentAmountInput.val()) || 0;
+      let subtotal = parseFloat(subtotalInput.val()) || 0;
+      let feePercent = subtotal > 0 ? (amount / subtotal) * 100 : 0;
+      agentFeeInput.val(feePercent.toFixed(2));
+   }
+
+   // Event Listeners
+   agentFeeInput.on("input", updateAmountFromFee);
+   agentAmountInput.on("input", updateFeeFromAmount);
+});
+
 </script>
 
 <script>

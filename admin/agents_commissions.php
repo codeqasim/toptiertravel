@@ -119,8 +119,7 @@ $total_fee = $total_fee_query['total_fee'] ?? 0;
 
 <div class="container mt-3">
     <div class="bg-primary text-center">
-        <h4 class="py-2">Total Commission <strong><?= number_format($total_fee, 2) ?> USD</strong></h4>
+        <h4 class="py-2">Total Commission<strong><?= number_format($total_fee, 2) ?> USD</strong></h4>
     </div>
 </div>
-
 <?php include "_footer.php" ?>

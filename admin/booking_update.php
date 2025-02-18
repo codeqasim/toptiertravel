@@ -559,11 +559,11 @@ $title = T::booking .' '. T::edit;
                                             style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                                         <label for="">
                                             <?=T::agent?>
-                                            <?=T::fee?>
+                                            <?=T::commission?>
                                         </label>
                                     </div>
                                     <span class="input-group-text text-white bg-primary">
-                                        %
+                                     <?= $curreny[0]['name']?>
                                     </span>
 
                                 </div>
