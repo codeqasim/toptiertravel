@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "checkout" => $_POST['checkout'] ?? "",
          "agent_id" => $_POST['agent'] ?? null,
          "booking_date" => date('Y-m-d'),
-         "agent_fee" => $_POST['agent_comission'] ?? 0,
+         "agent_fee" => $_POST['agent_commission_amount'] ?? 0,
          "tax" => $_POST['tax'] ?? 0,
          "net_profit" => $_POST['net_profit'] ?? 0,
          "price_original" => $_POST['room_price'] ?? 0.0,
@@ -142,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $sendSMS_client = isset($_POST['sendSMS_client']) ? true : false;
       $sendWhatsapp_client = isset($_POST['sendWhatsapp_client']) ? true : false;
 
-
       $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['agent']]);
       $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['supplier_id']]);
 
@@ -213,8 +212,6 @@ Log into your account to see your sales, commissions and more details about your
       }
 }
 ?>
-
-
 
 <!-- <div class="page_head bg-transparent">
    <div class="panel-heading px-5">
@@ -699,12 +696,11 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <input type="number" step="any" min="0" class="form-control rounded-0" id="agentCommissionAmount"
-                                 name="agent_commission_amount" value="0" required readonly>
+                                 name="agent_commission_amount" value="0" required>
                               <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
                            </div>
                         </div>
                      </div>
-
 
                      <!-- Agent Commission -->
                      <div class="col-md-2">

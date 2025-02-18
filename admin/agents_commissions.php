@@ -76,7 +76,7 @@ $xcrud->fields('agent_id,agent_payment_status,agent_payment_type,agent_fee,subto
 
 $xcrud->change_type('subtotal', 'hidden');
 // $xcrud->column_callback('agent_fee','agent_fee_cal');
-$xcrud->column_pattern('agent_fee', '<strong>{value} %</strong> ');
+$xcrud->column_pattern('agent_fee', '<strong>{value} USD</strong>');
 
 $xcrud->relation('agent_id', 'users', 'user_id', array('first_name', 'last_name', 'email'));
 $xcrud->label('agent_id', 'Agent');
@@ -108,13 +108,13 @@ $xcrud->where($filter_conditions);
 echo $xcrud->render();
 
 $total_fee_query = $db->query("
-    SELECT SUM((hotels_bookings.subtotal * hotels_bookings.agent_fee) / 100) as total_agent_fee
+    SELECT SUM(agent_fee) AS total_fee
     FROM hotels_bookings 
     WHERE $filter_conditions
 ")->fetch();
 
 // Calculate the total fee
-$total_fee = $total_fee_query['total_agent_fee'] ?? 0;
+$total_fee = $total_fee_query['total_fee'] ?? 0;
 ?>
 
 <div class="container mt-3">
