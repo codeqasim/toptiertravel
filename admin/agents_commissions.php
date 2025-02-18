@@ -107,14 +107,20 @@ $xcrud->where($filter_conditions);
 
 echo $xcrud->render();
 
-$total_fee_query = $db->query("SELECT SUM(agent_fee) as agent_fee FROM hotels_bookings WHERE $filter_conditions")->fetch();
-$total_fee = $total_fee_query['agent_fee'] ?? 0;
+$total_fee_query = $db->query("
+    SELECT SUM((hotels_bookings.subtotal * hotels_bookings.agent_fee) / 100) as total_agent_fee
+    FROM hotels_bookings 
+    WHERE $filter_conditions
+")->fetch();
+
+// Calculate the total fee
+$total_fee = $total_fee_query['total_agent_fee'] ?? 0;
 ?>
 
-<!-- <div class="container mt-3">
+<div class="container mt-3">
     <div class="bg-primary text-center">
-        <h4 class="py-2">Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> %</strong></h4>
+        <h4 class="py-2">Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> USD</strong></h4>
     </div>
-</div> -->
+</div>
 
 <?php include "_footer.php" ?>
