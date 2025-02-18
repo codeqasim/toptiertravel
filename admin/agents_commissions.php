@@ -75,8 +75,8 @@ $xcrud->columns('agent_id,agent_payment_status,agent_payment_type,agent_fee,subt
 $xcrud->fields('agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
 
 $xcrud->change_type('subtotal', 'hidden');
-// $xcrud->column_callback('agent_fee','agent_fee_cal');
-$xcrud->column_pattern('agent_fee', '<strong>{value} %</strong> ');
+$xcrud->column_callback('agent_fee','agent_fee_cal');
+// $xcrud->column_pattern('agent_fee', '<strong>{value} %</strong> ');
 
 $xcrud->relation('agent_id', 'users', 'user_id', array('first_name', 'last_name', 'email'));
 $xcrud->label('agent_id', 'Agent');
@@ -113,7 +113,7 @@ $total_fee = $total_fee_query['agent_fee'] ?? 0;
 
 <div class="container mt-3">
     <div class="bg-primary text-center">
-        <h4 class="py-2">Total Agent Fee: <strong><?= number_format($total_fee, 2) ?> %</strong></h4>
+        <h4 class="py-2">Total Fee: <strong><?= number_format($total_fee_query['agent_fee'], 2) ?> USD</strong></h4>
     </div>
 </div>
 
