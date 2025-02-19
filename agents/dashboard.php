@@ -14,10 +14,13 @@
         font-size: 14px !important;
     }
 </style>
+
+
 <?php
+
 require_once '_config.php';
 auth_check();
-$title = "Agen Dashboard";
+$title = "Agent Dashboard";
 include "_header.php";
 
 $agent_id = $USER_SESSION->backend_user_id;
@@ -43,8 +46,7 @@ $current_month_bookings = $db->select("hotels_bookings", '*', [
 ]);
 
 $current_month_sale_rev = number_format(array_sum(array_column($current_month_bookings, 'price_original')), 1, '.', '');
-$current_month_agent_fee_percentage = array_sum(array_column($current_month_bookings, 'agent_fee'));
-$current_month_agent_fee = number_format(($current_month_sale_rev * $current_month_agent_fee_percentage) / 100, 1, '.', '');
+$current_month_agent_fee = number_format(array_sum(array_column($current_month_bookings, 'agent_fee')), 1, '.', '');
 
 $previous_month_bookings = $db->select("hotels_bookings", '*', [
     "agent_id" => $agent_id,
@@ -53,17 +55,14 @@ $previous_month_bookings = $db->select("hotels_bookings", '*', [
 ]);
 
 $previous_month_sale_rev = number_format(array_sum(array_column($previous_month_bookings, 'price_original')), 1, '.', '');
-$previous_month_agent_fee_percentage = array_sum(array_column($previous_month_bookings, 'agent_fee'));
-$previous_month_agent_fee = number_format(($previous_month_sale_rev * $previous_month_agent_fee_percentage) / 100, 1, '.', '');
+$previous_month_agent_fee = number_format(array_sum(array_column($previous_month_bookings, 'agent_fee')), 1, '.', '');
 
-// Ensure previous month sale revenue is never zero
 $safe_previous_month_sale_rev = ($previous_month_sale_rev == 0) ? 1 : $previous_month_sale_rev;
 $sale_rev_difference = $current_month_sale_rev - $previous_month_sale_rev;
 $sale_rev_percent_change = ($sale_rev_difference / $safe_previous_month_sale_rev) * 100;
 $sale_rev_percent_change = min($sale_rev_percent_change, 100);
 $formatted_sale_rev_percent_change = number_format($sale_rev_percent_change, 1, '.', '');
 
-// Ensure previous month agent fee is never zero
 $safe_previous_month_agent_fee = ($previous_month_agent_fee == 0) ? 1 : $previous_month_agent_fee;
 $agent_fee_difference = $current_month_agent_fee - $previous_month_agent_fee;
 $agent_fee_percent_change = ($agent_fee_difference / $safe_previous_month_agent_fee) * 100;
@@ -105,7 +104,7 @@ $current_month_price_markup_total = array_sum(array_column($current_month_bookin
 
 $current_month_agent_fee_percentage_total = array_sum(array_column($current_month_bookings, 'agent_fee'));
 
-$current_month_agent_fee_total = number_format(($current_month_price_markup_total * $current_month_agent_fee_percentage_total) / 100, 1, '.', '');
+$current_month_agent_fee_total = array_sum(array_column($current_month_bookings, 'agent_fee'));
 
 // for upcoming commission 
 
@@ -182,7 +181,7 @@ foreach ($months as $month) {
 
     $total_paid_price_markup = array_sum(array_column($paid_bookings, 'price_markup'));
     $total_paid_agent_fee_percentage = array_sum(array_column($paid_bookings, 'agent_fee'));
-    $total_paid_agent_fee = number_format(($total_paid_price_markup * $total_paid_agent_fee_percentage) / 100, 1, '.', '');
+    $total_paid_agent_fee = array_sum(array_column($paid_bookings, 'agent_fee'));
 
     $current_year_totals[] = [
         "month" => date('F', strtotime($start_date)),
@@ -212,7 +211,7 @@ foreach ($months as $month) {
 
     $total_paid_price_markup_prev = array_sum(array_column($paid_bookings_prev, 'price_markup'));
     $total_paid_agent_fee_percentage_prev = array_sum(array_column($paid_bookings_prev, 'agent_fee'));
-    $total_paid_agent_fee_prev = number_format(($total_paid_price_markup_prev * $total_paid_agent_fee_percentage_prev) / 100, 1, '.', '');
+    $total_paid_agent_fee_prev = array_sum(array_column($paid_bookings_prev, 'agent_fee'));
 
     $previous_year_totals[] = [
         "month" => date('F', strtotime($start_date_prev)),
@@ -237,6 +236,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
 
 <script>
     window.paidCommissionPercentage = <?= $formatted_paid_commission_percentage ?>;
+
     window.permonthbookingcounts = <?= $booking_counts_string ?>;
 
     window.current_year_paid_agent_fee_js = <?= $current_year_paid_agent_fee ?>;
@@ -460,7 +460,6 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                         <p class="fs-13 my-auto text-muted">
                                             <?php echo date("M d", strtotime("last day of previous month")) . " - " . date("M d (Y)"); ?>
                                         </p>
-
                                     </div>
                                 </div>
                                 <div class="col-md-6 my-auto">
