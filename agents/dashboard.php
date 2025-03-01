@@ -270,7 +270,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                         ]) ?? 0);
                                         
                                         $percentage_change = 0;
-                                        $status = "same";
+                                        $status = "";
                                         
                                         if ($previous_revenue > 0) {
                                             $percentage_change = (($current_revenue - $previous_revenue) / $previous_revenue) * 100;
@@ -287,7 +287,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                         // If both revenues are 0, keep it neutral
                                         if ($current_revenue == 0 && $previous_revenue == 0) {
                                             $percentage_change = 0;
-                                            $status = "same";
+                                            $status = "";
                                         }
                                         ?>
                                 <div class="card-item-body">
