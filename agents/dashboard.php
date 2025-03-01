@@ -31,82 +31,7 @@ $user = $db->select("users", '*', [
     "user_id" => $agent_id,
 ]);
 
-$start_date = date('Y-m-01');
-$end_date = date('Y-m-t');
-
-$current_month_start = date('Y-m-01');
-$current_month_end = date('Y-m-t');
-$previous_month_start = date('Y-m-01', strtotime("first day of last month"));
-$previous_month_end = date('Y-m-t', strtotime("last day of last month"));
-
-$current_month_bookings = $db->select("hotels_bookings", '*', [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "booking_date[<>]" => [$current_month_start, $current_month_end]
-]);
-
-$current_month_sale_rev = number_format(array_sum(array_column($current_month_bookings, 'price_original')), 1, '.', '');
-$current_month_agent_fee = number_format(array_sum(array_column($current_month_bookings, 'agent_fee')), 1, '.', '');
-
-$previous_month_bookings = $db->select("hotels_bookings", '*', [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "booking_date[<>]" => [$previous_month_start, $previous_month_end]
-]);
-
-$previous_month_sale_rev = number_format(array_sum(array_column($previous_month_bookings, 'price_original')), 1, '.', '');
-$previous_month_agent_fee = number_format(array_sum(array_column($previous_month_bookings, 'agent_fee')), 1, '.', '');
-
-$safe_previous_month_sale_rev = ($previous_month_sale_rev == 0) ? 1 : $previous_month_sale_rev;
-$sale_rev_difference = $current_month_sale_rev - $previous_month_sale_rev;
-$sale_rev_percent_change = ($sale_rev_difference / $safe_previous_month_sale_rev) * 100;
-$sale_rev_percent_change = min($sale_rev_percent_change, 100);
-$formatted_sale_rev_percent_change = number_format($sale_rev_percent_change, 1, '.', '');
-
-$safe_previous_month_agent_fee = ($previous_month_agent_fee == 0) ? 1 : $previous_month_agent_fee;
-$agent_fee_difference = $current_month_agent_fee - $previous_month_agent_fee;
-$agent_fee_percent_change = ($agent_fee_difference / $safe_previous_month_agent_fee) * 100;
-$agent_fee_percent_change = min($agent_fee_percent_change, 100);
-$formatted_agent_fee_percent_change = number_format($agent_fee_percent_change, 1, '.', '');
-
-$desired_sale_rev = $previous_month_sale_rev * 2;  
-$desired_agent_fee = $previous_month_agent_fee * 2;
-
-$recent_sales = $db->select('hotels_bookings', '*', [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "LIMIT" => 5,
-    "ORDER" => ["booking_id" => "DESC"]
-]);
-
-
-
-// for pending and paid agent commision 
-
-$total_confirmed_bookings = count($current_month_bookings);
-
-$commission_status_counts = array_count_values(array_column($current_month_bookings, 'agent_commission_status'));
-
-$paid_commission_bookings = $commission_status_counts['paid'] ?? 0;
-
-$paid_commission_percentage = ($total_confirmed_bookings > 0) 
-    ? ($paid_commission_bookings / $total_confirmed_bookings) * 100 
-    : 0;
-
-$formatted_paid_commission_percentage = number_format($paid_commission_percentage, 1);
-
-// for pending and paid agent commision 
-
-
-// for upcoming commission 
-
-$current_month_price_markup_total = array_sum(array_column($current_month_bookings, 'price_markup'));
-
-$current_month_agent_fee_percentage_total = array_sum(array_column($current_month_bookings, 'agent_fee'));
-
-$current_month_agent_fee_total = array_sum(array_column($current_month_bookings, 'agent_fee'));
-
-// for upcoming commission 
+// for monthly bookings 
 
 
 // for each month booking
@@ -126,6 +51,7 @@ foreach ($months as $month) {
     $bookings = $db->select("hotels_bookings", '*', [
         "agent_id" => $agent_id,
         "booking_status" => "confirmed",
+        "payment_status" => "paid",
         "booking_date[<>]" => [$start_date, $end_date]
     ]);
     $month_name = date('F', strtotime($start_date));
@@ -134,8 +60,6 @@ foreach ($months as $month) {
 
 // Get only the counts from the array and reindex
 $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
-
-
 
 
 $current_year = date('Y');
@@ -226,36 +150,28 @@ foreach ($months as $month) {
 
 $current_year_paid_agent_fee = "[" . implode(", ", $current_year_paid_agent_fee) . "]";
 $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fee) . "]";
-// $previous_year_paid_agent_fee = "[" . implode(", ", array_map(fn($val) => "-$val", $previous_year_paid_agent_fee)) . "]";
 
-
-// exit;
-
-// for each month booking
 ?>
 
 <script>
-    window.paidCommissionPercentage = <?= $formatted_paid_commission_percentage ?>;
-
+    // for monthly bookings
     window.permonthbookingcounts = <?= $booking_counts_string ?>;
+    // for monthly bookings
+
 
     window.current_year_paid_agent_fee_js = <?= $current_year_paid_agent_fee ?>;
     window.previous_year_paid_agent_fee_js = <?= $previous_year_paid_agent_fee ?>;
-
-
-
-
 </script>
 <div class="container-fluid">
 
     <!-- Start::page-header -->
 
-    <div class="d-md-flex d-block align-items-center justify-content-between mt-4">
+    <div class="d-md-flex d-block align-items-center justify-content-between page-header-breadcrumb">
         <div>
-            <h2 class="main-content-title fs-24 mb-1">Welcome To Top Tier Travel</h2>
+            <h2 class="main-content-title fs-24 mb-1">Welcome To Dashboard</h2>
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="javascript:void(0)">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Agent Dashboard</li>
+                <li class="breadcrumb-item active" aria-current="page">Project Dashboard</li>
             </ol>
         </div>
         <div class="d-flex">
@@ -309,31 +225,82 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         <div class="card-body">
                             <div class="card-item">
                                 <div class="card-item-icon card-icon">
-                                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg" height="24"
-                                        viewBox="0 0 24 24" width="24">
-                                        <path d="M0 0h24v24H0V0z" fill="none" />
-                                        <path
-                                            d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm1.23 13.33V19H10.9v-1.69c-1.5-.31-2.77-1.28-2.86-2.97h1.71c.09.92.72 1.64 2.32 1.64 1.71 0 2.1-.86 2.1-1.39 0-.73-.39-1.41-2.34-1.87-2.17-.53-3.66-1.42-3.66-3.21 0-1.51 1.22-2.48 2.72-2.81V5h2.34v1.71c1.63.39 2.44 1.63 2.49 2.97h-1.71c-.04-.97-.56-1.64-1.94-1.64-1.31 0-2.1.59-2.1 1.43 0 .73.57 1.22 2.34 1.67 1.77.46 3.66 1.22 3.66 3.42-.01 1.6-1.21 2.48-2.74 2.77z"
-                                            opacity=".3" />
-                                        <path
-                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
+                                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg"
+                                        enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
+                                        <g>
+                                            <rect height="14" opacity=".3" width="14" x="5" y="5" />
+                                            <g>
+                                                <rect fill="none" height="24" width="24" />
+                                                <g>
+                                                    <path
+                                                        d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M19,19H5V5h14V19z" />
+                                                    <rect height="5" width="2" x="7" y="12" />
+                                                    <rect height="10" width="2" x="15" y="7" />
+                                                    <rect height="3" width="2" x="11" y="14" />
+                                                    <rect height="2" width="2" x="11" y="10" />
+                                                </g>
+                                            </g>
+                                        </g>
                                     </svg>
                                 </div>
                                 <div class="card-item-title mb-2">
                                     <label class="main-content-label fs-13 fw-bold mb-1">Total Sales Revenue</label>
                                     <span class="d-block fs-12 mb-0 text-muted">Previous month vs this months</span>
                                 </div>
+                                <?php
+                                        // Fetch current month revenue
+                                        $current_revenue = (float) ($db->sum("hotels_bookings", "price_markup", [
+                                            "agent_id" => $agent_id,
+                                            "booking_status" => "confirmed",
+                                            "payment_status" => "paid",
+                                            "agent_payment_status" => "paid",
+                                            "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+                                        ]) ?? 0);
+                                        
+                                        // Fetch previous month revenue
+                                        $previous_revenue = (float) ($db->sum("hotels_bookings", "price_markup", [
+                                            "agent_id" => $agent_id,
+                                            "booking_status" => "confirmed",
+                                            "payment_status" => "paid",
+                                            "agent_payment_status" => "paid",
+                                            "booking_date[<>]" => [
+                                                date("Y-m-01", strtotime("-1 month")),
+                                                date("Y-m-t", strtotime("-1 month"))
+                                            ]
+                                        ]) ?? 0);
+                                        
+                                        $percentage_change = 0;
+                                        $status = "same";
+                                        
+                                        if ($previous_revenue > 0) {
+                                            $percentage_change = (($current_revenue - $previous_revenue) / $previous_revenue) * 100;
+                                            
+                                            // Ensure percentage stays within valid range
+                                            $percentage_change = max(min($percentage_change, 100), -100);
+                                        
+                                            $status = ($percentage_change >= 0) ? "higher" : "lower";
+                                        } elseif ($current_revenue > 0) {
+                                            $percentage_change = 100;
+                                            $status = "higher";
+                                        }
+                                        
+                                        // If both revenues are 0, keep it neutral
+                                        if ($current_revenue == 0 && $previous_revenue == 0) {
+                                            $percentage_change = 0;
+                                            $status = "same";
+                                        }
+                                        ?>
                                 <div class="card-item-body">
                                     <div class="card-item-stat">
                                         <h4 class="fw-bold">$
-                                            <?php echo $current_month_sale_rev; ?>
+                                            <?= number_format($current_revenue, 2) ?>
                                         </h4>
                                         <small>
                                             <b
-                                                class="<?php echo ($sale_rev_percent_change > 0) ? 'text-success' : 'text-danger'; ?>">
-                                                <?php echo number_format(abs($sale_rev_percent_change), 2); ?>%
+                                                class="text-<?= ($status == 'higher') ? 'success' : (($status == 'lower') ? 'danger' : 'secondary') ?>">
+                                                <?= abs(round($percentage_change, 2)) ?>%
                                             </b>
-                                            <?php echo ($sale_rev_percent_change > 0) ? 'higher' : 'lower'; ?>
+                                            <?= $status ?>
                                         </small>
                                     </div>
                                 </div>
@@ -341,37 +308,79 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         </div>
                     </div>
                 </div>
-
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-4">
                     <div class="card custom-card">
                         <div class="card-body">
                             <div class="card-item">
                                 <div class="card-item-icon card-icon">
-                                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg" height="24"
-                                        viewBox="0 0 24 24" width="24">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
                                         <path d="M0 0h24v24H0V0z" fill="none" />
                                         <path
-                                            d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm1.23 13.33V19H10.9v-1.69c-1.5-.31-2.77-1.28-2.86-2.97h1.71c.09.92.72 1.64 2.32 1.64 1.71 0 2.1-.86 2.1-1.39 0-.73-.39-1.41-2.34-1.87-2.17-.53-3.66-1.42-3.66-3.21 0-1.51 1.22-2.48 2.72-2.81V5h2.34v1.71c1.63.39 2.44 1.63 2.49 2.97h-1.71c-.04-.97-.56-1.64-1.94-1.64-1.31 0-2.1.59-2.1 1.43 0 .73.57 1.22 2.34 1.67 1.77.46 3.66 1.22 3.66 3.42-.01 1.6-1.21 2.48-2.74 2.77z"
+                                            d="M12 4c-4.41 0-8 3.59-8 8 0 1.82.62 3.49 1.64 4.83 1.43-1.74 4.9-2.33 6.36-2.33s4.93.59 6.36 2.33C19.38 15.49 20 13.82 20 12c0-4.41-3.59-8-8-8zm0 9c-1.94 0-3.5-1.56-3.5-3.5S10.06 6 12 6s3.5 1.56 3.5 3.5S13.94 13 12 13z"
                                             opacity=".3" />
                                         <path
-                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.07 18.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78C15.57 19.36 13.86 20 12 20s-3.57-.64-4.93-1.72zm11.29-1.45c-1.43-1.74-4.9-2.33-6.36-2.33s-4.93.59-6.36 2.33C4.62 15.49 4 13.82 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.82-.62 3.49-1.64 4.83zM12 6c-1.94 0-3.5 1.56-3.5 3.5S10.06 13 12 13s3.5-1.56 3.5-3.5S13.94 6 12 6zm0 5c-.83 0-1.5-.67-1.5-1.5S11.17 8 12 8s1.5.67 1.5 1.5S12.83 11 12 11z" />
                                     </svg>
                                 </div>
                                 <div class="card-item-title mb-2">
                                     <label class="main-content-label fs-13 fw-bold mb-1">Total Commission</label>
-                                    <span class="d-block fs-12 mb-0 text-muted">Total Commission You Earned</span>
+                                    <span class="d-block fs-12 mb-0 text-muted">Total commission you earned</span>
                                 </div>
+                                <?php
+                                // Fetch current month revenue
+                                        $current_agent_fee = (float) ($db->sum("hotels_bookings", "agent_fee", [
+                                            "agent_id" => $agent_id,
+                                            "booking_status" => "confirmed",
+                                            "payment_status" => "paid",
+                                            "agent_payment_status" => "paid",
+                                            
+                                            "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+                                        ]) ?? 0);
+                                        
+                                        // Fetch previous month revenue
+                                        $previous_agent_fee = (float) ($db->sum("hotels_bookings", "agent_fee", [
+                                            "agent_id" => $agent_id,
+                                            "booking_status" => "confirmed",
+                                            "payment_status" => "paid",
+                                            "agent_payment_status" => "paid",
+                                            "booking_date[<>]" => [
+                                                date("Y-m-01", strtotime("-1 month")),
+                                                date("Y-m-t", strtotime("-1 month"))
+                                            ]
+                                        ]) ?? 0);
+                                        
+                                        $percentage_change = 0;
+                                        $status = "same";
+                                        
+                                        if ($previous_agent_fee > 0) {
+                                            $percentage_change = (($current_agent_fee - $previous_agent_fee) / $previous_agent_fee) * 100;
+                                            
+                                            // Ensure percentage stays within valid range
+                                            $percentage_change = max(min($percentage_change, 100), -100);
+                                        
+                                            $status = ($percentage_change >= 0) ? "Increased" : "Decreased";
+                                        } elseif ($current_agent_fee > 0) {
+                                            $percentage_change = 100;
+                                            $status = "Increased";
+                                        }
+                                        
+                                        // If both revenues are 0, keep it neutral
+                                        if ($current_agent_fee == 0 && $previous_agent_fee == 0) {
+                                            $percentage_change = 0;
+                                            $status = "same";
+                                        }
+                                        ?>
                                 <div class="card-item-body">
                                     <div class="card-item-stat">
                                         <h4 class="fw-bold">$
-                                            <?php echo $current_month_agent_fee; ?>
+                                            <?= number_format($current_agent_fee, 2) ?>
                                         </h4>
                                         <small>
                                             <b
-                                                class="<?php echo ($agent_fee_percent_change > 0) ? 'text-success' : 'text-danger'; ?>">
-                                                <?php echo number_format(abs($agent_fee_percent_change), 2); ?>%
+                                                class="text-<?= ($status == 'Increased') ? 'success' : (($status == 'decreased') ? 'danger' : 'secondary') ?>">
+                                                <?= abs(round($percentage_change, 2)) ?>%
                                             </b>
-                                            <?php echo ($agent_fee_percent_change > 0) ? 'Increased' : 'Decreased'; ?>
+                                            <?= $status ?>
                                         </small>
                                     </div>
                                 </div>
@@ -379,7 +388,6 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         </div>
                     </div>
                 </div>
-
                 <div class="col-sm-12 col-md-12 col-lg-12 col-xl-4">
                     <div class="card custom-card">
                         <div class="card-body">
@@ -396,8 +404,8 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                     </svg>
                                 </div>
                                 <div class="card-item-title  mb-2">
-                                    <label class="main-content-label fs-13 fw-bold mb-1">partner
-                                        Commission</label>
+                                    <label class="main-content-label fs-13 fw-bold mb-1">Partner Commission
+                                    </label>
                                     <span class="d-block fs-12 mb-0 text-muted">Previous month vs this
                                         months</span>
                                 </div>
@@ -433,11 +441,11 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                     </div>
                 </div><!-- col end -->
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
-                    <div class="card custom-card overflow-hidden">
+                <div class="card custom-card overflow-hidden">
                         <div class="card-header d-block border-bottom-0 pb-0">
                             <div>
                                 <div class="d-md-flex">
-                                    <label class="main-content-label my-auto pt-2">Commission</label>
+                                    <label class="main-content-label my-auto pt-2">Upcoming Commission</label>
                                     <div class="ms-auto mt-3 d-flex">
                                         <div class="me-3 d-flex text-muted fs-13"><span
                                                 class="legend bg-primary rounded-circle"></span>Paid
@@ -454,14 +462,52 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                 <div class="col-sm-6 my-auto">
                                     <h6 class="mb-3 fs-14 fw-normal">UPCOMIG COMMISSION</h6>
                                     <div class="text-start">
+                                        <?php
+                                            $agent_fee_unpaid = (float) ($db->sum("hotels_bookings", "agent_fee", [
+                                                "agent_id" => $agent_id,
+                                                "booking_status" => "confirmed",
+                                                "payment_status" => "paid",
+                                                "agent_payment_status" => "pending",
+
+                                                "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+                                            ]) ?? 0);
+                                        ?>
+
                                         <h3 class="fw-bold me-3 mb-2 text-primary">$
-                                            <?=$current_month_agent_fee_total?>
+                                            <?= $agent_fee_unpaid?>
                                         </h3>
                                         <p class="fs-13 my-auto text-muted">
                                             <?php echo date("M d", strtotime("last day of previous month")) . " - " . date("M d (Y)"); ?>
                                         </p>
                                     </div>
                                 </div>
+                                <?php
+                                
+$total_paid_bookings = (int) ($db->count("hotels_bookings", [
+    "agent_id" => $agent_id,
+    "booking_status" => "confirmed",
+    "payment_status" => "paid",
+    "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+]) ?? 0);
+
+$paid_commission_bookings = (int) ($db->count("hotels_bookings", [
+    "agent_id" => $agent_id,
+    "booking_status" => "confirmed",
+    "payment_status" => "paid",
+    "agent_payment_status" => "paid",
+    "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+]) ?? 0);
+
+$paid_commission_percentage = ($total_paid_bookings > 0) 
+    ? round(($paid_commission_bookings / $total_paid_bookings) * 100, 2)
+    : 0;
+?>
+
+                                <script>           
+
+window.paidCommissionPercentage = <?= $paid_commission_percentage ?>;
+
+                                </script>
                                 <div class="col-md-6 my-auto">
                                     <div id="todaytask"></div>
                                 </div>
@@ -590,17 +636,8 @@ $top_clients = array_slice($unique_clients, 0, 3);
 
                                     </div>
                                 </div>
-                                <!-- 
-                                             -->
                             </div>
-
-                            <?php
-                                        $reservation = $db->select('hotels_bookings', ['first_name', 'last_name', 'hotel_name', 'booking_date', 'booking_status'], [
-                                            "agent_id" => $agent_id,
-                                            "ORDER" => ["booking_id" => "DESC"]
-                                        ]);
-                                        ?>
-
+                            <?php $reservation = $db->select('hotels_bookings', ['first_name', 'last_name', 'hotel_name', 'booking_date', 'booking_status'], ["agent_id" => $agent_id,"ORDER" => ["booking_id" => "DESC"]]); ?>
                             <div class="table-responsive tasks">
                                 <table id="bookingTable" class="table table-striped table-bordered">
                                     <thead class="table-dark">
@@ -665,7 +702,8 @@ $top_clients = array_slice($unique_clients, 0, 3);
                         </div>
                     </div>
 
-                </div><!-- col end -->
+                </div>
+                <!-- col end -->
             </div>
             <!-- End::row -->
 
@@ -679,6 +717,12 @@ $top_clients = array_slice($unique_clients, 0, 3);
                 <table class="table m-b-0 transcations mt-2">
                     <tbody>
                         <?php
+                        $recent_sales = $db->select('hotels_bookings', '*', [
+                            "agent_id" => $agent_id,
+                            "booking_status" => "confirmed",
+                            "LIMIT" => 5,
+                            "ORDER" => ["booking_id" => "DESC"]
+                        ]);
                                         foreach ($recent_sales as $r_sales) {
                                             echo ' 
                                             <tr>
@@ -714,11 +758,21 @@ $top_clients = array_slice($unique_clients, 0, 3);
                             </label>
                             <span class="d-block fs-12 mb-0 text-muted">Share your travel link with your network!</span>
                         </div>
-                        <a href="https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client" class="mb-0 fs-18 mt-2"><b
-                            class="text-primary">https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client                                </b></a>
+                        <a href="https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client"
+                            class="mb-0 fs-18 mt-2"><b class="text-primary">https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client
+                            </b></a>
                     </div>
                 </div>
             </div>
+            <?php
+            $current_month_start = date('Y-m-01'); // First day of the current month
+            $current_month_end = date('Y-m-t'); // Last day of the current month
+
+            $previous_month_start = date('Y-m-01', strtotime('first day of last month')); // First day of the previous month
+            $previous_month_end = date('Y-m-t', strtotime('last day of last month')); // Last day of the previous month
+
+            ?>
+
             <div class="card custom-card">
                 <div class="card-header border-bottom-0 pb-0">
                     <div>
@@ -806,9 +860,7 @@ $top_clients = array_slice($unique_clients, 0, 3);
                     </div>
                     <?php } ?>
                 </div>
-
             </div>
-
             <div class="card custom-card">
                 <div class="card-body">
                     <div class="card-item">
@@ -828,7 +880,6 @@ $top_clients = array_slice($unique_clients, 0, 3);
                     </div>
                 </div>
             </div>
-
             <div class="card custom-card">
                 <div class="card-body">
                     <div class="d-flex">
@@ -871,7 +922,6 @@ $top_clients = array_slice($unique_clients, 0, 3);
     <!-- End::row-1 -->
 
 </div>
-
 
 <div class="d-none" id="ongoingprojects"></div>
 <div class="d-none" id="ongoingprojects2"></div>
