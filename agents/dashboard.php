@@ -403,7 +403,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                 </div>
                                 <div class="card-item-body">
                                     <div class="card-item-stat">
-                                        <h4 class="fw-bold">$8,500</h4>
+                                        <h4 class="fw-bold">$0.00</h4>
                                         <small><b class="text-danger">12%</b> decrease</small>
                                     </div>
                                 </div>

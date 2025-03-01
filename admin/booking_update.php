@@ -734,7 +734,7 @@ $title = T::booking .' '. T::edit;
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="tax" name="tax" step="any" min="0"
+                            <input type="number" class="form-control" id="subtotal" name="subtotal" step="any" min="0"
                                 value="<?= $data[0]['subtotal'] ?? '' ?>" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
