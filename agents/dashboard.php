@@ -460,7 +460,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-6 my-auto">
-                                    <h6 class="mb-3 fs-14 fw-normal">UPCOMIG COMMISSION</h6>
+                                    <h6 class="mb-3 fs-14 fw-normal">UPCOMING COMMISSION</h6>
                                     <div class="text-start">
                                         <?php
                                             $agent_fee_total = (float) ($db->sum("hotels_bookings", "agent_fee", [
