@@ -463,7 +463,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                     <h6 class="mb-3 fs-14 fw-normal">UPCOMIG COMMISSION</h6>
                                     <div class="text-start">
                                         <?php
-                                            $agent_fee_unpaid = (float) ($db->sum("hotels_bookings", "agent_fee", [
+                                            $agent_fee_total = (float) ($db->sum("hotels_bookings", "agent_fee", [
                                                 "agent_id" => $agent_id,
                                                 "booking_status" => "confirmed",
                                                 "payment_status" => "paid",
@@ -473,8 +473,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                             ]) ?? 0);
                                         ?>
 
-                                        <h3 class="fw-bold me-3 mb-2 text-primary">$
-                                            <?= $agent_fee_unpaid?>
+                                        <h3 class="fw-bold me-3 mb-2 text-primary">$<?= $agent_fee_total?>
                                         </h3>
                                         <p class="fs-13 my-auto text-muted">
                                             <?php echo date("M d", strtotime("last day of previous month")) . " - " . date("M d (Y)"); ?>
