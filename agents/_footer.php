@@ -48,7 +48,7 @@
 <script src="./spruha-assets/libs/apexcharts/apexcharts.min.js"></script>
 
 <!-- Main-Dashboard -->
-<script src="./spruha-assets/js/index.js"></script>
+<script src="./spruha-assets/js/index.js?v=2"></script>
 
 
 <!-- Custom-Switcher JS -->
