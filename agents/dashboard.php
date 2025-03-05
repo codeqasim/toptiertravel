@@ -467,7 +467,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                                 "agent_id" => $agent_id,
                                                 "booking_status" => "confirmed",
                                                 "payment_status" => "paid",
-                                                // "agent_payment_status" => "pending",
+                                                "agent_payment_status" => "pending",
 
                                                 "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
                                             ]) ?? 0);
