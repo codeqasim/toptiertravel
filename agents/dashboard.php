@@ -448,10 +448,10 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                     <label class="main-content-label my-auto pt-2">Upcoming Commission</label>
                                     <div class="ms-auto mt-3 d-flex">
                                         <div class="me-3 d-flex text-muted fs-13"><span
-                                                class="legend bg-primary rounded-circle"></span>Paid
+                                                class="legend bg-light rounded-circle"></span>Paid
                                         </div>
                                         <div class="d-flex text-muted fs-13"><span
-                                                class="legend bg-light rounded-circle"></span>Pending
+                                                class="legend bg-primary rounded-circle"></span>Pending
                                         </div>
                                     </div>
                                 </div>
