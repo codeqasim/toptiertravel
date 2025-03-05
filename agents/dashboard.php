@@ -36,29 +36,29 @@ $user = $db->select("users", '*', [
 
 // for each month booking
 
-$current_year = date('Y');
-$months = range(1, 12);
+// $current_year = date('Y');
+// $months = range(1, 12);
 
-$monthly_booking_counts = array_fill_keys(
-    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    0
-);
+// $monthly_booking_counts = array_fill_keys(
+//     ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+//     0
+// );
 
-foreach ($months as $month) {
-    $start_date = "$current_year-$month-01";
-    $end_date = date('Y-m-t', strtotime($start_date));
+// foreach ($months as $month) {
+//     $start_date = "$current_year-$month-01";
+//     $end_date = date('Y-m-t', strtotime($start_date));
     
-    $bookings = $db->select("hotels_bookings", '*', [
-        "agent_id" => $agent_id,
-        "booking_status" => "confirmed",
-        "payment_status" => "paid",
-        "booking_date[<>]" => [$start_date, $end_date]
-    ]);
-    $month_name = date('F', strtotime($start_date));
-    $monthly_booking_counts[$month_name] = count($bookings);
-}
+//     $bookings = $db->select("hotels_bookings", '*', [
+//         "agent_id" => $agent_id,
+//         "booking_status" => "confirmed",
+//         "payment_status" => "paid",
+//         "booking_date[<>]" => [$start_date, $end_date]
+//     ]);
+//     $month_name = date('F', strtotime($start_date));
+//     $monthly_booking_counts[$month_name] = count($bookings);
+// }
 
-$booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
+// $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
 // for monthly booking 
 
 $current_year = date('Y');
