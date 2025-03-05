@@ -493,7 +493,7 @@ $paid_commission_bookings = (int) ($db->count("hotels_bookings", [
     "agent_id" => $agent_id,
     "booking_status" => "confirmed",
     "payment_status" => "paid",
-    "agent_payment_status" => "paid",
+    "agent_payment_status" => "pending",
     "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
 ]) ?? 0);
 
