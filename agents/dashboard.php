@@ -36,31 +36,30 @@ $user = $db->select("users", '*', [
 
 // for each month booking
 
-$current_year = date('Y');
-$months = range(1, 12);
+// $current_year = date('Y');
+// $months = range(1, 12);
 
-$monthly_booking_counts = array_fill_keys(
-    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    0
-);
+// $monthly_booking_counts = array_fill_keys(
+//     ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+//     0
+// );
 
-foreach ($months as $month) {
-    $start_date = "$current_year-$month-01";
-    $end_date = date('Y-m-t', strtotime($start_date));
+// foreach ($months as $month) {
+//     $start_date = "$current_year-$month-01";
+//     $end_date = date('Y-m-t', strtotime($start_date));
     
-    $bookings = $db->select("hotels_bookings", '*', [
-        "agent_id" => $agent_id,
-        "booking_status" => "confirmed",
-        "payment_status" => "paid",
-        "booking_date[<>]" => [$start_date, $end_date]
-    ]);
-    $month_name = date('F', strtotime($start_date));
-    $monthly_booking_counts[$month_name] = count($bookings);
-}
+//     $bookings = $db->select("hotels_bookings", '*', [
+//         "agent_id" => $agent_id,
+//         "booking_status" => "confirmed",
+//         "payment_status" => "paid",
+//         "booking_date[<>]" => [$start_date, $end_date]
+//     ]);
+//     $month_name = date('F', strtotime($start_date));
+//     $monthly_booking_counts[$month_name] = count($bookings);
+// }
 
-// Get only the counts from the array and reindex
-$booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
-
+// $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
+// for monthly booking 
 
 $current_year = date('Y');
 $previous_year = $current_year - 1;
@@ -155,7 +154,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
 
 <script>
     // for monthly bookings
-    window.permonthbookingcounts = <?= $booking_counts_string ?>;
+    // window.permonthbookingcounts = <?= $booking_counts_string ?>;
     // for monthly bookings
 
 
@@ -425,33 +424,34 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
             <!-- Start::row -->
             <div class="row">
                 <div class="col-sm-12 col-lg-12 col-xl-12">
-                    <div class="card custom-card overflow-hidden">
+                    <!-- <div class="card custom-card overflow-hidden">
                         <div class="card-header border-bottom-0">
                             <div>
                                 <label class="card-title">Monthly Bookings</label>
-                                <!-- <span
-                                                class="d-block fs-12 mb-0 text-muted">The Project Budget is a tool
-                                                used by project managers to estimate the total cost of a
-                                                project</span> -->
                             </div>
                         </div>
                         <div class="card-body">
                             <div id="project"></div>
                         </div>
-                    </div>
+                    </div> -->
                 </div><!-- col end -->
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
                 <div class="card custom-card overflow-hidden">
                         <div class="card-header d-block border-bottom-0 pb-0">
                             <div>
                                 <div class="d-md-flex">
+
+                                <?php
+// Default filter (Pending)
+$selected_status = isset($_GET['upcoming_commission_status']) && !empty($_GET['upcoming_commission_status']) ? $_GET['upcoming_commission_status'] : 'pending';
+?>
                                     <label class="main-content-label my-auto pt-2">Upcoming Commission</label>
                                     <div class="ms-auto mt-3 d-flex">
-                                        <div class="me-3 d-flex text-muted fs-13"><span
-                                                class="legend bg-light rounded-circle"></span>Paid
+                                        <div id="paidBtn" class="me-3 d-flex text-muted fs-13"><span
+                                        class="legend <?= ($selected_status === 'paid') ? 'bg-primary' : 'bg-light' ?> rounded-circle"></span>Paid
                                         </div>
-                                        <div class="d-flex text-muted fs-13"><span
-                                                class="legend bg-primary rounded-circle"></span>Pending
+                                        <div id="pendingBtn" class="d-flex text-muted fs-13"><span
+                                         class="legend <?= ($selected_status === 'pending') ? 'bg-primary' : 'bg-light' ?> rounded-circle"></span>Pending
                                         </div>
                                     </div>
                                 </div>
@@ -462,16 +462,16 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                                 <div class="col-sm-6 my-auto">
                                     <h6 class="mb-3 fs-14 fw-normal">UPCOMING COMMISSION</h6>
                                     <div class="text-start">
-                                        <?php
-                                            $agent_fee_total = (float) ($db->sum("hotels_bookings", "agent_fee", [
-                                                "agent_id" => $agent_id,
-                                                "booking_status" => "confirmed",
-                                                "payment_status" => "paid",
-                                                "agent_payment_status" => "pending",
+                                    <?php
 
-                                                "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-                                            ]) ?? 0);
-                                        ?>
+                    $agent_fee_total = (float) ($db->sum("hotels_bookings", "agent_fee", [
+                        "agent_id" => $agent_id,
+                        "booking_status" => "confirmed",
+                        "payment_status" => "paid",
+                        "agent_payment_status" => $selected_status,
+                        "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
+                    ]) ?? 0);
+                ?>
 
                                         <h3 class="fw-bold me-3 mb-2 text-primary">$<?= $agent_fee_total?>
                                         </h3>
@@ -493,7 +493,7 @@ $paid_commission_bookings = (int) ($db->count("hotels_bookings", [
     "agent_id" => $agent_id,
     "booking_status" => "confirmed",
     "payment_status" => "paid",
-    "agent_payment_status" => "pending",
+    "agent_payment_status" => $selected_status,
     "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
 ]) ?? 0);
 
@@ -501,11 +501,25 @@ $paid_commission_percentage = ($total_paid_bookings > 0)
     ? round(($paid_commission_bookings / $total_paid_bookings) * 100, 2)
     : 0;
 ?>
-
-                                <script>           
-
+<script>           
 window.paidCommissionPercentage = <?= $paid_commission_percentage ?>;
 
+    document.addEventListener("DOMContentLoaded", function () {
+        let paidBtn = document.getElementById("paidBtn");
+        let pendingBtn = document.getElementById("pendingBtn");
+
+        function updateSelection(selectedBtn, otherBtn, status) {
+            window.location.href = "?upcoming_commission_status=" + status;
+        }
+
+        paidBtn.addEventListener("click", function () {
+            updateSelection(paidBtn, pendingBtn, "paid");
+        });
+
+        pendingBtn.addEventListener("click", function () {
+            updateSelection(pendingBtn, paidBtn, "pending");
+        });
+    });
                                 </script>
                                 <div class="col-md-6 my-auto">
                                     <div id="todaytask"></div>
