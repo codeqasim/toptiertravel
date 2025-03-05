@@ -36,29 +36,29 @@ $user = $db->select("users", '*', [
 
 // for each month booking
 
-// $current_year = date('Y');
-// $months = range(1, 12);
+$current_year = date('Y');
+$months = range(1, 12);
 
-// $monthly_booking_counts = array_fill_keys(
-//     ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-//     0
-// );
+$monthly_booking_counts = array_fill_keys(
+    ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    0
+);
 
-// foreach ($months as $month) {
-//     $start_date = "$current_year-$month-01";
-//     $end_date = date('Y-m-t', strtotime($start_date));
+foreach ($months as $month) {
+    $start_date = "$current_year-$month-01";
+    $end_date = date('Y-m-t', strtotime($start_date));
     
-//     $bookings = $db->select("hotels_bookings", '*', [
-//         "agent_id" => $agent_id,
-//         "booking_status" => "confirmed",
-//         "payment_status" => "paid",
-//         "booking_date[<>]" => [$start_date, $end_date]
-//     ]);
-//     $month_name = date('F', strtotime($start_date));
-//     $monthly_booking_counts[$month_name] = count($bookings);
-// }
+    $bookings = $db->select("hotels_bookings", '*', [
+        "agent_id" => $agent_id,
+        "booking_status" => "confirmed",
+        "payment_status" => "paid",
+        "booking_date[<>]" => [$start_date, $end_date]
+    ]);
+    $month_name = date('F', strtotime($start_date));
+    $monthly_booking_counts[$month_name] = count($bookings);
+}
 
-// $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
+$booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
 // for monthly booking 
 
 $current_year = date('Y');
@@ -424,7 +424,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
             <!-- Start::row -->
             <div class="row">
                 <div class="col-sm-12 col-lg-12 col-xl-12">
-                    <!-- <div class="card custom-card overflow-hidden">
+                    <div class="card custom-card overflow-hidden">
                         <div class="card-header border-bottom-0">
                             <div>
                                 <label class="card-title">Monthly Bookings</label>
@@ -433,7 +433,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         <div class="card-body">
                             <div id="project"></div>
                         </div>
-                    </div> -->
+                    </div>
                 </div><!-- col end -->
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
                 <div class="card custom-card overflow-hidden">
@@ -443,7 +443,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
 
                                 <?php
 // Default filter (Pending)
-$selected_status = isset($_GET['upcoming_commission_status']) && !empty($_GET['upcoming_commission_status']) ? $_GET['upcoming_commission_status'] : 'pending';
+$selected_status = isset($_GET['status']) && !empty($_GET['status']) ? $_GET['status'] : 'pending';
 ?>
                                     <label class="main-content-label my-auto pt-2">Upcoming Commission</label>
                                     <div class="ms-auto mt-3 d-flex">
@@ -509,7 +509,7 @@ window.paidCommissionPercentage = <?= $paid_commission_percentage ?>;
         let pendingBtn = document.getElementById("pendingBtn");
 
         function updateSelection(selectedBtn, otherBtn, status) {
-            window.location.href = "?upcoming_commission_status=" + status;
+            window.location.href = "?status=" + status;
         }
 
         paidBtn.addEventListener("click", function () {
