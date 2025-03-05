@@ -424,7 +424,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
             <!-- Start::row -->
             <div class="row">
                 <div class="col-sm-12 col-lg-12 col-xl-12">
-                    <div class="card custom-card overflow-hidden">
+                    <!-- <div class="card custom-card overflow-hidden">
                         <div class="card-header border-bottom-0">
                             <div>
                                 <label class="card-title">Monthly Bookings</label>
@@ -433,7 +433,7 @@ $previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fe
                         <div class="card-body">
                             <div id="project"></div>
                         </div>
-                    </div>
+                    </div> -->
                 </div><!-- col end -->
                 <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
                 <div class="card custom-card overflow-hidden">
