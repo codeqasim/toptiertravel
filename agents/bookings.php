@@ -257,11 +257,16 @@ function compareByTimeStamp($time1, $time2)
                                     });
                                 </script>
                             <?php } } ?>
+                            <?php
+                                if (DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "Admin" || DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "admin") {
+                            ?>
                         <span>
                             <a href="<?=$root."/agents/bookings.php?booking_edit=edit&booking=".$value['booking_ref_no']."&module=".$value['module_type']?>" class="btn btn-info"><?=T::edit?>  <?=T::booking?> </a>
                             <a href="<?=$root."/".$value['module_type']."/invoice/".$value['booking_ref_no']?>" target="_blank" class="btn btn-info"><?=T::booking?> <?=T::details?></a>
                         </span>
-
+                            <?php
+                                }
+                            ?>
                     </div>
 
                 </blockquote>
