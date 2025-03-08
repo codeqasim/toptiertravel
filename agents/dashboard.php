@@ -472,14 +472,14 @@ $selected_status = isset($_GET['status']) && !empty($_GET['status']) ? $_GET['st
                         "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
                     ]) ?? 0);
                 ?>
-
-                                        <h3 class="fw-bold me-3 mb-2 text-primary">$<?= $agent_fee_total?>
-                                        </h3>
+<h3 id="commissionAmount" class="fw-bold me-3 mb-2 text-primary">$<?= $agent_fee_total?></h3>
                                         <p class="fs-13 my-auto text-muted">
                                             <?php echo date("M d", strtotime("last day of previous month")) . " - " . date("M d (Y)"); ?>
                                         </p>
                                     </div>
                                 </div>
+                                <span id="paidCommissionPercentage" style="display: none;"><?= $paid_commission_percentage ?></span>
+
                                 <?php
                                 
 $total_paid_bookings = (int) ($db->count("hotels_bookings", [
@@ -501,26 +501,54 @@ $paid_commission_percentage = ($total_paid_bookings > 0)
     ? round(($paid_commission_bookings / $total_paid_bookings) * 100, 2)
     : 0;
 ?>
-<script>           
+<script>
 window.paidCommissionPercentage = <?= $paid_commission_percentage ?>;
 
-    document.addEventListener("DOMContentLoaded", function () {
-        let paidBtn = document.getElementById("paidBtn");
-        let pendingBtn = document.getElementById("pendingBtn");
+document.addEventListener("DOMContentLoaded", function () {
+    let paidBtn = document.getElementById("paidBtn");
+    let pendingBtn = document.getElementById("pendingBtn");
 
-        function updateSelection(selectedBtn, otherBtn, status) {
-            window.location.href = "?status=" + status;
-        }
+    function updateSelection(status) {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "?status=" + status, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(xhr.responseText, "text/html");
 
-        paidBtn.addEventListener("click", function () {
-            updateSelection(paidBtn, pendingBtn, "paid");
-        });
+                // Update UI without refreshing
+                document.querySelector("#paidBtn span").className = (status === "paid") ? "legend bg-primary rounded-circle" : "legend bg-light rounded-circle";
+                document.querySelector("#pendingBtn span").className = (status === "pending") ? "legend bg-primary rounded-circle" : "legend bg-light rounded-circle";
 
-        pendingBtn.addEventListener("click", function () {
-            updateSelection(pendingBtn, paidBtn, "pending");
-        });
+                // Update commission amount dynamically
+                let newAmount = doc.querySelector("#commissionAmount").innerText;
+                document.getElementById("commissionAmount").innerText = newAmount;
+
+                // Extract the new paidCommissionPercentage value from the response
+                let scriptContent = xhr.responseText.match(/window\.paidCommissionPercentage\s*=\s*(\d+(\.\d+)?)/);
+                if (scriptContent) {
+                    window.paidCommissionPercentage = parseFloat(scriptContent[1]);
+
+                    // console.log("Updated paidCommissionPercentage:", window.paidCommissionPercentage);
+
+                    // **Update chart dynamically**
+                    chart3.updateSeries([window.paidCommissionPercentage]);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    paidBtn.addEventListener("click", function () {
+        updateSelection("paid");
     });
-                                </script>
+
+    pendingBtn.addEventListener("click", function () {
+        updateSelection("pending");
+    });
+});
+
+</script>
                                 <div class="col-md-6 my-auto">
                                     <div id="todaytask"></div>
                                 </div>
