@@ -379,6 +379,17 @@ if (isset($user_permissions->supplier_payments->page_access)) {
 <?php
 }
 ?>
+<?php
+if (isset($user_permissions->agents_commissions->page_access)) {
+?>
+<li class="slide">
+<a href="./agents_commissions.php" class="side-menu__item <?php if ($url_name == 'agents_commissions') { echo "active"; } ?>">
+<?= T::commissions?>
+</a>
+</li>
+<?php
+}
+?>
 </ul>
 </li>
  <!-- End::Markups Slide -->
