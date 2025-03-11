@@ -22,6 +22,19 @@ $hotel_data = $db->select("hotels_bookings", "*", [
     "LIMIT" => [$start, $perPage]
 ]);
 
+
+// function for checkin and checkout format
+    function formatDateRange($checkin, $checkout) {
+        $ci = new DateTime($checkin);
+        $co = new DateTime($checkout);
+        return ($ci->format('Y') !== $co->format('Y')) ?
+        $ci->format('M j') . ' - ' . $co->format('M j, Y') :
+        (($ci->format('M') !== $co->format('M')) ?
+        $ci->format('M j') . ' - ' . $co->format('M j, Y') :
+        $ci->format('M j-') . $co->format('j, Y'));
+    }
+// function for checkin and checkout format
+
 ?>
 
 <div class="container mt-3">
@@ -50,7 +63,7 @@ $hotel_data = $db->select("hotels_bookings", "*", [
                     <td><?= $booking['booking_ref_no'] ?? 'N/A' ?></td>
                     <td><?= $userdata->first_name . ' ' . $userdata->last_name ?></td>
                     <td><?= $booking['hotel_name'] ?></td>
-                    <td><?= $booking['checkin'] . '___' . $booking['checkout'] ?></td>
+                    <td><?= formatDateRange($booking['checkin'], $booking['checkout']) ?></td>
                     <td><?= $booking['subtotal'] ?></td>
                     <td><?= $booking['agent_fee'] ?></td>
                     <td>

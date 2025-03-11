@@ -56,6 +56,18 @@ $start = ($page - 1) * $perPage;
                 $tours_data = $db->select("tours_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
                 $data = array_merge($hotel_data, $flight_data, $tours_data, $cars_data);
                 usort($data, "compareByTimeStamp");
+
+                // function for checkin and checkout format
+                function formatDateRange($checkin, $checkout) {
+                    $ci = new DateTime($checkin);
+                    $co = new DateTime($checkout);
+                    return ($ci->format('Y') !== $co->format('Y')) ?
+                        $ci->format('M j') . ' - ' . $co->format('M j, Y') :
+                        (($ci->format('M') !== $co->format('M')) ?
+                        $ci->format('M j') . ' - ' . $co->format('M j, Y') :
+                        $ci->format('M j-') . $co->format('j, Y'));
+                }
+                // function for checkin and checkout format
                 
                 $totalBookings = count($data);
                 $data = array_slice($data, $start, $perPage);
@@ -66,7 +78,7 @@ $start = ($page - 1) * $perPage;
                     echo "<td>" . date("d-m-Y", strtotime($value['booking_date'])) . "</td>";
                     echo "<td>{$userdata->first_name} {$userdata->last_name}</td>";
                     echo "<td>{$value['hotel_name']}</td>";
-                    echo "<td>{$value['checkin']}___{$value['checkout']}</td>";
+                    echo "<td>" . formatDateRange($value['checkin'], $value['checkout']) . "</td>";
                     echo "<td>{$value['subtotal']}</td>";
                     echo "<td>{$value['agent_fee']}</td>";
                     echo "<td><span class='badge bg-" . ($value['booking_status'] == 'confirmed' ? 'success' : ($value['booking_status'] == 'pending' ? 'warning' : 'danger')) . "'>{$value['booking_status']}</span></td>";
