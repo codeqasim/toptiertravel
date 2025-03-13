@@ -251,6 +251,10 @@ function cms_get($name,$params){
             "page_access"=>"",
             "edit"=>""
         ),
+        "personal_settings" => array(
+            "page_access"=>"",
+            "edit"=>""
+        ),
         "modules" => array(
             "page_access"=>"",
             "edit"=>""

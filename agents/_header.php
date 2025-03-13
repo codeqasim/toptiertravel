@@ -310,7 +310,7 @@ function notification(name) {
 
 <!-- Bookings -->
  <!--
-  <?php
+ <?php
 if (isset($user_permissions->bookings->page_access)) {
 ?>
 <li class="slide">
@@ -398,6 +398,7 @@ if (isset($user_permissions->agents_commissions->page_access)) {
 
 
 
+
 <!-- end slide -->
 <!-- Start::slide -->
 <?php
@@ -424,6 +425,14 @@ if (
         <li class="slide side-menu__label1">
             <a href="javascript:void(0)">Settings</a>
         </li>
+        <!-- General Settings -->
+        <?php if (isset($user_permissions->personal_settings->page_access)) { ?>
+        <li class="slide">
+            <a href="./personal_settings.php" class="side-menu__item <?= $url_name == 'personal_settings' ? 'active' : '' ?>">
+                <?= T::personal ?> <?= T::settings ?>
+            </a>
+        </li>
+        <?php } ?>
         <!-- General Settings -->
         <?php if (isset($user_permissions->settings->page_access)) { ?>
         <li class="slide">
