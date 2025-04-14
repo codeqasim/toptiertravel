@@ -189,7 +189,7 @@ if(!empty($booking_data->response->booking->hotel->rooms[0]->rates[0]->rateComme
             </tr>
             <tr>
                 <th class="text-start"><?=T::net_profit?></th>
-                <th class="text-end"><?=$data->currency_markup?> <?=$data->platform_comission?></th>
+                <th class="text-end"><?=$data->currency_markup?> <?=$data->net_profit?></th>
             </tr>
             <!-- <tr>
                 <th class="text-start"><?=T::gst?></th>
