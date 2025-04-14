@@ -11,8 +11,6 @@ if (isset($data->booking_response) && !empty($data->booking_response)) {
     error_log("Warning: booking_response is null or not set.");
 }
 
-print_r($data);
-
 // print_r($data->booking_response);
 
 ?>
