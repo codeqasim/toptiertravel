@@ -2,7 +2,18 @@
 $data=($meta['data']);
 include "App/Views/Invoice_header.php";
 
-$booking_data = json_decode($data->booking_response);
+// Check if booking_response is set and not null
+if (isset($data->booking_response) && !empty($data->booking_response)) {
+    $booking_data = json_decode($data->booking_response);
+} else {
+    $booking_data = null; // Or set it to a default value
+    // You can log an error or handle the case where booking_response is missing
+    error_log("Warning: booking_response is null or not set.");
+}
+
+print_r($data);
+
+// print_r($data->booking_response);
 
 ?>
 <?php
@@ -149,7 +160,7 @@ if(!empty($booking_data->Prn)){
             <tr class="">
                 <th class="text-start"><?=T::name?>: <?=$data->first_name . ' ' . $data->last_name;?></th>
                 <th class="text-start"><?=T::email?>: <?=$data->email?></th>
-                <th class="text-start"><?=T::fee?>: <?=$data->agent_fee?>%</th>
+                <th class="text-start"><?=T::fee?>: <?= $data->agent_fee ?: 0?>%</th>
             </tr>
         </tbody>
     </table>
@@ -180,17 +191,18 @@ if(!empty($booking_data->response->booking->hotel->rooms[0]->rates[0]->rateComme
                 <th class="text-end"><?=$data->currency_markup?> <?= $data->price_original?></th>
             </tr>
             <tr>
-                <th class="text-start"><?=T::agent?> <?=T::fee?></th>
-                <th class="text-end">% <?=$data->agent_fee?></th>
-            </tr>
-            <tr>
-                <th class="text-start"><?=T::tax?></th>
-                <th class="text-end">% <?=$data->tax?></th>
-            </tr>
-            <tr>
-                <th class="text-start"><?=T::net_profit?></th>
-                <th class="text-end"><?=$data->currency_markup?> <?=$data->net_profit?></th>
-            </tr>
+    <th class="text-start"><?= T::agent ?> <?= T::fee ?></th>
+    <th class="text-end">% <?= $data->agent_fee ?: 0 ?></th>
+</tr>
+<tr>
+    <th class="text-start"><?= T::tax ?></th>
+    <th class="text-end">% <?= $data->tax ?: 0 ?></th>
+</tr>
+<tr>
+    <th class="text-start"><?= T::net_profit ?></th>
+    <th class="text-end"><?= $data->currency_markup ?> <?= $data->net_profit ?: 0 ?></th>
+</tr>
+
             <!-- <tr>
                 <th class="text-start"><?=T::gst?></th>
                 <th class="text-end">% 0</th>
