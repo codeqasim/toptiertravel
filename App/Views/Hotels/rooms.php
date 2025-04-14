@@ -24,6 +24,8 @@
                                 <div></div>
                             </div>
 
+                            <form action="<?= root ?>hotels/booking" method="POST">
+
                             <div class="roomGrid__grid">
                                 <div>
                                     <div class="ratio ratio-1:1">
@@ -104,7 +106,7 @@
                                     <div class="text-22 fw-500 lh-17 mt-5 total-price">
                                         <?= currency ?> <?= $options->price ?>
                                     </div>
-                                    <form action="<?= root ?>hotels/booking" method="POST">
+                                    
                                         <?php
                                         $payload = [
                                             "supplier_name" => $hotel->supplier_name,

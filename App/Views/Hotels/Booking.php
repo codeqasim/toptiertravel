@@ -1,7 +1,8 @@
 <?php
 
 $booking_data=($meta['data']);
-$rooms=$booking_data->room;
+// $rooms=$booking_data->room;
+$rooms=($_REQUEST['room_quantity']);
 
 ?>
   <main>
