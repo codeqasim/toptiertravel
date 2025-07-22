@@ -11,7 +11,7 @@ exit;
 CSRF();
 
 // LOGIN POST REQUEST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ $license_key = $_POST['license_key']; $db->update("settings", [ "license_key" => $license_key ], [ "id" => 1 ]); REDIRECT("login.php"); die; }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ $license_key = $_POST['license_key']; $db->update("settings", [ "license_key" => $license_key ], [ "id" => 1 ]); REDIRECT("login"); die; }
 
     // EMAIL SANITIZATION
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
@@ -121,40 +121,40 @@ $languages = GET('languages',$params);
         body {
             font-family: 'Inter', sans-serif;
         }
-        
+
         /* Background gradients and mesh pattern */
         .bg-mesh {
             background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.15) 1px, transparent 0);
             background-size: 24px 24px;
         }
-        
+
         /* Enhanced backdrop blur */
         .backdrop-blur-xl {
             backdrop-filter: blur(24px);
         }
-        
+
         /* Smooth transitions */
         .transition-all {
             transition: all 0.3s ease-in-out;
         }
-        
+
         /* Custom button hover effects */
         .btn-hover:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
         }
-        
+
         /* Floating label animation */
         .floating-label {
             position: relative;
         }
-        
+
         .floating-label input:focus + label,
         .floating-label input:not(:placeholder-shown) + label {
             transform: translateY(-24px) scale(0.85);
             color: #8b5cf6;
         }
-        
+
         .floating-label label {
             position: absolute;
             left: 12px;
@@ -188,7 +188,7 @@ $languages = GET('languages',$params);
                             <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                             <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
                         </div>
-                        
+
                         <div class="relative z-10 flex flex-col items-center justify-center text-center text-white p-12">
                             <div class="mb-8">
                                 <div class="w-24 h-24 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-2xl">
@@ -197,11 +197,11 @@ $languages = GET('languages',$params);
                                     </svg>
                                 </div>
                             </div>
-                            
+
                             <h2 class="text-4xl font-bold mb-4">Agents Portal</h2>
                             <p class="text-xl text-white/80 mb-6 leading-relaxed">Welcome back to your travel management dashboard</p>
                             <p class="text-white/60 text-sm max-w-md">Please login here only if you have an agent account, otherwise close this page</p>
-                            
+
                             <!-- Decorative Features -->
                             <div class="mt-12 flex items-center space-x-8">
                                 <div class="text-center">
@@ -231,7 +231,7 @@ $languages = GET('languages',$params);
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Right Side - Login Form -->
                     <div class="flex items-center justify-center p-8 lg:p-12">
                         <div class="w-full max-w-md">
@@ -251,7 +251,7 @@ $languages = GET('languages',$params);
         // Show loading state
         const submitBtn = document.querySelector('.login_button');
         const loadingBtn = document.querySelector('.loading_button');
-        
+
         submitBtn.classList.add('hidden');
         loadingBtn.classList.remove('hidden');
 
@@ -259,14 +259,14 @@ $languages = GET('languages',$params);
         if (email == "") {
             event.preventDefault();
             alert("Email is required to login");
-            window.location.href = "<?=root?>login.php";
+            window.location.href = "<?=root?>login";
         }
 
         let pass = $("#password").val();
         if (pass == "") {
             event.preventDefault();
             alert("Password is required to login");
-            window.location.href = "<?=root?>login.php";
+            window.location.href = "<?=root?>login";
         }
     }
 

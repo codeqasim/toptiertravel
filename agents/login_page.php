@@ -14,9 +14,9 @@
     <div class="space-y-2">
         <label for="email" class="block text-sm font-medium text-slate-700">Email Address</label>
         <div class="relative">
-            <input 
-                type="email" 
-                id="email" 
+            <input
+                type="email"
+                id="email"
                 name="email"
                 placeholder="Enter your email"
                 class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
@@ -34,9 +34,9 @@
     <div class="space-y-2">
         <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
         <div class="relative">
-            <input 
-                type="password" 
-                id="password" 
+            <input
+                type="password"
+                id="password"
                 name="password"
                 placeholder="Enter your password"
                 class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all duration-300 bg-white/80 backdrop-blur-sm"
@@ -68,10 +68,10 @@
     <!-- Remember Me & Forgot Password -->
     <div class="flex items-center justify-between">
         <div class="flex items-center">
-            <input 
-                id="remember-me" 
-                name="remember-me" 
-                type="checkbox" 
+            <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
                 checked
                 class="h-4 w-4 text-violet-600 focus:ring-violet-500 border-slate-300 rounded transition-colors"
             >
@@ -80,7 +80,7 @@
             </label>
         </div>
         <div>
-            <a href="login-forget-password.php" class="text-sm font-medium text-violet-600 hover:text-violet-500 transition-colors">
+            <a href="<?=root?>login-forget-password" class="text-sm font-medium text-violet-600 hover:text-violet-500 transition-colors">
                 Forgot password?
             </a>
         </div>
@@ -88,18 +88,18 @@
 
     <!-- Submit Button -->
     <div class="space-y-3">
-        <button 
-            id="submit" 
+        <button
+            id="submit"
             type="submit"
             class="login_button w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 btn-hover focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
         >
             Sign In
         </button>
-        
+
         <!-- Loading Button (Hidden by default) -->
-        <button 
-            class="loading_button hidden w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold text-lg shadow-lg opacity-75 cursor-not-allowed" 
-            type="button" 
+        <button
+            class="loading_button hidden w-full bg-gradient-to-r from-violet-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold text-lg shadow-lg opacity-75 cursor-not-allowed"
+            type="button"
             disabled
         >
             <div class="flex items-center justify-center">
