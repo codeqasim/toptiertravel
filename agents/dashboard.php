@@ -1,969 +1,731 @@
-<style>
-    /* Adding space to the search box */
-    .dataTables_filter {
-        margin-top: 10px;
-        margin-bottom: 10px;
-    }
+<?php
+include_once '_header.php';
+?>
+            <!-- Welcome Section -->
+            <div class="space-y-2">
+                <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent">Welcome back, John</h1>
+                <p class="text-slate-600 text-sm sm:text-base">Here's what's happening with your business today.</p>
+            </div>
 
-    .dataTables_paginate {
-        margin-top: 10px !important;
-        margin-bottom: 10px !important;
-    }
+            <!-- Stats Cards and Commission Tracking -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 sm:gap-8">
+                <!-- Enhanced Stats Cards -->
+                <div class="lg:col-span-2 space-y-4 sm:space-y-6">
+                    <!-- Total Sales Revenue -->
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-slate-200/60 shadow-lg shadow-slate-900/5 hover:shadow-xl hover:shadow-slate-900/10 transition-all duration-300">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-3 sm:space-y-4 flex-1">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-600 mb-2">Total Sales Revenue</p>
+                                    <p class="text-2xl sm:text-3xl font-bold text-slate-900">$49,420</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1 bg-emerald-50 px-2 py-1 rounded-lg">
+                                        <!-- Fixed: Correct up arrow -->
+                                        <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 14l5-5 5 5" />
+                                        </svg>
+                                        <span class="text-sm font-semibold text-emerald-600">40%</span>
+                                    </div>
+                                    <span class="text-xs text-slate-500">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-500/25 ml-4">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-5 5-4-4-3 3" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
 
-    #bookingTable tbody td {
-        font-size: 14px !important;
-    }
-</style>
+                    <!-- Total Commission - Fixed: Only user icon and centered -->
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-slate-200/60 shadow-lg shadow-slate-900/5 hover:shadow-xl hover:shadow-slate-900/10 transition-all duration-300">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-3 sm:space-y-4 flex-1">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-600 mb-2">Total Commission</p>
+                                    <p class="text-2xl sm:text-3xl font-bold text-slate-900">$12,710</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1 bg-rose-50 px-2 py-1 rounded-lg">
+                                        <!-- Fixed: Correct down arrow -->
+                                        <svg class="w-3 h-3 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 10l-5 5-5-5" />
+                                        </svg>
+                                        <span class="text-sm font-semibold text-rose-600">12%</span>
+                                    </div>
+                                    <span class="text-xs text-slate-500">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 ml-4">
+                                <!-- Fixed: Only user icon, properly centered -->
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                    <circle stroke-linecap="round" stroke-linejoin="round" stroke-width="2" cx="9" cy="7" r="4" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
 
+                    <!-- Partner Commission -->
+                    <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-slate-200/60 shadow-lg shadow-slate-900/5 hover:shadow-xl hover:shadow-slate-900/10 transition-all duration-300">
+                        <div class="flex items-start justify-between">
+                            <div class="space-y-3 sm:space-y-4 flex-1">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-600 mb-2">Partner Commission</p>
+                                    <p class="text-2xl sm:text-3xl font-bold text-slate-900">$19,380</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="flex items-center space-x-1 bg-emerald-50 px-2 py-1 rounded-lg">
+                                        <!-- Fixed: Correct up arrow -->
+                                        <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 14l5-5 5 5" />
+                                        </svg>
+                                        <span class="text-sm font-semibold text-emerald-600">28%</span>
+                                    </div>
+                                    <span class="text-xs text-slate-500">vs last month</span>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/25 ml-4">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7.5 4.27 9 5.15" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m3.3 7 8.7 5 8.7-5" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22V12" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Commission Tracking -->
+                <div class="lg:col-span-3 bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200/60 shadow-lg shadow-slate-900/5">
+                    <div class="space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-2">Commission Overview</h3>
+                                <p class="text-sm text-slate-600">Track your earnings performance</p>
+                            </div>
+                            <button class="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white rounded-xl shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 px-4 py-2 text-sm sm:text-base">
+                                View Details
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 sm:gap-6 py-4">
+                            <div class="text-center">
+                                <p class="text-sm text-slate-600 mb-1">This Week</p>
+                                <p class="text-xl sm:text-2xl font-bold text-slate-900">70%</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-slate-600 mb-1">Projects</p>
+                                <p class="text-xl sm:text-2xl font-bold text-slate-900">30%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col lg:flex-row items-center justify-between gap-6 pt-4">
+                            <!-- Enhanced DataPlot -->
+                            <div class="w-[150px] h-[150px] sm:w-[188px] sm:h-[188px] flex-shrink-0">
+                                <div class="relative size-full">
+                                    <svg class="block size-full" viewBox="0 0 188 188" fill="none">
+                                        <!-- Blue outer ring (70%) -->
+                                        <circle
+                                            cx="94"
+                                            cy="94"
+                                            r="84"
+                                            stroke="url(#blueGradient)"
+                                            stroke-width="20"
+                                            fill="none"
+                                            stroke-dasharray="526.8 526.8"
+                                            stroke-dashoffset="158"
+                                            stroke-linecap="round"
+                                            transform="rotate(-90 94 94)"
+                                        />
+                                        <!-- Orange inner ring (30%) -->
+                                        <circle
+                                            cx="94"
+                                            cy="94"
+                                            r="60"
+                                            stroke="url(#orangeGradient)"
+                                            stroke-width="16"
+                                            fill="none"
+                                            stroke-dasharray="377 377"
+                                            stroke-dashoffset="264"
+                                            stroke-linecap="round"
+                                            transform="rotate(-90 94 94)"
+                                        />
+                                        <!-- Inner white circle -->
+                                        <circle cx="94" cy="94" r="44" fill="#F8F8F8"/>
+
+                                        <defs>
+                                            <linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#43ACFC"/>
+                                                <stop offset="100%" stop-color="#59B6FC"/>
+                                            </linearGradient>
+                                            <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                <stop offset="0%" stop-color="#FECC6A"/>
+                                                <stop offset="100%" stop-color="#FEB528"/>
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                                        <div class="text-xs sm:text-sm text-slate-500 mb-0.5">Total</div>
+                                        <div class="text-lg sm:text-2xl text-slate-900 font-semibold">100%</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Legend -->
+                            <div class="flex flex-col space-y-4 sm:space-y-6">
+                                <div class="flex items-center space-x-3 sm:space-x-4">
+                                    <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-xl shadow-sm" style="background: linear-gradient(135deg, #43ACFC 0%, #59B6FC 100%);"></div>
+                                    <div class="flex items-center space-x-4 sm:space-x-8">
+                                        <span class="text-sm font-medium text-slate-700 min-w-[40px] sm:min-w-[60px]">Paid</span>
+                                        <span class="text-lg sm:text-xl font-bold text-slate-900">70%</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3 sm:space-x-4">
+                                    <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-xl shadow-sm" style="background: linear-gradient(135deg, #FECC6A 0%, #FEB528 100%);"></div>
+                                    <div class="flex items-center space-x-4 sm:space-x-8">
+                                        <span class="text-sm font-medium text-slate-700 min-w-[40px] sm:min-w-[60px]">Pending</span>
+                                        <span class="text-lg sm:text-xl font-bold text-slate-900">30%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced Total Earned -->
+                            <div class="text-center lg:text-right space-y-2">
+                                <p class="text-sm font-medium text-slate-600">Total Earned</p>
+                                <p class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent tracking-tight">$100.00</p>
+                                <div class="flex items-center justify-center lg:justify-end space-x-1 text-emerald-600">
+                                    <!-- Fixed: Correct up arrow -->
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 14l5-5 5 5" />
+                                    </svg>
+                                    <span class="text-xs font-semibold">+12.5%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Recent Bookings -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200/60 shadow-lg shadow-slate-900/5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+                    <div>
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-2">Recent Bookings</h3>
+                        <p class="text-sm text-slate-600">Latest customer reservations</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                        <div class="filter-dropdown">
+                            <button class="rounded-xl border-slate-200/60 bg-white/60 hover:bg-white hover:shadow-md transition-all duration-300 px-3 py-2 border flex items-center justify-center sm:justify-start w-full sm:w-auto" onclick="toggleFilter()">
+                                <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2.586a1 1 0 0 1-.293.707l-6.414 6.414a1 1 0 0 0-.293.707V17l-4 4v-6.586a1 1 0 0 0-.293-.707L3.293 7.293A1 1 0 0 1 3 6.586V4Z" />
+                                </svg>
+                                Filter
+                            </button>
+                            <div class="filter-dropdown-content">
+                                <h4 class="font-semibold text-slate-900 mb-4">Filter Bookings</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                                        <select onchange="applyFilters()" id="statusFilter" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                            <option value="">All Status</option>
+                                            <option value="confirmed">Confirmed</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Type</label>
+                                        <select onchange="applyFilters()" id="typeFilter" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                            <option value="">All Types</option>
+                                            <option value="business">Business</option>
+                                            <option value="leisure">Leisure</option>
+                                            <option value="family">Family</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-700 mb-2">Guest Type</label>
+                                        <select onchange="applyFilters()" id="guestFilter" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                            <option value="">All Guests</option>
+                                            <option value="vip">VIP Guest</option>
+                                            <option value="premium">Premium Guest</option>
+                                            <option value="regular">Regular Guest</option>
+                                            <option value="executive">Executive Guest</option>
+                                            <option value="business">Business Guest</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex space-x-2 pt-2">
+                                        <button onclick="clearFilters()" class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Clear</button>
+                                        <button onclick="toggleFilter()" class="flex-1 px-3 py-2 text-sm bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                            <input type="text" placeholder="Search bookings..." class="pl-10 w-full sm:w-72 bg-white/60 border-slate-200/60 shadow-sm focus:shadow-md transition-all duration-300 rounded-xl border px-4 py-2 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" oninput="searchBookings(this.value)" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Table -->
+                <div class="hidden lg:block border border-slate-200/60 rounded-xl overflow-hidden bg-white/40 backdrop-blur-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-slate-50/80 backdrop-blur-sm">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Guest</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Hotel</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date & Duration</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Type</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
+                                    <th class="px-6 py-4 text-center text-sm font-semibold text-slate-700">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200/60">
+                                <tr class="hover:bg-white/60 transition-all duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-4">
+                                            <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face" alt="Noah Koch" />
+                                            <div>
+                                                <p class="font-semibold text-slate-900">Noah Koch</p>
+                                                <p class="text-xs text-slate-500">Premium Guest</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div>
+                                            <p class="font-medium text-slate-900">Azure Heights Hotel</p>
+                                            <p class="text-xs text-slate-500">Suite 204</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">May 12, 2025</p>
+                                                <p class="text-xs text-slate-500">7 Days</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-blue-50 text-blue-700 border-blue-200 rounded-lg px-3 py-1 text-xs font-medium border">Business</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-lg px-3 py-1 text-xs font-medium border">Confirmed</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <div class="table-dropdown">
+                                            <button class="rounded-lg hover:bg-slate-100 transition-all duration-200 p-2" onclick="toggleTableDropdown(this)">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                            </button>
+                                            <div class="table-dropdown-content">
+                                                <a href="#view">View Details</a>
+                                                <a href="#edit">Edit Booking</a>
+                                                <a href="#contact">Contact Guest</a>
+                                                <a href="#cancel" class="text-red-600 hover:bg-red-50">Cancel Booking</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-white/60 transition-all duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-4">
+                                            <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=48&h=48&fit=crop&crop=face" alt="Arlene Auer" />
+                                            <div>
+                                                <p class="font-semibold text-slate-900">Arlene Auer</p>
+                                                <p class="text-xs text-slate-500">VIP Guest</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div>
+                                            <p class="font-medium text-slate-900">Skyline Haven</p>
+                                            <p class="text-xs text-slate-500">Penthouse</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">May 15, 2025</p>
+                                                <p class="text-xs text-slate-500">3 Days</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-purple-50 text-purple-700 border-purple-200 rounded-lg px-3 py-1 text-xs font-medium border">Leisure</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-lg px-3 py-1 text-xs font-medium border">Confirmed</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <div class="table-dropdown">
+                                            <button class="rounded-lg hover:bg-slate-100 transition-all duration-200 p-2" onclick="toggleTableDropdown(this)">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                            </button>
+                                            <div class="table-dropdown-content">
+                                                <a href="#view">View Details</a>
+                                                <a href="#edit">Edit Booking</a>
+                                                <a href="#contact">Contact Guest</a>
+                                                <a href="#cancel" class="text-red-600 hover:bg-red-50">Cancel Booking</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-white/60 transition-all duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-4">
+                                            <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=48&h=48&fit=crop&crop=face" alt="Kelley Jerde" />
+                                            <div>
+                                                <p class="font-semibold text-slate-900">Kelley Jerde</p>
+                                                <p class="text-xs text-slate-500">Regular Guest</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div>
+                                            <p class="font-medium text-slate-900">Whispering Palms Resort</p>
+                                            <p class="text-xs text-slate-500">Ocean View</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">May 18, 2025</p>
+                                                <p class="text-xs text-slate-500">5 Days</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-green-50 text-green-700 border-green-200 rounded-lg px-3 py-1 text-xs font-medium border">Family</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-amber-50 text-amber-700 border-amber-200 rounded-lg px-3 py-1 text-xs font-medium border">Pending</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <div class="table-dropdown">
+                                            <button class="rounded-lg hover:bg-slate-100 transition-all duration-200 p-2" onclick="toggleTableDropdown(this)">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                            </button>
+                                            <div class="table-dropdown-content">
+                                                <a href="#view">View Details</a>
+                                                <a href="#edit">Edit Booking</a>
+                                                <a href="#contact">Contact Guest</a>
+                                                <a href="#cancel" class="text-red-600 hover:bg-red-50">Cancel Booking</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- Additional rows for more content to scroll -->
+                                <tr class="hover:bg-white/60 transition-all duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-4">
+                                            <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=48&h=48&fit=crop&crop=face" alt="Marcus Johnson" />
+                                            <div>
+                                                <p class="font-semibold text-slate-900">Marcus Johnson</p>
+                                                <p class="text-xs text-slate-500">Executive Guest</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div>
+                                            <p class="font-medium text-slate-900">Grand Plaza Hotel</p>
+                                            <p class="text-xs text-slate-500">Executive Suite</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">May 20, 2025</p>
+                                                <p class="text-xs text-slate-500">4 Days</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-blue-50 text-blue-700 border-blue-200 rounded-lg px-3 py-1 text-xs font-medium border">Business</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-amber-50 text-amber-700 border-amber-200 rounded-lg px-3 py-1 text-xs font-medium border">Pending</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <div class="table-dropdown">
+                                            <button class="rounded-lg hover:bg-slate-100 transition-all duration-200 p-2" onclick="toggleTableDropdown(this)">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                                </svg>
+                                            </button>
+                                            <div class="table-dropdown-content">
+                                                <a href="#view">View Details</a>
+                                                <a href="#edit">Edit Booking</a>
+                                                <a href="#contact">Contact Guest</a>
+                                                <a href="#cancel" class="text-red-600 hover:bg-red-50">Cancel Booking</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="hover:bg-white/60 transition-all duration-200">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-4">
+                                            <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=48&h=48&fit=crop&crop=face" alt="Sarah Chen" />
+                                            <div>
+                                                <p class="font-semibold text-slate-900">Sarah Chen</p>
+                                                <p class="text-xs text-slate-500">Premium Guest</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div>
+                                            <p class="font-medium text-slate-900">Oceanview Resort</p>
+                                            <p class="text-xs text-slate-500">Deluxe Room</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center space-x-2">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                            </svg>
+                                            <div>
+                                                <p class="text-sm font-medium text-slate-900">May 22, 2025</p>
+                                                <p class="text-xs text-slate-500">6 Days</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-purple-50 text-purple-700 border-purple-200 rounded-lg px-3 py-1 text-xs font-medium border">Leisure</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-lg px-3 py-1 text-xs font-medium border">Confirmed</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-center">
+                                        <button class="rounded-lg p-2 cursor-not-allowed opacity-50" disabled>
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="lg:hidden space-y-4">
+                    <div class="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-slate-200/60 hover:bg-white/80 transition-all duration-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face" alt="Noah Koch">
+                                <div>
+                                    <p class="font-semibold text-slate-900">Noah Koch</p>
+                                    <p class="text-xs text-slate-500">Premium Guest</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-blue-50 text-blue-700 border-blue-200 rounded-lg px-2 py-1 text-xs font-medium border">Business</span>
+                                <span class="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-lg px-2 py-1 text-xs font-medium border">Confirmed</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900">Azure Heights Hotel</p>
+                                    <p class="text-xs text-slate-500">Suite 204</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-slate-900">May 12, 2025</p>
+                                    <p class="text-xs text-slate-500">7 Days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-200/60">
+                            <button class="w-full flex items-center justify-center space-x-2 text-violet-600 hover:text-violet-700 transition-colors">
+                                <span class="text-sm">View Details</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 5 7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-slate-200/60 hover:bg-white/80 transition-all duration-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=48&h=48&fit=crop&crop=face" alt="Arlene Auer">
+                                <div>
+                                    <p class="font-semibold text-slate-900">Arlene Auer</p>
+                                    <p class="text-xs text-slate-500">VIP Guest</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-purple-50 text-purple-700 border-purple-200 rounded-lg px-2 py-1 text-xs font-medium border">Leisure</span>
+                                <span class="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-lg px-2 py-1 text-xs font-medium border">Confirmed</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900">Skyline Haven</p>
+                                    <p class="text-xs text-slate-500">Penthouse</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-slate-900">May 15, 2025</p>
+                                    <p class="text-xs text-slate-500">3 Days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-200/60">
+                            <button class="w-full flex items-center justify-center space-x-2 text-violet-600 hover:text-violet-700 transition-colors">
+                                <span class="text-sm">View Details</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 5 7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-slate-200/60 hover:bg-white/80 transition-all duration-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <img class="w-12 h-12 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=48&h=48&fit=crop&crop=face" alt="Kelley Jerde">
+                                <div>
+                                    <p class="font-semibold text-slate-900">Kelley Jerde</p>
+                                    <p class="text-xs text-slate-500">Regular Guest</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-green-50 text-green-700 border-green-200 rounded-lg px-2 py-1 text-xs font-medium border">Family</span>
+                                <span class="bg-amber-50 text-amber-700 border-amber-200 rounded-lg px-2 py-1 text-xs font-medium border">Pending</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-900">Whispering Palms Resort</p>
+                                    <p class="text-xs text-slate-500">Ocean View</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium text-slate-900">May 18, 2025</p>
+                                    <p class="text-xs text-slate-500">5 Days</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-200/60">
+                            <button class="w-full flex items-center justify-center space-x-2 text-violet-600 hover:text-violet-700 transition-colors">
+                                <span class="text-sm">View Details</span>
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 5 7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 sm:mt-8">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-slate-600">Showing</span>
+                        <select class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                        </select>
+                        <span class="text-sm text-slate-600">of 157 entries</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg hover:bg-white hover:shadow-md transition-all duration-300">Previous</button>
+                        <div class="flex items-center space-x-1">
+                            <button class="px-3 py-1 text-sm bg-violet-50 border border-violet-200 text-violet-600 rounded-lg">1</button>
+                            <button class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg hover:bg-white hover:shadow-md transition-all duration-300">2</button>
+                            <button class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg hover:bg-white hover:shadow-md transition-all duration-300">3</button>
+                            <span class="px-2 text-slate-400">...</span>
+                            <button class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg hover:bg-white hover:shadow-md transition-all duration-300">16</button>
+                        </div>
+                        <button class="px-3 py-1 text-sm bg-white/60 border border-slate-200/60 rounded-lg hover:bg-white hover:shadow-md transition-all duration-300">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share & Earn Rewards Section -->
+            <div class="bg-white/70 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 border border-slate-200/60 shadow-lg shadow-slate-900/5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Share Travel Link & Earn Reward -->
+                    <div class="bg-gradient-to-br from-blue-50/50 to-blue-100/50 rounded-2xl p-4 sm:p-6 border border-blue-200/60 hover:shadow-md transition-all duration-300">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 space-y-3 sm:space-y-4">
+                                <div>
+                                    <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Share Travel Link & Earn Reward</h4>
+                                    <p class="text-sm text-slate-600">Invite clients or partner to your network</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                                    <button onclick="shareLink('travel')" class="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white rounded-xl shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 px-6 py-3 font-medium flex-1 sm:flex-none">
+                                        Share Link
+                                    </button>
+                                    <button onclick="copyLink('travel', this)" class="bg-white/80 hover:bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 px-6 py-3 font-medium flex-1 sm:flex-none">
+                                        Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Partner Link & Earn Reward -->
+                    <div class="bg-gradient-to-br from-emerald-50/50 to-cyan-50/50 rounded-2xl p-4 sm:p-6 border border-emerald-200/60 hover:shadow-md transition-all duration-300">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 space-y-3 sm:space-y-4">
+                                <div>
+                                    <h4 class="text-base sm:text-lg font-bold text-slate-900 mb-2">Share Partner Link & Earn Reward</h4>
+                                    <p class="text-sm text-slate-600">Invite clients or partner to your network</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                                    <button onclick="shareLink('partner')" class="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white rounded-xl shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 px-6 py-3 font-medium flex-1 sm:flex-none">
+                                        Share Link
+                                    </button>
+                                    <button onclick="copyLink('partner', this)" class="bg-white/80 hover:bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 px-6 py-3 font-medium flex-1 sm:flex-none">
+                                        Copy Link
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 <?php
-
-require_once '_config.php';
-auth_check();
-$title = "Agent Dashboard";
-include "_header.php";
-
-$agent_id = $USER_SESSION->backend_user_id;
-
-// $agent_id = '20230311051923100';
-
-$user = $db->select("users", '*', [
-    "user_id" => $agent_id,
-]);
-
-// for monthly bookings 
-
-
-// for each month booking
-
-// $current_year = date('Y');
-// $months = range(1, 12);
-
-// $monthly_booking_counts = array_fill_keys(
-//     ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-//     0
-// );
-
-// foreach ($months as $month) {
-//     $start_date = "$current_year-$month-01";
-//     $end_date = date('Y-m-t', strtotime($start_date));
-    
-//     $bookings = $db->select("hotels_bookings", '*', [
-//         "agent_id" => $agent_id,
-//         "booking_status" => "confirmed",
-//         "payment_status" => "paid",
-//         "booking_date[<>]" => [$start_date, $end_date]
-//     ]);
-//     $month_name = date('F', strtotime($start_date));
-//     $monthly_booking_counts[$month_name] = count($bookings);
-// }
-
-// $booking_counts_string = "[" . implode(", ", array_values($monthly_booking_counts)) . "]";
-// for monthly booking 
-
-$current_year = date('Y');
-$previous_year = $current_year - 1;
-$current_month = date('n'); 
-
-// Get last 6 months including current month
-$months = [];
-for ($i = 0; $i < 6; $i++) {
-    $month_num = $current_month - $i;
-    if ($month_num <= 0) {
-        $month_num += 12;
-    }
-    $months[] = $month_num;
-}
-$months = array_reverse($months); 
-
-$month_names = array_map(function ($m) {
-    return date('F', mktime(0, 0, 0, $m, 1));
-}, $months);
-
-$current_year_totals = [];
-$previous_year_totals = [];
-$current_year_paid_agent_fee = [];
-$previous_year_paid_agent_fee = [];
-
-foreach ($months as $month) {
-    $start_date = "$current_year-$month-01";
-    $end_date = date('Y-m-t', strtotime($start_date));
-
-    $confirmed_bookings = $db->select("hotels_bookings", '*', [
-        "agent_id" => $agent_id,
-        "booking_status" => "confirmed",
-        "booking_date[<>]" => [$start_date, $end_date]
-    ]);
-
-    $total_bookings = count($confirmed_bookings);
-    $total_price_markup = array_sum(array_column($confirmed_bookings, 'price_markup'));
-
-    $paid_bookings = array_filter($confirmed_bookings, function ($booking) {
-        return $booking['agent_commission_status'] === 'paid';
-    });
-
-    $total_paid_price_markup = array_sum(array_column($paid_bookings, 'price_markup'));
-    $total_paid_agent_fee_percentage = array_sum(array_column($paid_bookings, 'agent_fee'));
-    $total_paid_agent_fee = array_sum(array_column($paid_bookings, 'agent_fee'));
-
-    $current_year_totals[] = [
-        "month" => date('F', strtotime($start_date)),
-        "total_bookings" => $total_bookings,
-        "total_price_markup" => $total_price_markup,
-        "total_paid_price_markup" => $total_paid_price_markup,
-        "total_paid_agent_fee" => $total_paid_agent_fee
-    ];
-
-    $current_year_paid_agent_fee[] = $total_paid_agent_fee;
-
-    $start_date_prev = "$previous_year-$month-01";
-    $end_date_prev = date('Y-m-t', strtotime($start_date_prev));
-
-    $confirmed_bookings_prev = $db->select("hotels_bookings", '*', [
-        "agent_id" => $agent_id,
-        "booking_status" => "confirmed",
-        "booking_date[<>]" => [$start_date_prev, $end_date_prev]
-    ]);
-
-    $total_bookings_prev = count($confirmed_bookings_prev);
-    $total_price_markup_prev = array_sum(array_column($confirmed_bookings_prev, 'price_markup'));
-
-    $paid_bookings_prev = array_filter($confirmed_bookings_prev, function ($booking) {
-        return $booking['agent_commission_status'] === 'paid';
-    });
-
-    $total_paid_price_markup_prev = array_sum(array_column($paid_bookings_prev, 'price_markup'));
-    $total_paid_agent_fee_percentage_prev = array_sum(array_column($paid_bookings_prev, 'agent_fee'));
-    $total_paid_agent_fee_prev = array_sum(array_column($paid_bookings_prev, 'agent_fee'));
-
-    $previous_year_totals[] = [
-        "month" => date('F', strtotime($start_date_prev)),
-        "total_bookings" => $total_bookings_prev,
-        "total_price_markup" => $total_price_markup_prev,
-        "total_paid_price_markup" => $total_paid_price_markup_prev,
-        "total_paid_agent_fee" => $total_paid_agent_fee_prev
-    ];
-
-    $previous_year_paid_agent_fee[] = $total_paid_agent_fee_prev;
-}
-
-$current_year_paid_agent_fee = "[" . implode(", ", $current_year_paid_agent_fee) . "]";
-$previous_year_paid_agent_fee = "[" . implode(", ", $previous_year_paid_agent_fee) . "]";
-
+include_once '_footer.php';
 ?>
-
-<script>
-    // for monthly bookings
-    // window.permonthbookingcounts = <?= $booking_counts_string ?>;
-    // for monthly bookings
-
-
-    window.current_year_paid_agent_fee_js = <?= $current_year_paid_agent_fee ?>;
-    window.previous_year_paid_agent_fee_js = <?= $previous_year_paid_agent_fee ?>;
-</script>
-<div class="container-fluid">
-
-    <!-- Start::page-header -->
-
-    <div class="d-md-flex d-block align-items-center justify-content-between page-header-breadcrumb">
-        <div>
-            <h2 class="main-content-title fs-24 mb-1">Welcome To Dashboard</h2>
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Project Dashboard</li>
-            </ol>
-        </div>
-        <div class="d-flex">
-            <div class="justify-content-center">
-                <button type="button" class="btn btn-white btn-icon-text my-2 me-2 d-inline-flex align-items-center">
-                    <i class="fe fe-download me-2 fs-14"></i> Import
-                </button>
-                <button type="button" class="btn btn-white btn-icon-text my-2 me-2 d-inline-flex align-items-center">
-                    <i class="fe fe-filter me-2 fs-14"></i> Filter
-                </button>
-                <button type="button" class="btn btn-primary my-2 btn-icon-text d-inline-flex align-items-center">
-                    <i class="fe fe-download-cloud me-2 fs-14"></i> Download Report
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- End::page-header -->
-
-    <!-- Start::row-1 -->
-    <div class="row row-sm">
-        <div class="col-sm-12 col-lg-12 col-xl-8">
-            <!-- Start::row -->
-            <div class="row row-sm banner-img">
-                <div class="col-sm-12 col-lg-12 col-xl-12">
-                    <div class="card bg-primary custom-card card-box">
-                        <div class="card-body p-4">
-                            <div class="row align-items-center">
-                                <div class="offset-xl-3 offset-sm-6 col-xl-8 col-sm-6 col-12">
-                                    <h4 class="d-flex mb-3">
-                                        <span class="fw-bold text-fixed-white ">Hello
-                                            <?=$user[0]['first_name'].' '.$user[0]['last_name']?>
-                                        </span>
-                                    </h4>
-                                    <p class="tx-white-7 mb-1">The world is a book, and those who do not travel read
-                                        only one page."
-                                        - Saint Augustine
-                                </div>
-                                <img src="../assets/img/agent/agent.png" alt="user-img" style="height:165px;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End::row -->
-
-            <!-- Start::row -->
-            <div class="row row-sm">
-                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-4">
-                    <div class="card custom-card">
-                        <div class="card-body">
-                            <div class="card-item">
-                                <div class="card-item-icon card-icon">
-                                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg"
-                                        enable-background="new 0 0 24 24" height="24" viewBox="0 0 24 24" width="24">
-                                        <g>
-                                            <rect height="14" opacity=".3" width="14" x="5" y="5" />
-                                            <g>
-                                                <rect fill="none" height="24" width="24" />
-                                                <g>
-                                                    <path
-                                                        d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M19,19H5V5h14V19z" />
-                                                    <rect height="5" width="2" x="7" y="12" />
-                                                    <rect height="10" width="2" x="15" y="7" />
-                                                    <rect height="3" width="2" x="11" y="14" />
-                                                    <rect height="2" width="2" x="11" y="10" />
-                                                </g>
-                                            </g>
-                                        </g>
-                                    </svg>
-                                </div>
-                                <div class="card-item-title mb-2">
-                                    <label class="main-content-label fs-13 fw-bold mb-1">Total Sales Revenue</label>
-                                    <span class="d-block fs-12 mb-0 text-muted">Previous month vs this months</span>
-                                </div>
-                                <?php
-                                        // Fetch current month revenue
-                                        $current_revenue = (float) ($db->sum("hotels_bookings", "price_markup", [
-                                            "agent_id" => $agent_id,
-                                            "booking_status" => "confirmed",
-                                            "payment_status" => "paid",
-                                            "agent_payment_status" => "paid",
-                                            "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-                                        ]) ?? 0);
-                                        
-                                        // Fetch previous month revenue
-                                        $previous_revenue = (float) ($db->sum("hotels_bookings", "price_markup", [
-                                            "agent_id" => $agent_id,
-                                            "booking_status" => "confirmed",
-                                            "payment_status" => "paid",
-                                            "agent_payment_status" => "paid",
-                                            "booking_date[<>]" => [
-                                                date("Y-m-01", strtotime("-1 month")),
-                                                date("Y-m-t", strtotime("-1 month"))
-                                            ]
-                                        ]) ?? 0);
-                                        
-                                        $percentage_change = 0;
-                                        $status = "higher";
-                                        
-                                        if ($previous_revenue > 0) {
-                                            $percentage_change = (($current_revenue - $previous_revenue) / $previous_revenue) * 100;
-                                            
-                                            // Ensure percentage stays within valid range
-                                            $percentage_change = max(min($percentage_change, 100), -100);
-                                        
-                                            $status = ($percentage_change >= 0) ? "higher" : "lower";
-                                        } elseif ($current_revenue > 0) {
-                                            $percentage_change = 100;
-                                            $status = "higher";
-                                        }
-                                        
-                                        // If both revenues are 0, keep it neutral
-                                        if ($current_revenue == 0 && $previous_revenue == 0) {
-                                            $percentage_change = 0;
-                                            $status = "higher";
-                                        }
-                                        ?>
-                                <div class="card-item-body">
-                                    <div class="card-item-stat">
-                                        <h4 class="fw-bold">$
-                                            <?= number_format($current_revenue, 2) ?>
-                                        </h4>
-                                        <small>
-                                            <b
-                                                class="text-<?= ($status == 'higher') ? 'success' : (($status == 'lower') ? 'danger' : 'secondary') ?>">
-                                                <?= abs(round($percentage_change, 2)) ?>%
-                                            </b>
-                                            <?= $status ?>
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-4">
-                    <div class="card custom-card">
-                        <div class="card-body">
-                            <div class="card-item">
-                                <div class="card-item-icon card-icon">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-                                        <path d="M0 0h24v24H0V0z" fill="none" />
-                                        <path
-                                            d="M12 4c-4.41 0-8 3.59-8 8 0 1.82.62 3.49 1.64 4.83 1.43-1.74 4.9-2.33 6.36-2.33s4.93.59 6.36 2.33C19.38 15.49 20 13.82 20 12c0-4.41-3.59-8-8-8zm0 9c-1.94 0-3.5-1.56-3.5-3.5S10.06 6 12 6s3.5 1.56 3.5 3.5S13.94 13 12 13z"
-                                            opacity=".3" />
-                                        <path
-                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.07 18.28c.43-.9 3.05-1.78 4.93-1.78s4.51.88 4.93 1.78C15.57 19.36 13.86 20 12 20s-3.57-.64-4.93-1.72zm11.29-1.45c-1.43-1.74-4.9-2.33-6.36-2.33s-4.93.59-6.36 2.33C4.62 15.49 4 13.82 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.82-.62 3.49-1.64 4.83zM12 6c-1.94 0-3.5 1.56-3.5 3.5S10.06 13 12 13s3.5-1.56 3.5-3.5S13.94 6 12 6zm0 5c-.83 0-1.5-.67-1.5-1.5S11.17 8 12 8s1.5.67 1.5 1.5S12.83 11 12 11z" />
-                                    </svg>
-                                </div>
-                                <div class="card-item-title mb-2">
-                                    <label class="main-content-label fs-13 fw-bold mb-1">Total Commission</label>
-                                    <span class="d-block fs-12 mb-0 text-muted">Total commission you earned</span>
-                                </div>
-                                <?php
-                                // Fetch current month revenue
-                                        $current_agent_fee = (float) ($db->sum("hotels_bookings", "agent_fee", [
-                                            "agent_id" => $agent_id,
-                                            "booking_status" => "confirmed",
-                                            "payment_status" => "paid",
-                                            "agent_payment_status" => "paid",
-                                            
-                                            "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-                                        ]) ?? 0);
-                                        
-                                        // Fetch previous month revenue
-                                        $previous_agent_fee = (float) ($db->sum("hotels_bookings", "agent_fee", [
-                                            "agent_id" => $agent_id,
-                                            "booking_status" => "confirmed",
-                                            "payment_status" => "paid",
-                                            "agent_payment_status" => "paid",
-                                            "booking_date[<>]" => [
-                                                date("Y-m-01", strtotime("-1 month")),
-                                                date("Y-m-t", strtotime("-1 month"))
-                                            ]
-                                        ]) ?? 0);
-                                        
-                                        $percentage_change = 0;
-                                        $status = "Increased";
-                                        
-                                        if ($previous_agent_fee > 0) {
-                                            $percentage_change = (($current_agent_fee - $previous_agent_fee) / $previous_agent_fee) * 100;
-                                            
-                                            // Ensure percentage stays within valid range
-                                            $percentage_change = max(min($percentage_change, 100), -100);
-                                        
-                                            $status = ($percentage_change >= 0) ? "Increased" : "Decreased";
-                                        } elseif ($current_agent_fee > 0) {
-                                            $percentage_change = 100;
-                                            $status = "Increased";
-                                        }
-                                        
-                                        // If both revenues are 0, keep it neutral
-                                        if ($current_agent_fee == 0 && $previous_agent_fee == 0) {
-                                            $percentage_change = 0;
-                                            $status = "Increased";
-                                        }
-                                        ?>
-                                <div class="card-item-body">
-                                    <div class="card-item-stat">
-                                        <h4 class="fw-bold">$
-                                            <?= number_format($current_agent_fee, 2) ?>
-                                        </h4>
-                                        <small>
-                                            <b
-                                                class="text-<?= ($status == 'Increased') ? 'success' : (($status == 'decreased') ? 'danger' : 'secondary') ?>">
-                                                <?= abs(round($percentage_change, 2)) ?>%
-                                            </b>
-                                            <?= $status ?>
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-12 col-md-12 col-lg-12 col-xl-4">
-                    <div class="card custom-card">
-                        <div class="card-body">
-                            <div class="card-item">
-                                <div class="card-item-icon card-icon">
-                                    <svg class="text-primary" xmlns="http://www.w3.org/2000/svg" height="24"
-                                        viewBox="0 0 24 24" width="24">
-                                        <path d="M0 0h24v24H0V0z" fill="none" />
-                                        <path
-                                            d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8zm1.23 13.33V19H10.9v-1.69c-1.5-.31-2.77-1.28-2.86-2.97h1.71c.09.92.72 1.64 2.32 1.64 1.71 0 2.1-.86 2.1-1.39 0-.73-.39-1.41-2.34-1.87-2.17-.53-3.66-1.42-3.66-3.21 0-1.51 1.22-2.48 2.72-2.81V5h2.34v1.71c1.63.39 2.44 1.63 2.49 2.97h-1.71c-.04-.97-.56-1.64-1.94-1.64-1.31 0-2.1.59-2.1 1.43 0 .73.57 1.22 2.34 1.67 1.77.46 3.66 1.22 3.66 3.42-.01 1.6-1.21 2.48-2.74 2.77z"
-                                            opacity=".3" />
-                                        <path
-                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" />
-                                    </svg>
-                                </div>
-                                <div class="card-item-title  mb-2">
-                                    <label class="main-content-label fs-13 fw-bold mb-1">Partner Commission
-                                    </label>
-                                    <span class="d-block fs-12 mb-0 text-muted">Previous month vs this
-                                        months</span>
-                                </div>
-                                <div class="card-item-body">
-                                    <div class="card-item-stat">
-                                        <h4 class="fw-bold">$0.00</h4>
-                                        <small><b class="text-danger">12%</b> decrease</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- End::row -->
-
-            <!-- Start::row -->
-            <div class="row">
-                <div class="col-sm-12 col-lg-12 col-xl-12">
-                    <!-- <div class="card custom-card overflow-hidden">
-                        <div class="card-header border-bottom-0">
-                            <div>
-                                <label class="card-title">Monthly Bookings</label>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div id="project"></div>
-                        </div>
-                    </div> -->
-                </div><!-- col end -->
-                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
-                <div class="card custom-card overflow-hidden">
-                        <div class="card-header d-block border-bottom-0 pb-0">
-                            <div>
-                                <div class="d-md-flex">
-
-                                <?php
-// Default filter (Pending)
-$selected_status = isset($_GET['status']) && !empty($_GET['status']) ? $_GET['status'] : 'pending';
-?>
-                                    <label class="main-content-label my-auto pt-2">Upcoming Commission</label>
-                                    <div class="ms-auto mt-3 d-flex">
-                                        <div id="paidBtn" class="me-3 d-flex text-muted fs-13"><span
-                                        class="legend <?= ($selected_status === 'paid') ? 'bg-primary' : 'bg-light' ?> rounded-circle"></span>Paid
-                                        </div>
-                                        <div id="pendingBtn" class="d-flex text-muted fs-13"><span
-                                         class="legend <?= ($selected_status === 'pending') ? 'bg-primary' : 'bg-light' ?> rounded-circle"></span>Pending
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-6 my-auto">
-                                    <h6 class="mb-3 fs-14 fw-normal">UPCOMING COMMISSION</h6>
-                                    <div class="text-start">
-                                    <?php
-
-                    $agent_fee_total = (float) ($db->sum("hotels_bookings", "agent_fee", [
-                        "agent_id" => $agent_id,
-                        "booking_status" => "confirmed",
-                        "payment_status" => "paid",
-                        "agent_payment_status" => $selected_status,
-                        "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-                    ]) ?? 0);
-                ?>
-<h3 id="commissionAmount" class="fw-bold me-3 mb-2 text-primary">$<?= $agent_fee_total?></h3>
-                                        <p class="fs-13 my-auto text-muted">
-                                            <?php echo date("M d", strtotime("last day of previous month")) . " - " . date("M d (Y)"); ?>
-                                        </p>
-                                    </div>
-                                </div>
-                                <span id="paidCommissionPercentage" style="display: none;"><?= $paid_commission_percentage ?></span>
-
-                                <?php
-                                
-$total_paid_bookings = (int) ($db->count("hotels_bookings", [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "payment_status" => "paid",
-    "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-]) ?? 0);
-
-$paid_commission_bookings = (int) ($db->count("hotels_bookings", [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "payment_status" => "paid",
-    "agent_payment_status" => $selected_status,
-    "booking_date[<>]" => [date("Y-m-01"), date("Y-m-t")]
-]) ?? 0);
-
-$paid_commission_percentage = ($total_paid_bookings > 0) 
-    ? round(($paid_commission_bookings / $total_paid_bookings) * 100, 2)
-    : 0;
-?>
-<script>
-window.paidCommissionPercentage = <?= $paid_commission_percentage ?>;
-
-document.addEventListener("DOMContentLoaded", function () {
-    let paidBtn = document.getElementById("paidBtn");
-    let pendingBtn = document.getElementById("pendingBtn");
-
-    function updateSelection(status) {
-        let xhr = new XMLHttpRequest();
-        xhr.open("GET", "?status=" + status, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                let parser = new DOMParser();
-                let doc = parser.parseFromString(xhr.responseText, "text/html");
-
-                // Update UI without refreshing
-                document.querySelector("#paidBtn span").className = (status === "paid") ? "legend bg-primary rounded-circle" : "legend bg-light rounded-circle";
-                document.querySelector("#pendingBtn span").className = (status === "pending") ? "legend bg-primary rounded-circle" : "legend bg-light rounded-circle";
-
-                // Update commission amount dynamically
-                let newAmount = doc.querySelector("#commissionAmount").innerText;
-                document.getElementById("commissionAmount").innerText = newAmount;
-
-                // Extract the new paidCommissionPercentage value from the response
-                let scriptContent = xhr.responseText.match(/window\.paidCommissionPercentage\s*=\s*(\d+(\.\d+)?)/);
-                if (scriptContent) {
-                    window.paidCommissionPercentage = parseFloat(scriptContent[1]);
-
-                    // console.log("Updated paidCommissionPercentage:", window.paidCommissionPercentage);
-
-                    // **Update chart dynamically**
-                    chart3.updateSeries([window.paidCommissionPercentage]);
-                }
-            }
-        };
-        xhr.send();
-    }
-
-    paidBtn.addEventListener("click", function () {
-        updateSelection("paid");
-    });
-
-    pendingBtn.addEventListener("click", function () {
-        updateSelection("pending");
-    });
-});
-
-</script>
-                                <div class="col-md-6 my-auto">
-                                    <div id="todaytask"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div><!-- col end -->
-                <div class="col-sm-12 col-md-6 col-lg-6 col-xl-6">
-                <?php
-$current_month_start = date('Y-m-01');
-$current_month_end = date('Y-m-t');
-$previous_month_start = date('Y-m-01', strtotime("first day of last month"));
-$previous_month_end = date('Y-m-t', strtotime("last day of last month"));
-
-$current_bookings = $db->select("hotels_bookings", ["email", "first_name", "last_name", "price_markup"], [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "booking_date[<>]" => [$current_month_start, $current_month_end]
-]);
-
-$previous_bookings = $db->select("hotels_bookings", ["email", "price_markup"], [
-    "agent_id" => $agent_id,
-    "booking_status" => "confirmed",
-    "booking_date[<>]" => [$previous_month_start, $previous_month_end]
-]);
-
-$client_markup = [];
-
-foreach ($current_bookings as $booking) {
-    $email = $booking["email"];
-    
-    if (!isset($client_markup[$email])) {
-        $client_markup[$email] = [
-            "total_markup" => 0,
-            "first_name" => $booking["first_name"],
-            "last_name" => $booking["last_name"],
-            "previous_markup" => 0 
-        ];
-    }
-
-    // Add price markup
-    $client_markup[$email]["total_markup"] += $booking["price_markup"];
-}
-
-foreach ($previous_bookings as $booking) {
-    $email = $booking["email"];
-
-    if (isset($client_markup[$email])) {
-        $client_markup[$email]["previous_markup"] += $booking["price_markup"];
-    }
-}
-
-foreach ($client_markup as &$client) {
-    $previous = $client["previous_markup"];
-    $current = $client["total_markup"];
-
-    $safe_previous = ($previous == 0) ? 1 : $previous;
-    $change = (($current - $previous) / $safe_previous) * 100;
-
-    $client["percent_change"] = max(min($change, 100), -100); 
-
-    $client["percent_change"] = round($client["percent_change"], 1);
-}
-
-$unique_clients = array_values($client_markup);
-
-usort($unique_clients, function ($a, $b) {
-    return $b["total_markup"] <=> $a["total_markup"];
-});
-
-$top_clients = array_slice($unique_clients, 0, 3);
-
-?>
-<div class="card custom-card">
-    <div class="card-header border-bottom-0 pb-0">
-        <div>
-            <div class="d-flex">
-                <label class="main-content-label my-auto pt-2">Top Clients</label>
-            </div>
-            <span class="d-block fs-12 mt-2 mb-0 text-muted">Here are your three top clients.</span>
-        </div>
-    </div>
-    <div class="card-body">
-        <?php foreach ($top_clients as $client): ?>
-            <?php 
-                $arrow_class = ($client["percent_change"] >= 0) ? "text-success fe fe-arrow-up" : "text-danger fe fe-arrow-down"; 
-                $progress_value = abs($client["percent_change"]); 
-                $change_word = ($client["percent_change"] >= 0) ? "Increase" : "Decrease";
-            ?>
-            <div class="row mt-1">
-                <div class="col-5">
-                    <span><?= htmlspecialchars($client["first_name"] . ' ' . $client["last_name"]) ?></span>
-                </div>
-                <div class="col-3 my-auto">
-                    <div class="progress ht-6 my-auto progress-animate">
-                        <div class="progress-bar ht-6 wd-<?= $progress_value ?>p" role="progressbar" style="width: <?= $progress_value ?>%;"></div>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="d-flex">
-                        <span class="fs-13">
-                            <i class="<?= $arrow_class ?>"></i>
-                            <b><?= abs($client["percent_change"]) ?>%</b> <?= $change_word ?> 
-                        </span>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-                </div>
-                <!-- col end -->
-                <div class="col-lg-12">
-                    <div class="card custom-card mg-b-20 tasks">
-                        <div class="card-body">
-                            <div class="card-header border-bottom-0 pt-0 ps-0 pe-0 pb-2 d-flex">
-                                <div>
-                                    <div class="card-title">RECENT RESERVATIONS</div>
-                                </div>
-                                <div class="">
-                                    <div>
-                                        <a href="./bookings.php" style="margin-left:12px !important;"
-                                            class="btn text-white bg-black me-2" type="button">
-                                            SEE ALL
-                                            RESERVATIONS </a>
-
-                                    </div>
-                                </div>
-                            </div>
-                            <?php $reservation = $db->select('hotels_bookings', ['first_name', 'last_name', 'hotel_name', 'booking_date', 'booking_status'], ["agent_id" => $agent_id,"ORDER" => ["booking_id" => "DESC"]]); ?>
-                            <div class="table-responsive tasks">
-                                <table id="bookingTable" class="table table-striped table-bordered">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Name</th>
-                                            <th class="text-center">Hotel</th>
-                                            <th class="text-center">Date</th>
-                                            <th>Priority</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($reservation as $booking): ?>
-                                        <tr>
-                                            <td>
-                                                <?php echo $booking['first_name'] . ' ' . $booking['last_name']; ?>
-                                            </td>
-                                            <td class="text-nowrap">
-                                                <?php echo $booking['hotel_name']; ?>
-                                            </td>
-                                            <td class="text-center">
-                                                <?php echo date('M d', strtotime($booking['booking_date'])); ?>
-                                            </td>
-                                            <td class="text-secondary">Normal</td>
-                                            <td>
-                                                <?php
-                                                                $status_classes = [
-                                                                    'confirmed' => 'bg-primary',
-                                                                    'pending' => 'bg-warning',
-                                                                    'cancelled' => 'bg-danger'
-                                                                ];
-                                                                $status_class = $status_classes[$booking['booking_status']] ?? 'bg-secondary';
-                                                                ?>
-                                                <span class="badge rounded-pill <?php echo $status_class; ?>">
-                                                    <?php echo ucfirst($booking['booking_status']); ?>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                            <!-- DataTables JS -->
-                            <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-                            <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-
-                            <script>
-                                $(document).ready(function () {
-                                    $('#bookingTable').DataTable({
-                                        "paging": true,
-                                        "searching": true,
-                                        "ordering": true,
-                                        "info": true,
-                                        "lengthChange": false,
-                                        "pageLength": 4
-                                    });
-                                });
-                            </script>
-
-                        </div>
-                    </div>
-
-                </div>
-                <!-- col end -->
-            </div>
-            <!-- End::row -->
-
-        </div><!-- col end -->
-
-        <div class="col-sm-12 col-lg-12 col-xl-4 banner-img">
-            <div class="card custom-card card-dashboard-calendar">
-                <label class="main-content-label mb-2 pt-1">Recent Sales</label>
-                <span class="d-block fs-12 mb-2 text-muted">Hare are the last 5 sales you've made
-                </span>
-                <table class="table m-b-0 transcations mt-2">
-                    <tbody>
-                        <?php
-                        $recent_sales = $db->select('hotels_bookings', '*', [
-                            "agent_id" => $agent_id,
-                            "booking_status" => "confirmed",
-                            "LIMIT" => 5,
-                            "ORDER" => ["booking_id" => "DESC"]
-                        ]);
-                                        foreach ($recent_sales as $r_sales) {
-                                            echo ' 
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-middle ms-3">
-                                                        <div class="d-inline-block">
-                                                            <h6 class="mb-1">' . $r_sales['first_name'] . ' ' . $r_sales['last_name'] . '</h6>
-                                                            <p class="mb-0 fs-13 text-muted">' . $r_sales['location'] . '</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-end">
-                                                    <div class="d-inline-block">
-                                                        <h6 class="mb-2 fs-15 fw-semibold">$' . number_format($r_sales['price_markup'], 3, '.', '') . '</h6>
-                                                        <p class="mb-0 tx-11 text-muted">' . date('d M Y', strtotime($r_sales['booking_date'])) . '</p>
-                                                    </div>
-                                                </td>
-                                            </tr>';
-                                        }
-                                    ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="card custom-card">
-                <div class="card-body">
-                    <div class="card-item">
-                        <div class="card-item-icon card-icon">
-                            <img src="../assets/img/agent/bost.png" alt="bost-img" style="height:50px;">
-                        </div>
-                        <div class="card-item-title mb-2">
-                            <label class="main-content-label fs-13 fw-bold mb-1">Share Your Travel Link With Clients
-
-                            </label>
-                            <span class="d-block fs-12 mb-0 text-muted">Share your travel link with your network!</span>
-                        </div>
-                        <a href="https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client"
-                            class="mb-0 fs-18 mt-2"><b class="text-primary">https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=client
-                            </b></a>
-                    </div>
-                </div>
-            </div>
-            <?php
-            $current_month_start = date('Y-m-01'); // First day of the current month
-            $current_month_end = date('Y-m-t'); // Last day of the current month
-
-            $previous_month_start = date('Y-m-01', strtotime('first day of last month')); // First day of the previous month
-            $previous_month_end = date('Y-m-t', strtotime('last day of last month')); // Last day of the previous month
-
-            ?>
-
-            <div class="card custom-card">
-                <div class="card-header border-bottom-0 pb-0">
-                    <div>
-                        <div class="d-flex">
-                            <label class="main-content-label my-auto pt-2">Top Destinations</label>
-                        </div>
-                        <span class="d-block fs-12 mt-2 mb-0 text-muted">Here are your three top destinations.</span>
-                    </div>
-                </div>
-                <?php
-                    $top_dest_current = $db->query("SELECT location, COUNT(*) as booking_count 
-                    FROM hotels_bookings 
-                    WHERE agent_id = :agent_id AND booking_status = 'confirmed' 
-                    AND booking_date BETWEEN :current_month_start AND :current_month_end
-                    GROUP BY location 
-                    ORDER BY booking_count DESC 
-                    LIMIT 3", [
-                    ':agent_id' => $agent_id,
-                    ':current_month_start' => $current_month_start,
-                    ':current_month_end' => $current_month_end
-                    ])->fetchAll(PDO::FETCH_ASSOC);
-                    
-                    $top_dest_previous = $db->query("SELECT location, COUNT(*) as booking_count 
-                    FROM hotels_bookings 
-                    WHERE agent_id = :agent_id AND booking_status = 'confirmed' 
-                    AND booking_date BETWEEN :previous_month_start AND :previous_month_end
-                    GROUP BY location", [
-                    ':agent_id' => $agent_id,
-                    ':previous_month_start' => $previous_month_start,
-                    ':previous_month_end' => $previous_month_end
-                    ])->fetchAll(PDO::FETCH_ASSOC);
-                    
-                    $previous_bookings_map = [];
-                    foreach ($top_dest_previous as $prev) {
-                        $previous_bookings_map[$prev['location']] = $prev['booking_count'] ?? 0;
-                    }
-                    
-                    foreach ($top_dest_current as &$current) {
-                        $location = $current['location'];
-                        $current['previous_booking_count'] = $previous_bookings_map[$location] ?? 0;
-                    }
-                ?>
-                <div class="card-body">
-                    <?php foreach ($top_dest_current as $destination) {
-                                        $location = $destination['location'];
-                                        $current_count = $destination['booking_count'];
-                                        $previous_count = isset($previous_bookings_map[$location]) ? $previous_bookings_map[$location] : 0;
-                                        
-                                        // Calculate percentage change
-                                        if ($previous_count > 0) {
-                                            $percentage_change = (($current_count - $previous_count) / $previous_count) * 100;
-                                        } else {
-                                            $percentage_change = $current_count > 0 ? 100 : 0; // If there were no previous bookings, assume 100% growth
-                                        }
-                                        
-                                        $arrow_class = $percentage_change >= 0 ? 'text-success fe fe-arrow-up' : 'text-danger fe fe-arrow-down';
-                                        $formatted_percentage_change = number_format(abs($percentage_change), 2, '.', '');
-                                        
-                                        // Calculate progress bar width
-                                        $progress_width = min($current_count * 10, 100); 
-                                    ?>
-                    <div class="row mt-4">
-                        <div class="col-5">
-                            <span class="">
-                                <?php echo $location; ?>
-                            </span>
-                        </div>
-                        <div class="col-3 my-auto">
-                            <div class="progress ht-6 my-auto progress-animate">
-                                <div class="progress-bar ht-6 wd-<?php echo $progress_width; ?>p" role="progressbar"
-                                    aria-valuenow="<?php echo $progress_width; ?>" aria-valuemin="0"
-                                    aria-valuemax="100">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="d-flex">
-                                <span class="fs-13">
-                                    <i class="<?php echo $arrow_class; ?>"></i><b>
-                                        <?php echo $formatted_percentage_change; ?>%
-                                    </b>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <?php } ?>
-                </div>
-            </div>
-            <div class="card custom-card">
-                <div class="card-body">
-                    <div class="card-item">
-                        <div class="card-item-icon card-icon">
-                            <img src="../assets/img/agent/bost.png" alt="bost-img" style="height:50px;">
-                        </div>
-                        <div class="card-item-title mb-2">
-                            <label class="main-content-label fs-13 fw-bold mb-1">Share Your Referral Link With Your
-                                Partners
-
-                            </label>
-                            <span class="d-block fs-12 mb-0 text-muted">Build a network of partners and earn a
-                                commission for every sale!</span>
-                        </div>
-                        <a href="https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=partner" class="mb-0 fs-18 mt-2"><b
-                                class="text-primary">https://toptiertravel.site/signup?ref=<?=$agent_id?>&type=partner</b></a>
-                    </div>
-                </div>
-            </div>
-            <div class="card custom-card">
-                <div class="card-body">
-                    <div class="d-flex">
-                        <label class="main-content-label my-auto">Monthly Commission
-                        </label>
-                        <div class="ms-auto  d-flex">
-                            <div class="me-3 d-flex text-muted fs-13">Running</div>
-                        </div>
-                    </div>
-                    <div class="mt-1">
-                        <div>
-
-                        </div>
-                        <div id="websitedesign"></div>
-                    </div>
-                    <div class="row">
-                        <div class="col">
-                            <div class="mt-4">
-                                <div class="d-flex mb-2">
-                                    <h5 class="fs-15 my-auto text-muted fw-normal">Agent :
-                                    </h5>
-                                    <h5 class="fs-15 my-auto ms-3">
-                                        <?=$user[0]['first_name'].' '.$user[0]['last_name']?>
-                                    </h5>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col col-auto">
-                            <div class="mt-3">
-                                <div class="">
-                                    <img alt="" class="ht-50" src="../assets/img/agent/client.png">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div><!-- col end -->
-    </div>
-    <!-- End::row-1 -->
-
-</div>
-
-<div class="d-none" id="ongoingprojects"></div>
-<div class="d-none" id="ongoingprojects2"></div>
-<?php include "_footer.php" ?>

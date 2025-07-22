@@ -1,1283 +1,434 @@
 <!DOCTYPE html>
-<html lang="en" dir="<?= $USER_SESSION->backend_user_language_position ?>" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="dark" data-toggled="close"><head>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title><?php if (isset($title)) {echo $title;} ?></title>
-    <link rel="shortcut icon" href="../uploads/global/favicon.png?v<?= rand(0, 99999999999) ?>">
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
-    <meta http-equiv="Cache-control" content="private">
-    <meta http-equiv="refresh" content="4000; ./login-logout.php" />
-    <link rel="stylesheet" href="./assets/css/style.css" />
-    <link rel="stylesheet" href="./assets/css/app.css" />
-    <!-- Choices JS -->
-    <script src="./spruha-assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
-
-    <!-- Bootstrap Css -->
-    <link id="style" href="./spruha-assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet" >
-
-    <!-- Main Theme Js -->
-    <script src="./spruha-assets/js/main.js"></script>
-
-    <!-- Style Css -->
-    <link href="./spruha-assets/css/styles.min.css" rel="stylesheet" >
-
-    <!-- Icons Css -->
-    <link href="./spruha-assets/css/icons.css" rel="stylesheet" >
-
-    <!-- Node Waves Css -->
-    <link href="./spruha-assets/libs/node-waves/waves.min.css" rel="stylesheet" >
-
-    <!-- Simplebar Css -->
-    <link href="./spruha-assets/libs/simplebar/simplebar.min.css" rel="stylesheet" >
-
-    <!-- Color Picker Css -->
-    <link rel="stylesheet" href="./spruha-assets/libs/flatpickr/flatpickr.min.css">
-    <link rel="stylesheet" href="./spruha-assets/libs/@simonwep/pickr/themes/nano.min.css">
-
-    <!-- Choices Css -->
-    <link rel="stylesheet" href="./spruha-assets/libs/choices.js/public/assets/styles/choices.min.css">
-
-
-    <link rel="stylesheet" href="./spruha-assets/libs/jsvectormap/css/jsvectormap.min.css">
-
-    <link rel="stylesheet" href="./spruha-assets/libs/swiper/swiper-bundle.min.css">
-
-
-    <script src="./assets/js/jquery-3.6.0.min.js"></script>
-    <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap" rel="stylesheet">-->
-</head>
-<?php
-if (DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "Admin" || DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "admin"){
-    REDIRECT("./login-logout.php");
-    exit;
-}else {
-
-?>
-
-
-<?php if($USER_SESSION->backend_user_language_position=="rtl"){?>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.rtl.min.css">
-    <link rel="stylesheet" href="./assets/css/rtl.css" />
-    <style>
-        *{text-decoration:none !important}
-        main header .btn{border:transparent !important}
-        header ul .alerts  button {display: flex}
-    </style>
-<?php } ?>
-
-<body>
-<div class="bodyload">
-    <div class="rotatingDiv"></div>
-</div>
-<script>
-    setTimeout(function() {
-        $('.bodyload').fadeOut();
-    }, 100);
-
-    $(document).on("click", ".loadeffect, .loading_effect", function() {
-        var newUrl = $(this).attr("href");
-        if (!newUrl || newUrl[0] === "#") {
-            location.hash = newUrl;
-            return;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toptier Agents</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
         }
-        $('.bodyload').fadeIn();
-        location = newUrl;
-        return false;
-    });
-</script>
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
 
-<main>
+        /* Mobile sidebar transition */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
 
-    <?php $url_name = basename($_SERVER['PHP_SELF'], ".php");
+        .sidebar.open {
+            transform: translateX(0);
+        }
 
-
-    // dd($url_name);
-
-    $params = array("user_id" => $USER_SESSION->backend_user_id);
-    $user_type_id = GET('users', $params)[0]->user_type;
-
-    // dd($user_type_id);
-
-    if (empty($user_type_id)) {
-        echo '<div style="gap:10px; width: 100%; display: flex; justify-content: center; align-items: center; background: #1b2a47; color: #fff; font-size: 14px;">This user has no " User Type "
-<a href="./login-logout.php" data-toggle="tooltip" data-placement="top" title="Previous Page" class="loading_effect btn btn-warning">  Logout</a>
-</div>';
-        exit;
-    }
-
-    $params = array("type_name" => $user_type_id);
-    $data = GET('users_roles', $params)[0]->permissions;
-    $user_permissions = (json_decode($data));
-
-    // $access_not_allowed = '<div style="gap:10px; width: 100%; display: flex; justify-content: center; align-items: center; background: #1b2a47; color: #fff; font-size: 14px;">Page Access Not Allowed
-    // <a href="javascript:window.history.back();" data-toggle="tooltip" data-placement="top" title="Previous Page" class="loading_effect btn btn-warning">  Back</a>
-    // </div>';
-
-    foreach ($pages as $p => $i) {
-
-        if (isset($user_permissions->modules->edit)) {
-            if ($url_name == "module-setting") {
-                // echo $access_not_allowed;
-                REDIRECT("./login-logout.php");
-                exit;
+        /* Desktop sidebar always visible */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0) !important;
             }
         }
 
-        if (!isset($user_permissions->$p->page_access) && $url_name == $p) {
-            // echo $access_not_allowed;
-            REDIRECT("./login-logout.php");
-            exit;
+        /* Hide scrollbar for better mobile experience */
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-    }
-    if (isset($user_permissions->$url_name->add)) {
-        $permission_add = 1;
-    }
-    if (isset($user_permissions->$url_name->edit)) {
-        $permission_edit = 1;
-    } else {
-        $alert_edit = 1;
-    }
-    if (isset($user_permissions->$url_name->view)) {
-        $permission_view = 1;
-    }
-    if (isset($user_permissions->$url_name->delete)) {
-        $permission_delete = 1;
-    }
 
-    $params = array("status" => 1);
-    $modules=(GET("modules",$params));
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
 
-    $temp_module = array_unique(array_column($modules, 'type'));
-    $module_status = array_intersect_key($modules, $temp_module);
+        /* Smooth transitions for hover effects */
+        .hover-scale {
+            transition: transform 0.2s ease-in-out;
+        }
 
-    $keys = array_column($module_status, 'order');
-    array_multisort($keys, SORT_ASC, $module_status);
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
 
-    foreach ($module_status as $module){
-        if($module->type == "flights" && $module->status == 1 && $module->name =="flights"){$flight_active = 1;}
-        if($module->type == "hotels" && $module->status == 1 && $module->name =="hotels"){$hotels_active = 1;}
-        if($module->type == "tours" && $module->status == 1 && $module->name =="tours"){$tours_active = 1;}
-        if($module->type == "cars" && $module->status == 1 && $module->name =="cars"){$cars_active = 1;}
-        if($module->type == "visa" && $module->status == 1 && $module->name =="visa"){$visa_active = 1;}
-        if($module->type == "extra" && $module->status == 1 && $module->name =="blog"){$blog_active = 1;}
+        /* Background gradients for mobile optimization */
+        .bg-mesh {
+            background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.15) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
 
-    } ?>
-         <!-- app-header -->
-         <header class="app-header">
+        /* Custom styles for enhanced UI */
+        .backdrop-blur-xl {
+            backdrop-filter: blur(24px);
+        }
+        .backdrop-blur-sm {
+            backdrop-filter: blur(4px);
+        }
+        /* Dropdown styles */
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid rgb(226 232 240 / 0.6);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgb(0 0 0 / 0.1);
+            z-index: 1000;
+            min-width: 200px;
+        }
 
-            <!-- Start::main-header-container -->
-            <div class="main-header-container container-fluid">
+        /* Table dropdown styles - positioned properly */
+        .table-dropdown {
+            position: relative;
+        }
+        .table-dropdown-content {
+            display: none;
+            position: absolute;
+            left: -150px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            border: 1px solid rgb(226 232 240 / 0.6);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgb(0 0 0 / 0.15);
+            z-index: 9999;
+            min-width: 150px;
+        }
+        .table-dropdown.active .table-dropdown-content {
+            display: block;
+        }
 
-                <!-- Start::header-content-left -->
-                <div class="header-content-left">
+        /* Filter dropdown styles */
+        .filter-dropdown {
+            position: relative;
+        }
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid rgb(226 232 240 / 0.6);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgb(0 0 0 / 0.1);
+            z-index: 1000;
+            min-width: 250px;
+            padding: 16px;
+        }
+        .filter-dropdown.active .filter-dropdown-content {
+            display: block;
+        }
+        .dropdown:hover .dropdown-content,
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+        .dropdown-content a {
+            display: block;
+            padding: 12px 16px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .dropdown-content a:hover {
+            background: rgb(241 245 249);
+            color: #0f172a;
+        }
+        .dropdown-content a:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+        .dropdown-content a:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+        .table-dropdown-content a {
+            display: block;
+            padding: 12px 16px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .table-dropdown-content a:hover {
+            background: rgb(241 245 249);
+            color: #0f172a;
+        }
+        .table-dropdown-content a:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+        .table-dropdown-content a:last-child {
+            border-radius: 0 0 12px 12px;
+        }
 
-                    <div class="header-element">
-                        <!-- Start::header-link -->
-                        <a aria-label="Hide Sidebar" class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle" data-bs-toggle="sidebar" href="javascript:void(0);"><span></span></a>
-                    </div>
-                <div class="header-content-right">
-            </div>
-        </header>
-        <!-- /app-header -->
-        <!-- Start::app-sidebar -->
-        <aside class="app-sidebar sticky" id="sidebar">
+        /* Mobile dropdown styles */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 200px;
+        }
 
-            <!-- Start::main-sidebar-header -->
-            <!-- <div class="main-sidebar-header"> -->
-            <div class="main-sidebar-header p-3 d-flex items-align-center justify-content-between border-bottom pb-3 mb-2">
-        <a href="./dashboard.php" class="loadeffect d-flex align-items-center link-light text-decoration-none gap-3">
-            <img src="../uploads/global/favicon.png?v<?= rand(0, 99999999999) ?>"
-                style="max-width: 30px; border-radius:10px">
-            <span class="fw-semibold"><?= T::dashboard ?></span>
-        </a>
-        <a href="<?= root . ('../') ?>" target="_blank">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <g fill="none" fill-rule="evenodd">
-                    <path
-                        d="M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8" />
-                </g>
-            </svg>
-        </a>
-    <!-- </div> -->
-            </div>
-            <!-- End::main-sidebar-header -->
+        .dropdown-menu.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-x-hidden">
+    <!-- Enhanced Background with Mesh Gradient -->
+    <div class="fixed inset-0 bg-mesh pointer-events-none"></div>
+    <div class="fixed top-0 right-0 w-96 h-96 bg-gradient-to-br from-violet-400/20 to-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- Start::main-sidebar -->
-            <div class="main-sidebar" id="sidebar-scroll">
-                <!-- Start::nav -->
-                    <!-- Start::nav -->
-    <nav class="main-menu-container nav nav-pills flex-column sub-open">
-        <div class="slide-left" id="slide-left">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path> </svg>
-        </div>
-        <ul class="main-menu">
-            <!-- Start::slide__category -->
-            <!-- <li class="slide__category"><span class="category-name">Dashboard</span></li> -->
-            <!-- End::slide__category -->
+    <!-- Mobile menu button -->
+    <button id="mobile-menu-btn" class="fixed top-4 left-4 z-50 md:hidden bg-white/80 backdrop-blur-xl rounded-xl p-2 shadow-lg border border-slate-200/60 hover:bg-white transition-all duration-200">
+        <svg id="menu-icon" class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+        <svg id="close-icon" class="w-6 h-6 text-slate-700 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
 
-            <!-- Start::slide -->
+    <!-- Mobile overlay -->
+    <div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 md:hidden hidden"></div>
 
-            <li class="slide">
-<a href="./dashboard.php" class="side-menu__item <?php if ($url_name == 'dashboard') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-home side-menu__icon"></i>
-<span class="side-menu__label"><?= T::dashboard ?></span>
-</a>
-</li>
-            
-        
-            <!-- <li class="slide">
-            <a href="./dashboard.php" class="side-menu__item">
-                <span class="shape1"></span>
-                <span class="shape2"></span>
-                <i class="ti-home side-menu__icon"></i>
-                <span class="side-menu__label">Dashboard</span>
-            </a>
-         </li> -->
-            <!-- End::slide -->
-             <!-- start slide -->
-             <?php
-// ADMIN PERMISSION
-if (DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "Admin" || DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "admin") {
-
-    $params = array('status' => 1);
-    $count = GET('notifications', $params);
-    $notificationCount = count($count);
-
-?>
-<li class="slide">
-    <a href="javascript:void(0);" class="side-menu__item <?php if ($url_name == "alerts"){ echo "active"; } ?>" data-bs-toggle="dropdown">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="side-menu__icon fas fa-bell"></i>
-        <span class="side-menu__label"><?= T::alerts ?></span>
-        <span class="side-menu__angle bg-danger p-1 rounded-5 px-2 notificaition_count_number" style="font-size:10px"><?= $notificationCount ?></span>
-    </a>
-<?php if ($notificationCount > 0) { ?>
-    <ul class="dropdown-menu drapdown" style="z-index:9999; border-radius:0; position:fixed !important; margin: 0 240px; transform: none !important;">
-        <hr>
-        <?php
-        array_multisort(array_column($count, 'date'), SORT_DESC, $count);
-        foreach ($count as $c) { ?>
-            <li>
-                <a class="dropdown-item notification_<?=$c->id?>" href="#">
-                    <button style="border-radius: 5px !important;" class="btn btn-warning btn-sm p-3 py-0" onclick="notification(<?=$c->id?>)">
-                        <svg class="m-0" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#ffffff" stroke="#ffffff" stroke-width="0" stroke-linecap="round" version="1.1">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
+    <!-- Premium Sidebar -->
+    <div id="sidebar" class="sidebar fixed left-0 top-0 h-full w-20 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 z-50 shadow-lg shadow-slate-900/5">
+        <div class="flex flex-col h-full">
+            <!-- Logo Header -->
+            <div class="p-4 border-b border-slate-200/60">
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-3 flex items-center justify-center shadow-inner">
+                    <!-- <div class="w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg shadow-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
-                    </button>
-                    <span class="px-2"><?=$c->name?></span>
-                </a>
-            </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php
-    }
-}
-?>
-
-<script>
-function notification(name) {
-    $('.notification_' + name).fadeOut(200);
-    var form = new FormData();
-    form.append("notification_delete", "");
-    form.append("id", name);
-    var settings = {
-        "url": "./_post.php",
-        "method": "POST",
-        "timeout": 0,
-        "processData": false,
-        "mimeType": "multipart/form-data",
-        "contentType": false,
-        "data": form
-    };
-    $.ajax(settings).done(function (response) {
-        $('.notificaition_count_number').html(parseInt($('.notificaition_count_number').html(), 10) - 1);
-    });
-}
-</script>
-
-
-<!-- Bookings -->
- <!--
- <?php
-if (isset($user_permissions->bookings->page_access)) {
-?>
-<li class="slide">
-<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-calendar side-menu__icon"></i>
-<span class="side-menu__label"><?= T::bookings ?></span>
-</a>
-</li> -->
-
-<!-- End Bookings -->
-
-
-
-
-
-
-<!-- Start::slide -->
-<!-- Start::Markups Slide -->
-<?php
-if (isset($user_permissions->bookings->page_access)) {
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-calendar side-menu__icon"></i>
-<span class="side-menu__label"><?= T::bookings ?></span>
-<i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-<?php
-}
-?>
-<ul class="slide-menu child1">
-<?php
-if (isset($user_permissions->booking_add->page_access)) {
-?>
-<li class="slide">
-<a href="./booking_add.php" class="side-menu__item <?php if ($url_name == 'booking_add') { echo "active"; } ?>">
-<?= T::add ?> <?= T::booking ?>
-</a>
-</li>
-<?php
-}
-?>
-<?php
-if (isset($user_permissions->all_bookings->page_access)) {
-?>
-<li class="slide">
-<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
-<?= T::all ?> <?= T::bookings ?>
-</a>
-</li>
-<?php
-}
-?>
-<?php
-if (isset($user_permissions->supplier_payments->page_access)) {
-?>
-<li class="slide">
-<a href="./supplier_payments.php" class="side-menu__item <?php if ($url_name == 'supplier_payments') { echo "active"; } ?>">
-<?= T::supplier ?> <?= T::payments?>
-</a>
-</li>
-<?php
-}
-?>
-<?php
-if (isset($user_permissions->agents_commissions->page_access)) {
-?>
-<li class="slide">
-<a href="./agents_commissions.php" class="side-menu__item <?php if ($url_name == 'agents_commissions') { echo "active"; } ?>">
-<?= T::commissions?>
-</a>
-</li>
-<?php
-}
-?>
-</ul>
-</li>
- <!-- End::Markups Slide -->
- <?php } ?>
-
-
-
-
-
-<!-- end slide -->
-<!-- Start::slide -->
-<?php
-if (
-    isset($user_permissions->settings->page_access) ||
-    isset($user_permissions->payment_gateways->page_access) ||
-    isset($user_permissions->currencies->page_access) ||
-    isset($user_permissions->locations->page_access) ||
-    isset($user_permissions->email_settings->page_access) ||
-    isset($user_permissions->languages->page_access) ||
-    isset($user_permissions->users_roles->page_access) ||
-    isset($user_permissions->countries->page_access)
-) { ?>
-<!-- Start::Settings Slide -->
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="ti-settings side-menu__icon"></i>
-        <span class="side-menu__label">Settings</span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)">Settings</a>
-        </li>
-        <!-- General Settings -->
-        <?php if (isset($user_permissions->personal_settings->page_access)) { ?>
-        <li class="slide">
-            <a href="./personal_settings.php" class="side-menu__item <?= $url_name == 'personal_settings' ? 'active' : '' ?>">
-                <?= T::personal ?> <?= T::settings ?>
-            </a>
-        </li>
-        <?php } ?>
-        <!-- General Settings -->
-        <?php if (isset($user_permissions->settings->page_access)) { ?>
-        <li class="slide">
-            <a href="./settings.php" class="side-menu__item <?= $url_name == 'settings' ? 'active' : '' ?>">
-                <?= T::general ?> <?= T::settings ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Users & Roles -->
-        <?php if (isset($user_permissions->users_roles->page_access)) { ?>
-        <li class="slide">
-            <a href="./users_roles.php" class="side-menu__item <?= $url_name == 'users_roles' ? 'active' : '' ?>">
-                <?= T::users_roles ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Payment Gateways -->
-        <?php if (isset($user_permissions->payment_gateways->page_access)) { ?>
-        <li class="slide">
-            <a href="./payment_gateways.php" class="side-menu__item <?= in_array($url_name, ['payment_gateways', 'payment_gateway']) ? 'active' : '' ?>">
-                <?= T::payment_gateways ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Currencies -->
-        <?php if (isset($user_permissions->currencies->page_access)) { ?>
-        <li class="slide">
-            <a href="./currencies.php" class="side-menu__item <?= $url_name == 'currencies' ? 'active' : '' ?>">
-                <?= T::currencies ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Email Settings -->
-        <?php if (isset($user_permissions->email_settings->page_access)) { ?>
-        <li class="slide">
-            <a href="./email_settings.php" class="side-menu__item <?= $url_name == 'email_settings' ? 'active' : '' ?>">
-                <?= T::email_settings ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Locations -->
-        <?php if (isset($user_permissions->locations->page_access)) { ?>
-        <li class="slide">
-            <a href="./locations.php" class="side-menu__item <?= $url_name == 'locations' ? 'active' : '' ?>">
-                <?= T::locations ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Languages -->
-        <?php if (isset($user_permissions->languages->page_access)) { ?>
-        <li class="slide">
-            <a href="./languages.php" class="side-menu__item <?= $url_name == 'languages' ? 'active' : '' ?>">
-                <?= T::languages ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <!-- Countries -->
-        <?php if (isset($user_permissions->countries->page_access)) { ?>
-        <li class="slide">
-            <a href="./countries.php" class="side-menu__item <?= $url_name == 'countries' ? 'active' : '' ?>">
-                <?= T::countries ?>
-            </a>
-        </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php } ?>
-<!-- End::Settings Slide -->
-
-<!-- Start::slide -->
-<?php
-if (isset($user_permissions->modules->page_access)) {
-?>
-
-<li class="slide">
-<a href="./modules.php" class="side-menu__item <?php if ($url_name == "modules"){ echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="fas fa-tags side-menu__icon"></i>
-<span class="side-menu__label"><?= T::modules ?></span>
-</a>
-</li>
-
-<?php
-}
-?>
-
-<!-- End::slide -->
-
-<!-- Start::slide -->
-<!-- Start::Markups Slide -->
-<?php
-if (isset($user_permissions->markups->page_access)) {
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-layers side-menu__icon"></i>
-<span class="side-menu__label"><?= T::markups ?></span>
-<i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-
-<ul class="slide-menu child1">
-<li class="slide side-menu__label1">
-<a href="javascript:void(0)">Markups</a>
-</li>
-
-<!-- Users -->
-<li class="slide">
-<a href="./markups.php?module=users" class="side-menu__item
-    <?php if (isset($_GET['module']) && $_GET['module'] == 'users') { echo 'active'; } ?>">
-    <?= T::users ?>
-</a>
-</li>
-
-<!-- Dynamic Modules -->
-<?php foreach ($module_status as $module) { ?>
-
-<?php if (isset($module->type)) { ?>
-    <?php if ($module->type == "hotels") { ?>
-        <li class="slide">
-            <a href="./markups.php?module=hotels" class="side-menu__item
-                <?php if (isset($_GET['module']) && $_GET['module'] == 'hotels') { echo 'active'; } ?>">
-                <?= T::hotels ?>
-            </a>
-        </li>
-    <?php } ?>
-
-    <?php if ($module->type == "flights") { ?>
-        <li class="slide">
-            <a href="./markups.php?module=flights" class="side-menu__item
-                <?php if (isset($_GET['module']) && $_GET['module'] == 'flights') { echo 'active'; } ?>">
-                <?= T::flights ?>
-            </a>
-        </li>
-    <?php } ?>
-
-    <?php if ($module->type == "tours") { ?>
-        <li class="slide">
-            <a href="./markups.php?module=tours" class="side-menu__item
-                <?php if (isset($_GET['module']) && $_GET['module'] == 'tours') { echo 'active'; } ?>">
-                <?= T::tours ?>
-            </a>
-        </li>
-    <?php } ?>
-
-    <?php if ($module->type == "cars") { ?>
-        <li class="slide">
-            <a href="./markups.php?module=cars" class="side-menu__item
-                <?php if (isset($_GET['module']) && $_GET['module'] == 'cars') { echo 'active'; } ?>">
-                <?= T::cars ?>
-            </a>
-        </li>
-    <?php } ?>
-
-    <!-- Optional Visa Module -->
-    <?php if ($module->type == "visa") { ?>
-        <li class="slide">
-            <a href="./markups.php?module=visa" class="side-menu__item
-                <?php if (isset($_GET['module']) && $_GET['module'] == 'visa') { echo 'active'; } ?>">
-                <?= T::visa ?>
-            </a>
-        </li>
-    <?php } ?>
-
-<?php } ?>
-
-<?php } ?>
-</ul>
-</li>
-<?php } ?>
-<!-- End::Markups Slide -->
-
-<!-- Start::Users Slide -->
-<?php
-if (isset($user_permissions->users->page_access)) {
-    $params = array();
-    $users_roles = GET('users_roles', $params);
-?>
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="fa fa-user side-menu__icon"></i>
-        <span class="side-menu__label"><?= T::users ?></span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)">Users</a>
-        </li>
-
-        <!-- All Users Page -->
-        <?php if (isset($user_permissions->users->page_access)) { ?>
-        <li class="slide">
-            <a href="./users.php?users=all-users"
-               class="side-menu__item <?php if (isset($_GET['users']) && $_GET['users'] == 'all-users') { echo 'active'; } ?>">
-                <?= T::all . ' ' . T::users ?>
-            </a>
-        </li>
-        <?php } ?>
-
-        <hr class="m-0 my-1 mt-2 user_roles">
-
-        <!-- Dynamic User Roles -->
-        <?php foreach ($users_roles as $u) { ?>
-        <li class="slide user_roles">
-            <a href="./users.php?user_type=<?= strtolower($u->type_name) ?>"
-               class="side-menu__item <?php if (isset($_GET['user_type']) && $_GET['user_type'] == $u->type_name) { echo 'active'; } ?>">
-                <?= $u->type_name ?>
-            </a>
-        </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php } ?>
-<!-- End::Users Slide -->
-
-<!-- Start::CMS Slide -->
-<?php
-if (isset($user_permissions->cms->page_access)) {
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-book side-menu__icon"></i>
-<span class="side-menu__label"><?= T::cms ?></span>
-<i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-
-<ul class="slide-menu child1">
-<li class="slide side-menu__label1">
-<a href="javascript:void(0)">CMS</a>
-</li>
-
-<!-- Add Page -->
-<?php
-if (isset($user_permissions->cms->add) || isset($user_permissions->cms->add)) {
-?>
-<li class="slide">
-<a href="./cms.php?addpage=1" class="side-menu__item
-    <?php if (isset($_GET['addpage'])) { echo 'active'; } ?>">
-    <?= T::cms_add_page ?>
-</a>
-</li>
-<?php } ?>
-
-<!-- Pages -->
-<li class="slide">
-<a href="./cms.php?pages=1" class="side-menu__item
-    <?php if (isset($_GET['pages']) || isset($_GET['page'])) { echo 'active'; } ?>">
-    <?= T::cms_pages ?>
-</a>
-</li>
-
-<!-- Menu -->
-<li class="slide">
-<a href="./cms.php?menu=1" class="side-menu__item
-    <?php if (isset($_GET['menu'])) { echo 'active'; } ?>">
-    <?= T::cms_menu ?>
-</a>
-</li>
-</ul>
-</li>
-<?php } ?>
-<!-- End::CMS Slide -->
-<!-- Start::Blog Slide -->
-<?php
-if (isset($user_permissions->blogs->page_access)) {
-    if (!empty($blog_active) && $blog_active == 1) {
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-write side-menu__icon"></i>
-<span class="side-menu__label"><?= T::blog ?></span>
-<i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-<ul class="slide-menu child1">
-<li class="slide side-menu__label1">
-<a href="javascript:void(0)">Blogs</a>
-</li>
-
-<!-- Add Blog Page -->
-<?php
-if (isset($user_permissions->blogs->add) || isset($user_permissions->blogs->add)) {
-?>
-<li class="slide">
-<a href="./blogs.php?addpage=1" class="side-menu__item <?php if (isset($_GET['addpage'])) { echo 'active'; } ?>">
-    <?= T::Blog_add_page ?>
-</a>
-</li>
-<?php
-}
-?>
-
-<!-- Blog Pages -->
-<li class="slide">
-<a href="./blogs.php?pages=1" class="side-menu__item <?php if (isset($_GET['pages']) || isset($_GET['page'])) { echo 'active'; } ?>">
-    <?= T::Blog_pages ?>
-</a>
-</li>
-
-<!-- Blog Categories -->
-<li class="slide">
-<a href="./blogs.php?category=1" class="side-menu__item <?php if (isset($_GET['category'])) { echo 'active'; } ?>">
-    <?= T::blog_category ?>
-</a>
-</li>
-</ul>
-</li>
-<?php
-    }
-}
-?>
-<!-- End::Blog Slide -->
-
-<!-- Newsletter -->
-<?php
-if (isset($user_permissions->newsletter->page_access)) {
-?>
-<li class="slide">
-<a href="./newsletter.php" class="side-menu__item <?php if ($url_name == 'newsletter') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-email side-menu__icon"></i>
-<span class="side-menu__label"><?= T::newsletter ?></span>
-</a>
-</li>
-<?php } ?>
-<!-- End Newsletter -->
-
-<!-- Transactions -->
-<?php
-if (isset($user_permissions->transactions->page_access)) {
-?>
-<li class="slide">
-<a href="./transactions.php" class="side-menu__item <?php if ($url_name == 'transactions') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-money side-menu__icon"></i>
-<span class="side-menu__label"><?= T::transactions ?></span>
-</a>
-</li>
-<?php } ?>
-<!-- End Transactions -->
-
-<!-- Flights -->
-<?php
-if (
-    isset($user_permissions->flights->page_access) ||
-    isset($user_permissions->flights_airports->page_access) ||
-    isset($user_permissions->flights_airlines->page_access) ||
-    isset($user_permissions->flights_featured->page_access) ||
-    isset($user_permissions->flights_suggestions->page_access)
-) {
-    if(!empty($flight_active) && $flight_active == 1){
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="fa fa-plane side-menu__icon"></i>
-<span class="side-menu__label"><?= T::flights ?></span>
-<i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-<ul class="slide-menu child1">
-<li class="slide side-menu__label1">
-<a href="javascript:void(0)">Flights</a>
-</li>
-
-<!-- Flights Page -->
-<?php if (isset($user_permissions->flights->page_access)) { ?>
-<li class="slide">
-<a href="./flights.php" class="side-menu__item <?php if ($url_name == "flights") { echo 'active'; } ?>">
-    <?= T::flights ?>
-</a>
-</li>
-<?php } ?>
-
-<!-- Flights Airports Page -->
-<?php if (isset($user_permissions->flights_airports->page_access)) { ?>
-<li class="slide">
-<a href="./flights_airports.php" class="side-menu__item <?php if ($url_name == "flights_airports") { echo 'active'; } ?>">
-    <?= T::flights . ' ' . T::airports ?>
-</a>
-</li>
-<?php } ?>
-
-<!-- Flights Airlines Page -->
-<?php if (isset($user_permissions->flights_airlines->page_access)) { ?>
-<li class="slide">
-<a href="./flights_airlines.php" class="side-menu__item <?php if ($url_name == "flights_airlines") { echo 'active'; } ?>">
-    <?= T::flights . ' ' . T::airlines ?>
-</a>
-</li>
-<?php } ?>
-
-<!-- Flights Featured Page -->
-<?php if (isset($user_permissions->flights_featured->page_access)) { ?>
-<li class="slide">
-<a href="./flights_featured.php" class="side-menu__item <?php if ($url_name == "flights_featured") { echo 'active'; } ?>">
-    <?= T::flights . ' ' . T::featured ?>
-</a>
-</li>
-<?php } ?>
-
-<!-- Flights Suggestions Page -->
-<?php if (isset($user_permissions->flights_suggestions->page_access)) { ?>
-<li class="slide">
-<a href="./flights_suggestions.php" class="side-menu__item <?php if ($url_name == "flights_suggestions") { echo 'active'; } ?>">
-    <?= T::flights_suggestions ?>
-</a>
-</li>
-<?php } ?>
-</ul>
-</li>
-<?php } } ?>
-<!-- End Flights -->
-
-<!-- Hotels -->
-<?php
-if (
-    isset($user_permissions->hotels->page_access) ||
-    isset($user_permissions->hotels_settings->page_access) ||
-    isset($user_permissions->hotels_suggestions->page_access)
-) {
-    if (!empty($hotels_active) && $hotels_active == 1) {
-?>
-<li class="slide has-sub">
-<a href="javascript:void(0);" class="side-menu__item">
-    <span class="shape1"></span>
-    <span class="shape2"></span>
-     <i class="fa fa-hotel side-menu__icon"></i>
-    <span class="side-menu__label"><?= T::hotels ?></span>
-    <i class="fe fe-chevron-right side-menu__angle"></i>
-</a>
-<ul class="slide-menu child1">
-<li class="slide side-menu__label1">
-    <a href="javascript:void(0)"><?= T::hotels ?></a>
-</li>
-
-<?php if (isset($user_permissions->hotels->page_access)) { ?>
-<li class="slide">
-    <a href="./hotels.php" class="side-menu__item <?php if ($url_name == "hotels") { echo 'active'; } ?>">
-        <?= T::hotels ?>
-    </a>
-</li>
-<?php } ?>
-
-<?php if (isset($user_permissions->hotels_settings->page_access)) { ?>
-<li class="slide">
-    <a href="./hotels_settings.php" class="side-menu__item <?php if ($url_name == "hotels_settings") { echo 'active'; } ?>">
-       <?=T::hotels . ' ' . T::settings ?>
-    </a>
-</li>
-<?php } ?>
-
-<?php if (isset($user_permissions->hotels_suggestions->page_access)) { ?>
-<li class="slide">
-    <a href="./hotels_suggestions.php" class="side-menu__item <?php if ($url_name == "hotels_suggestions") { echo 'active'; } ?>">
-        <?= T::hotels . ' ' . T::suggestions ?>
-    </a>
-</li>
-<?php } ?>
-</ul>
-</li>
-<?php } } ?>
-<!-- End Hotels -->
-
-<!-- tours -->
-<?php
-if (
-    isset($user_permissions->tours->page_access) ||
-    isset($user_permissions->tours_settings->page_access) ||
-    isset($user_permissions->tours_suggestions->page_access)
-) {
-    if (!empty($tours_active) && $tours_active == 1) {
-?>
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="ti-map side-menu__icon"></i>
-        <span class="side-menu__label"><?= T::tours ?></span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)"><?= T::tours ?></a>
-        </li>
-
-        <?php if (isset($user_permissions->tours->page_access)) { ?>
-            <li class="slide">
-                <a href="./tours.php" class="side-menu__item <?php if ($url_name == "tours") { echo 'active'; } ?>">
-                    <?= T::tours ?>
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->tours_settings->page_access)) { ?>
-            <li class="slide">
-                <a href="./tours_settings.php" class="side-menu__item <?php if ($url_name == "tours_settings") { echo 'active'; } ?>">
-                    <?= T::tours . ' ' . T::settings ?>
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->tours_suggestions->page_access)) { ?>
-            <li class="slide">
-                <a href="./tours_suggestions.php" class="side-menu__item <?php if ($url_name == "tours_suggestions") { echo 'active'; } ?>">
-                    <?= T::tours . ' ' . T::suggestions ?>
-                </a>
-            </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php
-    }
-}
-?>
-<!-- tours -->
-
-<!-- cars -->
-<?php
-if (
-    isset($user_permissions->cars->page_access) ||
-    isset($user_permissions->cars_settings->page_access) ||
-    isset($user_permissions->cars_suggestions->page_access)
-) {
-    if (!empty($cars_active) && $cars_active == 1) {
-?>
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="ti-car side-menu__icon"></i>
-        <span class="side-menu__label"><?= T::cars ?></span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)"><?= T::cars ?></a>
-        </li>
-
-        <?php if (isset($user_permissions->cars->page_access)) { ?>
-            <li class="slide">
-                <a href="./cars.php" class="side-menu__item <?php if ($url_name == "cars") { echo 'active'; } ?>">
-                    <?= T::cars ?>
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->cars_suggestions->page_access)) { ?>
-            <li class="slide">
-                <a href="./cars_suggestions.php" class="side-menu__item <?php if ($url_name == "cars_suggestions") { echo 'active'; } ?>">
-                    <?= T::cars . ' ' . T::suggestions ?>
-                </a>
-            </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php
-    }
-}
-?>
-<!-- cars -->
-
-<!-- visa -->
-<?php
-if (
-    isset($user_permissions->visa->page_access) ||
-    isset($user_permissions->visa_countries->page_access) ||
-    isset($user_permissions->visa_submissions->page_access)
-) {
-    if (!empty($visa_active) && $visa_active == 1) {
-?>
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="ti-credit-card side-menu__icon"></i>
-        <span class="side-menu__label"><?= T::visa ?></span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)"><?= T::visa ?></a>
-        </li>
-
-        <?php if (isset($user_permissions->visa_countries->page_access)) { ?>
-            <li class="slide">
-                <a href="./visa_countries.php" class="side-menu__item <?php if ($url_name == "visa_countries") { echo 'active'; } ?>">
-                    <?= T::visa . ' ' . T::countries ?>
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->visa_submissions->page_access)) { ?>
-            <li class="slide">
-                <a href="./visa_submissions.php" class="side-menu__item <?php if ($url_name == "visa_submissions") { echo 'active'; } ?>">
-                    <?= T::visa . ' ' . T::bookings ?>
-                </a>
-            </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php
-    }
-}
-?>
-<!-- visa -->
-
-<!-- reports -->
-<?php
-if (
-    isset($user_permissions->reports->page_access) ||
-    isset($user_permissions->weekly_bookings->page_access) ||
-    isset($user_permissions->monthly_bookings->page_access) ||
-    isset($user_permissions->annually_bookings->page_access) ||
-    isset($user_permissions->weekly_users->page_access) ||
-    isset($user_permissions->monthly_users->page_access) ||
-    isset($user_permissions->annually_users->page_access) ||
-    isset($user_permissions->payment_transactions->page_access) ||
-    isset($user_permissions->annual_income_report->page_access)
-) {
-?>
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
-        <span class="shape1"></span>
-        <span class="shape2"></span>
-        <i class="ti-clipboard side-menu__icon"></i>
-        <span class="side-menu__label"><?= T::reports ?></span>
-        <i class="fe fe-chevron-right side-menu__angle"></i>
-    </a>
-
-    <ul class="slide-menu child1">
-        <li class="slide side-menu__label1">
-            <a href="javascript:void(0)"><?= T::reports ?></a>
-        </li>
-
-        <?php if (isset($user_permissions->weekly_bookings->page_access)) { ?>
-            <li class="slide">
-                <a href="./weekly_bookings.php" class="side-menu__item <?php if ($url_name == "weekly_bookings") { echo "active"; } ?>">
-                    Weekly Bookings
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->monthly_bookings->page_access)) { ?>
-            <li class="slide">
-                <a href="./monthly_bookings.php" class="side-menu__item <?php if ($url_name == "monthly_bookings") { echo "active"; } ?>">
-                    Monthly Bookings
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->annually_bookings->page_access)) { ?>
-            <li class="slide">
-                <a href="./annually_bookings.php" class="side-menu__item <?php if ($url_name == "annually_bookings") { echo "active"; } ?>">
-                    Annually Bookings
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->weekly_users->page_access)) { ?>
-            <li class="slide">
-                <a href="./weekly_users.php" class="side-menu__item <?php if ($url_name == "weekly_users") { echo "active"; } ?>">
-                    Weekly Users
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->monthly_users->page_access)) { ?>
-            <li class="slide">
-                <a href="./monthly_users.php" class="side-menu__item <?php if ($url_name == "monthly_users") { echo "active"; } ?>">
-                    Monthly Users
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->annually_users->page_access)) { ?>
-            <li class="slide">
-                <a href="./annually_users.php" class="side-menu__item <?php if ($url_name == "annually_users") { echo "active"; } ?>">
-                    Annually Users
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->payment_transactions->page_access)) { ?>
-            <li class="slide">
-                <a href="./payment_transactions.php" class="side-menu__item <?php if ($url_name == "payment_transactions") { echo "active"; } ?>">
-                    Payment Transactions
-                </a>
-            </li>
-        <?php } ?>
-
-        <?php if (isset($user_permissions->annual_income_report->page_access)) { ?>
-            <li class="slide">
-                <a href="./annual_income_report.php" class="side-menu__item <?php if ($url_name == "annual_income_report") { echo "active"; } ?>">
-                    Annual Income Report
-                </a>
-            </li>
-        <?php } ?>
-    </ul>
-</li>
-<?php
-}
-?>
-<!-- reports -->
-      </ul>
-        <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
-    </nav>
-                <!-- End::nav -->
-                <div class="p-3 pb-1 d-none">
-            <button
-                    type="button"
-                    id="load1"
-                    data-loading-text="<i class='fa fa-circle-o-notch fa-spin'></i> Processing Order" class="cache btn btn-primary w-100 m-y rounded-4" style="border-radius:5px!important">
-                Reset Cache
-            </button>
-        </div>
-
-        <script>
-            // POST REQUEST FOR CLEAN CACHE
-            $('.cache').on('click', function() {
-                var $this = $(this);
-                $this.text("Cleaning Cache...");
-
-                setTimeout(function() {
-                    $this.text("Done");
-
-                    setTimeout(function() {
-                        $this.text("Clean Cache");
-                    }, 1000);
-
-                }, 2000);
-
-                var form = new FormData();
-                form.append("name", "");
-
-                var settings = {
-                    "url": "<?=root?>",
-                    "method": "POST",
-                    "timeout": 0,
-                    "processData": false,
-                    "contentType": false,
-                    "data": form
-                };
-
-                $.ajax(settings).done(function (response) {
-                    console.log(response);
-                });
-
-            });
-        </script>
-
-        </ul>
-        <hr class="my-2">
-        <div class="dropdown p-2 mb-2 mx-2">
-            <a style="font-weight: 400;font-size: 14px;" href="#"
-               class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1"
-               data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="./assets/img/user.png" alt="" width="24" height="24" class="user_circle me-2">
-                <?= $USER_SESSION->backend_user_name ?>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
-                <li><a class="dropdown-item loadeffect" href="./dashboard.php"><?= T::dashboard ?></a></li>
-
-                <?php if (isset($user_permissions->settings->page_access)) { ?>
-                    <li><a class="dropdown-item loadeffect" href="./settings.php"><?= T::settings ?></a></li>
-                <?php } ?>
-
-                <?php if (isset($user_permissions->logs->page_access)) { ?>
-                    <li><a class="dropdown-item loadeffect" href="./logs.php"><?= T::logs ?></a></li>
-                <?php } ?>
-
-                <?php if (isset($user_permissions->profile->page_access)) { ?>
-                    <li><a class="dropdown-item loadeffect" href="./profile.php"><?= T::profile ?></a></li>
-                <?php } ?>
-
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li><a class="dropdown-item loadeffect" href="login-logout.php"><?= T::logout ?></a></li>
-            </ul>
-        </div>
-</div>
-<!-- End::main-sidebar -->
+                    </div> -->
+                    <img src="assets/img/favicon.png" alt="">
+                </div>
             </div>
-            <!-- End::main-sidebar -->
 
-        </aside>
-        <!-- End::app-sidebar -->
+            <!-- Navigation -->
+            <div class="flex-1 p-3">
+                <div class="mb-8">
+                    <div class="text-xs text-slate-500 uppercase tracking-wider text-center mb-4 font-medium">Main</div>
+                    <div class="space-y-2">
+                        <!-- Active dashboard item -->
+                        <div class="relative">
+                            <div class="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-violet-600 to-purple-700 rounded-r-full shadow-md"></div>
+                            <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto cursor-pointer shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 hover-scale">
+                                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="9,22 9,12 15,12 15,22" />
+                                </svg>
+                            </div>
+                        </div>
 
-        <!-- Start::app-content -->
+                        <!-- Other nav items -->
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-5 5-4-4-3 3" />
+                            </svg>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle stroke-linecap="round" stroke-linejoin="round" stroke-width="2" cx="9" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7.5 4.27 9 5.15" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m3.3 7 8.7 5 8.7-5" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22V12" />
+                            </svg>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="mb-8">
+                    <div class="text-xs text-slate-500 uppercase tracking-wider text-center mb-4 font-medium">Other</div>
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 rounded-xl hover:bg-slate-100/80 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-slate-700 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle stroke-linecap="round" stroke-linejoin="round" stroke-width="2" cx="12" cy="12" r="10" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17h.01" />
+                            </svg>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl hover:bg-red-50 cursor-pointer flex items-center justify-center mx-auto transition-all duration-300 hover-scale hover:shadow-md">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-red-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="16,17 21,12 16,7" />
+                                <line stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="21" x2="9" y1="12" y2="12" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Avatar Footer -->
+            <div class="p-3 border-t border-slate-200/60">
+                <div class="dropdown">
+                    <div class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-3 flex items-center justify-center shadow-inner cursor-pointer hover:bg-gradient-to-br hover:from-slate-100 hover:to-slate-200 transition-all duration-300">
+                        <div class="relative w-8 h-8">
+                            <img class="w-full h-full rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="User Avatar" />
+                            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                        </div>
+                    </div>
+                    <div class="dropdown-content" style="left: 0; bottom: 100%; top: auto; min-width: 180px;">
+                        <a href="#profile">View Profile</a>
+                        <a href="#settings">Settings</a>
+                        <a href="#help">Help & Support</a>
+                        <hr class="my-1 border-slate-200">
+                        <a href="#logout" class="text-red-600 hover:bg-red-50">Sign Out</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <section class="main-content app-content w-100" style="overflow:auto" >
 
-<?php if (isset($alert_edit) && $url_name != "dashboard" && $url_name != "transactions") { ?>
-<!-- EDIT ALERT -->
-<!-- <div class="alert alert-warning m-0">
-<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-<?= T::content_editing_role ?>
-</div> -->
-<?php } ?>
+    <!-- Main Container -->
+    <div class="md:ml-20 min-h-screen">
 
-<?php } ?>
-  <script>
 
-    // POPUP ALERTS MATERIAL STYLE
-    // $.alert({
-    // icon: '',
-    // theme: 'material',
-    // closeIcon: true,
-    // animation: 'scale',
-    // type: 'orange',
-    // title: 'Alert!',
-    // content: 'Simple alert!',
-    // });
+        <!-- Enhanced Top Bar -->
+        <div class="bg-white/70 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-40">
+            <div class="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 sm:space-x-6 flex-1 mr-4">
+                        <!-- Mobile menu button space -->
+                        <div class="w-10 md:w-0"></div>
 
-  </script>
+                        <div class="relative flex-1 max-w-sm sm:max-w-md">
+                            <svg class="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                            </svg>
+                            <input type="text" placeholder="Search anything..." class="pl-10 sm:pl-12 w-full bg-white/80 border-slate-200/60 shadow-sm focus:shadow-md transition-all duration-300 rounded-xl h-10 sm:h-12 border px-4 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" oninput="performSearch(this.value)" />
+                        </div>
+                    </div>
 
-<style>
-    .select2-selection--single{
-        padding:0 !important;
-    }
-    .select2-selection__rendered{
-    position: relative !important;
-    height: 46px !important;
-    padding: 5px 22px !important;
-    }
-</style>
+                    <div class="flex items-center space-x-3 sm:space-x-4">
+                        <!-- Bell notification dropdown -->
+                        <div class="dropdown">
+                            <button class="rounded-xl border-slate-200/60 bg-white/80 hover:bg-white hover:shadow-md transition-all duration-300 h-10 sm:h-12 px-3 border flex items-center justify-center relative">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                                </svg>
+                                <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                                    <span class="text-xs text-white font-semibold">3</span>
+                                </div>
+                            </button>
+                            <div class="dropdown-content" style="min-width: 300px; right: 0;">
+                                <div class="p-4 border-b border-slate-200">
+                                    <h4 class="font-semibold text-slate-900">Notifications</h4>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto">
+                                    <a href="#" class="flex items-start space-x-3 p-4 hover:bg-slate-50">
+                                        <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-slate-900">New booking received</p>
+                                            <p class="text-xs text-slate-500">Sarah Chen booked Oceanview Resort</p>
+                                            <p class="text-xs text-slate-400 mt-1">2 minutes ago</p>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="flex items-start space-x-3 p-4 hover:bg-slate-50">
+                                        <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-slate-900">Payment confirmed</p>
+                                            <p class="text-xs text-slate-500">Noah Koch's payment processed</p>
+                                            <p class="text-xs text-slate-400 mt-1">1 hour ago</p>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="flex items-start space-x-3 p-4 hover:bg-slate-50">
+                                        <div class="w-2 h-2 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-slate-900">Commission updated</p>
+                                            <p class="text-xs text-slate-500">Your commission rate has been updated</p>
+                                            <p class="text-xs text-slate-400 mt-1">3 hours ago</p>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="p-3 border-t border-slate-200">
+                                    <a href="#" class="text-sm text-violet-600 hover:text-violet-700 font-medium">View all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User dropdown - hidden on mobile, visible on desktop -->
+                        <div class="hidden sm:flex items-center space-x-3 sm:space-x-4 bg-white/60 rounded-xl px-3 sm:px-4 py-2 border border-slate-200/60 relative h-10 sm:h-12">
+                            <img class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-md" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face" alt="User Avatar">
+                            <div class="hidden sm:block">
+                                <p class="font-semibold text-slate-900">John Due</p>
+                                <p class="text-xs text-slate-500">Administrator</p>
+                            </div>
+                            <button id="user-dropdown-btn" class="cursor-pointer">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="user-dropdown" class="dropdown-menu">
+                                <div class="space-y-1">
+                                    <a href="#" class="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Profile
+                                    </a>
+                                    <a href="#" class="flex items-center px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Settings
+                                    </a>
+                                    <div class="border-t border-slate-200 my-1"></div>
+                                    <a href="#" class="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
+                                        Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Main Content -->
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">

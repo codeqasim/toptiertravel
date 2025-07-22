@@ -1,437 +1,256 @@
-</section>
-</main>
+ <!-- Bottom padding for nice scrolling experience -->
+            <div class="h-20 sm:h-32"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile sidebar functionality
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        let sidebarOpen = false;
+
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+
+            if (sidebarOpen) {
+                sidebar.classList.add('open');
+                mobileOverlay.classList.remove('hidden');
+                menuIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                sidebar.classList.remove('open');
+                mobileOverlay.classList.add('hidden');
+                menuIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleSidebar);
+        mobileOverlay.addEventListener('click', toggleSidebar);
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth < 768 && sidebarOpen) {
+                if (!sidebar.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768 && sidebarOpen) {
+                // Close mobile menu when resizing to desktop
+                toggleSidebar();
+            }
+        });
+
+        // User dropdown functionality
+        const userDropdownBtn = document.getElementById('user-dropdown-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userDropdownBtn && userDropdown) {
+            userDropdownBtn.addEventListener('click', function(event) {
+                event.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!userDropdown.contains(event.target) && !userDropdownBtn.contains(event.target)) {
+                    userDropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // Function to handle link sharing
+        function shareLink(type) {
+            const links = {
+                travel: 'https://travel.example.com/ref/johndoe',
+                partner: 'https://partner.example.com/ref/johndoe'
+            };
+
+            if (navigator.share) {
+                navigator.share({
+                    title: `Share ${type} link`,
+                    text: `Join me on this amazing ${type} platform!`,
+                    url: links[type]
+                }).then(() => {
+                    console.log('Successful share');
+                }).catch((error) => {
+                    console.log('Error sharing', error);
+                });
+            } else {
+                // Fallback for browsers that don't support native sharing
+                alert(`Share this ${type} link: ${links[type]}`);
+            }
+        }
+
+        // Function to copy link to clipboard
+        function copyLink(type, buttonElement) {
+            const links = {
+                travel: 'https://travel.example.com/ref/johndoe',
+                partner: 'https://partner.example.com/ref/johndoe'
+            };
+
+            navigator.clipboard.writeText(links[type]).then(() => {
+                // Show success message inline
+                const originalText = buttonElement.textContent;
+                const originalClasses = buttonElement.className;
+
+                buttonElement.textContent = '✓ Copied!';
+                buttonElement.className = 'bg-emerald-500 text-white rounded-xl shadow-sm transition-all duration-300 px-6 py-3 font-medium';
+
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.className = originalClasses;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = links[type];
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // Show copied message inline for fallback
+                const originalText = buttonElement.textContent;
+                const originalClasses = buttonElement.className;
+
+                buttonElement.textContent = '✓ Copied!';
+                buttonElement.className = 'bg-emerald-500 text-white rounded-xl shadow-sm transition-all duration-300 px-6 py-3 font-medium';
+
+                setTimeout(() => {
+                    buttonElement.textContent = originalText;
+                    buttonElement.className = originalClasses;
+                }, 2000);
+            });
+        }
+
+        // Toggle dropdown functionality
+        document.addEventListener('click', function(event) {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                if (!dropdown.contains(event.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        });
+
+        // Add click handler for all dropdown toggles
+        document.querySelectorAll('.dropdown').forEach(dropdown => {
+            dropdown.addEventListener('click', function(event) {
+                event.stopPropagation();
+                this.classList.toggle('active');
+            });
+        });
+
+        // Search functionality
+        function performSearch(query) {
+            // Simple search simulation - you can enhance this
+            console.log('Searching for:', query);
+            // In a real app, this would trigger API calls or filter results
+        }
+
+        function searchBookings(query) {
+            const tableRows = document.querySelectorAll('tbody tr');
+
+            tableRows.forEach(row => {
+                const textContent = row.textContent.toLowerCase();
+                const searchQuery = query.toLowerCase();
+
+                if (textContent.includes(searchQuery) || query === '') {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Filter functionality
+        function toggleFilter() {
+            const filterDropdown = document.querySelector('.filter-dropdown');
+            filterDropdown.classList.toggle('active');
+        }
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
+            const guestFilter = document.getElementById('guestFilter').value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+
+            tableRows.forEach(row => {
+                const status = row.querySelector('td:nth-child(5) span').textContent.toLowerCase();
+                const type = row.querySelector('td:nth-child(4) span').textContent.toLowerCase();
+                const guestType = row.querySelector('td:nth-child(1) p:nth-child(2)').textContent.toLowerCase();
+
+                const statusMatch = !statusFilter || status.includes(statusFilter);
+                const typeMatch = !typeFilter || type.includes(typeFilter);
+                const guestMatch = !guestFilter || guestType.includes(guestFilter);
+
+                if (statusMatch && typeMatch && guestMatch) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('guestFilter').value = '';
+            applyFilters();
+        }
+
+        // Table dropdown functionality
+        function toggleTableDropdown(buttonElement) {
+            const dropdown = buttonElement.closest('.table-dropdown');
+
+            // Close all other table dropdowns
+            document.querySelectorAll('.table-dropdown').forEach(otherDropdown => {
+                if (otherDropdown !== dropdown) {
+                    otherDropdown.classList.remove('active');
+                }
+            });
+
+            // Toggle current dropdown
+            dropdown.classList.toggle('active');
+        }
+
+        // Close table dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.table-dropdown')) {
+                document.querySelectorAll('.table-dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Prevent dropdown from closing when clicking inside it
+        document.querySelectorAll('.table-dropdown-content').forEach(content => {
+            content.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+
+        // Add touch-friendly hover effects for mobile
+        if ('ontouchstart' in window) {
+            document.querySelectorAll('.hover-scale').forEach(element => {
+                element.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(1.05)';
+                });
+                element.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        }
+    </script>
 </body>
-<script>
-
-    // POPUP ALERTS MATERIAL STYLE
-    // $.alert({
-    // icon: '',
-    // theme: 'material',
-    // closeIcon: true,
-    // animation: 'scale',
-    // type: 'orange',
-    // title: 'Alert!',
-    // content: 'Simple alert!',
-    // });
-
-</script>
-<!-- Popper JS -->
-<script src="./spruha-assets/libs/@popperjs/core/umd/popper.min.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="./spruha-assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-<!-- Defaultmenu JS -->
-<script src="./spruha-assets/js/defaultmenu.min.js"></script>
-
-<!-- Node Waves JS-->
-<script src="./spruha-assets/libs/node-waves/waves.min.js"></script>
-
-<!-- Sticky JS -->
-<script src="./spruha-assets/js/sticky.js"></script>
-
-<!-- Simplebar JS -->
-<script src="./spruha-assets/libs/simplebar/simplebar.min.js"></script>
-<script src="./spruha-assets/js/simplebar.js"></script>
-
-<!-- Color Picker JS -->
-<script src="./spruha-assets/libs/@simonwep/pickr/pickr.es5.min.js"></script>
-
-
-<!-- JSVector Maps JS -->
-<script src="./spruha-assets/libs/jsvectormap/js/jsvectormap.min.js"></script>
-
-<!-- JSVector Maps MapsJS -->
-<script src="./spruha-assets/libs/jsvectormap/maps/world-merc.js"></script>
-
-<!-- Apex Charts JS -->
-<script src="./spruha-assets/libs/apexcharts/apexcharts.min.js"></script>
-
-<!-- Main-Dashboard -->
-<script src="./spruha-assets/js/index.js?v=2"></script>
-
-
-<!-- Custom-Switcher JS -->
-<script src="./spruha-assets/js/custom-switcher.min.js"></script>
-
-<!-- Custom JS -->
-<script src="./spruha-assets/js/custom.js"></script>
 </html>
-
-<?php
-
-if ($url_name != "profile" && $url_name != "flights" && $url_name != "hotels" && $url_name != "tours"  && $url_name != "cars" && $url_name !="newsletter"){ ?>
-<script src="<?=root?>assets/js/datepicker.js"></script>
-<?php } ?>
-<script src="<?=root?>assets/js/toast.js"></script>
-<script src="<?=root?>assets/js/toast-alerts.js"></script>
-<!--<script src="<?=root?>assets/js/bootstrap.bundle.min.js"></script>-->
-<script src="<?=root?>assets/js/bootstrap-select.js"></script>
-
-<script>
-
-Pusher.logToConsole = true;
-var pusher = new Pusher('be4840bf63594e1468bb', { cluster: 'us2' });
-var channel = pusher.subscribe('<?=$_SERVER['SERVER_NAME']?>');
-channel.bind('event', function(data) {
-// alert(JSON.stringify(data));
-// console.log(JSON.stringify(data.message1))
-
-// SHOW NOTIFICATION
-vt.success(data.message2, {
-    title: data.message1,
-    position: "bottom-center",
-    duration: 100,
-    callback: function() {
-    }
-})
-
-// SEND NOTIFICATION TO DATABASE
-var form = new FormData();
-form.append("notification", "");
-form.append("name", data.message1+' '+data.message2);
-
-var settings = {
-  "url": "./_post.php",
-  "method": "POST",
-  "timeout": 0,
-  "processData": false,
-  "mimeType": "multipart/form-data",
-  "contentType": false,
-  "data": form
-};
-
-$.ajax(settings).done(function (response) { console.log(response);
-
-var form = new FormData();
-form.append("notification_get", "");
-form.append("id", name);
-var settings = {
-"url": "./_post.php",
-"method": "POST",
-"timeout": 0,
-"processData": false,
-"mimeType": "multipart/form-data",
-"contentType": false,
-"data": form
-};
-$.ajax(settings).done(function (id) {
-    var count = jQuery.parseJSON(id);
-
-    // ADD NOTIFICATION
-    $(".drapdown").prepend(`<li><a class="dropdown-item notification_`+count+`" href="#">
-    <button style="border-radius: 5px !important;" class="btn btn-warning btn-sm p-3 py-0" onclick="notification(`+count+`)">
-    <svg class="m-0" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-    </button>
-    <span class="px-2">`+data.message1+` `+data.message2+`</span></a></li>`);
-});
-
-// INCREASE NUMBER OF NOTIFICATIONS
-$('.notificaition_count_number').html(parseInt($('.notificaition_count_number').html(), 10)+1) });
-
-});
-
-
-</script>
-
-<script>
-    $(".module button").click(function(){
-    var i = $(this).val();
-    var mod_name = i.toLowerCase();
-    jQuery('#module_type').modal('hide');
-    window.location.replace('./listings.php?listing=' + mod_name);
-    });
-</script>
-
-<script>
-if (window.history.replaceState) {
-    window.history.replaceState(null, null, window.location.href);
-}
-
-var hash = window.location.hash.substr(1);
-if (hash == "updated") {
-    vt.success("Information Updated Successfully", {
-        title: "Details Udpated",
-        position: "bottom-center",
-        callback: function() { //
-        }
-    })
-}
-
-</script>
-
-<script>
-// UPDATE STATUS ONCLICK
-$('.updated_status').on('click', function() {
-
-    var status = $(this).data("status");
-    var id = $(this).data("value");
-    var item = $(this).data("item");
-
-    console.log(id);
-
-    var isChecked = this.checked;
-
-    // CONDITION TO CHECK THE STATUS
-    if (isChecked == true) {
-        var checks = 1
-    } else {
-        var checks = 0
-    }
-
-    var form = new FormData();
-    form.append("id", id);
-    form.append("status", checks);
-    form.append("table_name", "<?=basename($_SERVER['PHP_SELF'],".php")?>");
-
-    var settings = {
-        "url": "./_post.php",
-        "method": "POST",
-        "timeout": 0,
-        "processData": false,
-        "mimeType": "multipart/form-data",
-        "contentType": false,
-        "data": form
-    };
-
-    $.ajax(settings).done(function(response) {
-        console.log(response);
-
-        // ALERT POPUP MESSAGE
-        vt.success("Information updated successfully", {
-            title: "Info Updated",
-            position: "top-center",
-            callback: function() { //
-            }
-        })
-
-    });
-
-});
-
-// UPDATE STATUS ONCLICK
-$('.makeDefault').on('click', function() {
-
-    var status = $(this).data("status");
-    var id = $(this).data("value");
-    var item = $(this).data("item");
-
-    console.log(id);
-
-    var isChecked = this.checked;
-
-    // CONDITION TO CHECK THE STATUS
-    if (isChecked == true) {
-        var checks = 1
-    } else {
-        var checks = 0
-    }
-
-    var form = new FormData();
-    form.append("id", id);
-    form.append("default_status", checks);
-    form.append("table_name", "<?=basename($_SERVER['PHP_SELF'],".php")?>");
-
-    var settings = {
-        "url": "./_post.php",
-        "method": "POST",
-        "timeout": 0,
-        "processData": false,
-        "mimeType": "multipart/form-data",
-        "contentType": false,
-        "data": form
-    };
-
-    $.ajax(settings).done(function(response) {
-        console.log(response);
-
-        location.reload();
-
-    });
-
-});
-// UPDATE STATUS ONCLICK
-$('.makeFeatured').on('click', function() {
-
-var status = $(this).data("status");
-var id = $(this).data("value");
-var item = $(this).data("item");
-
-console.log(id);
-
-var isChecked = this.checked;
-
-// CONDITION TO CHECK THE STATUS
-if (isChecked == true) {
-    var checks = 1
-} else {
-    var checks = 0
-}
-
-var form = new FormData();
-form.append("id", id);
-form.append("feature_status", checks);
-form.append("table_name", "<?=basename($_SERVER['PHP_SELF'],".php")?>");
-
-var settings = {
-    "url": "./_post.php",
-    "method": "POST",
-    "timeout": 0,
-    "processData": false,
-    "mimeType": "multipart/form-data",
-    "contentType": false,
-    "data": form
-};
-
-$.ajax(settings).done(function(response) {
-    console.log(response);
-
-    // ALERT POPUP MESSAGE
-    vt.success("Information updated successfully", {
-        title: "Info Updated",
-        position: "top-center",
-        callback: function() { //
-        }
-    })
-
-});
-
-});
-</script>
-
-<script>
-// DELETE MULTIPLE ITEMS
-$('<button id="deleteAll" class="delete_button btn btn-danger btn-sm" style="margin-top: -54px; margin-left: -22px; position: absolute; z-index: 10;"> <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> </button>')
-    .insertAfter('#select_all').hide();
-
-$(".checkboxcls").click(function() {
-
-    if ($(this).prop("checked")) {
-        $("#deleteAll").show()
-    } else {
-        $(".delete_button").hide();
-    }
-
-})
-
-$("#select_all").click(function() {
-
-    $("#deleteAll").show()
-    if ($(this).prop("checked")) {
-        $(".checkboxcls").prop("checked", true);
-    } else {
-        $(".checkboxcls").prop("checked", false);
-        $(".delete_button").hide();
-    }
-});
-
-$("#deleteAll").click(function() {
-
-    var checkboxes = $(".checkboxcls:checked");
-    var table_name = "<?=basename($_SERVER['PHP_SELF'],".php")?>";
-    var all_data = [];
-    $.each(checkboxes, function(index, object, container) {
-        all_data.push($(object).val())
-    });
-    if (all_data.length != 0) {
-
-        console.log(all_data.length)
-        var answer = confirm("Are you sure you want to delete?");
-        if (answer) {
-            $.post("./_post.php", {
-                items: all_data,
-                table_name: table_name
-            }, function(theResponse) {
-                console.log(theResponse);
-                location.reload();
-            });
-
-        } else {
-            location.reload();
-            return false;
-        }
-    } else {
-        alert("Please at least select one item.")
-    }
-});
-</script>
-
-<!-- SELECT2  -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<script type="text/javascript">
-$(document).on("xcrudbeforerequest", function(event, container) {
-    if (container) {
-        $(container).find("select").select2('destroy');
-    } else {
-        $(".xcrud").find("select").select2('destroy');
-    }
-});
-
-$(document).on("ready xcrudafterrequest", function(event, container) {
-    if (container) {
-        $(container).find("select").select2();
-    } else {
-        $(".xcrud").find("select").select2();
-    }
-
-    // Select all elements with the attribute data-type="texteditor"
-    const textEditorElements = document.querySelectorAll('[data-type="texteditor"]');
-
-    // Loop through each element and initialize CKEditor
-    textEditorElements.forEach((element) => {
-        ClassicEditor.create(element, {
-            toolbar: {
-                items: [
-                    "heading", "|", "bold", "italic", "link", "bulletedList",
-                    "numberedList", "|", "indent", "outdent", "|",
-                    "imageUpload", "blockQuote", "mediaEmbed", "undo", "redo"
-                ]
-            },
-            language: "en",
-            image: {
-                toolbar: ["imageTextAlternative", "imageStyle:full", "imageStyle:side"]
-            },
-            licenseKey: ""
-        }).then((editor) => {
-            // Synchronize data with textarea before form submission
-            editor.model.document.on('change:data', () => {
-                element.value = editor.getData();
-            });
-            window.editor = editor;
-        }).catch((error) => {
-            console.error(error);
-        });
-    });
-
-    // Add event listener to the form to update CKEditor data before submission
-    $(document).on('submit', 'form', function() {
-        textEditorElements.forEach((element) => {
-            if (window.editor) {
-                element.value = window.editor.getData();
-            }
-        });
-    });
-});
-
-
-$(document).on("xcrudbeforedepend", function(event, container, data) {
-    console.log(data.name);
-    //if (container) {
-        console.log(!$.isEmptyObject($(container).find('select[name="' + data.name + '"]')));
-        console.log(data.name);
-        //if(!$.isEmptyObject($(container).find('select[name="' + data.name + '"]'))){
-             if ($(container).find('select[name="' + data.name + '"]').data('select2')) {
-                  console.log("select2 item");
-                  $(container).find('select[name="' + data.name + '"]').select2('destroy');
-             }  else {
-                  console.log("Not a select2 ");
-             }
-        //}
-   // }
-
-});
-$(document).on("xcrudafterdepend", function(event, container, data) {
-    jQuery(container).find('select[name="' + data.name + '"]').select2();
-});
-</script>

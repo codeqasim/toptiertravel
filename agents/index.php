@@ -15,7 +15,7 @@ require_once '_config.php';
 if(!file_exists('./cache')) {  mkdir('./cache', 0777, true); }
 
 // ======================== INDEX
-header("Location: login.php"); 
+header("Location: login");
 exit;
 
 ?>
