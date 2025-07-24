@@ -10,8 +10,23 @@ ini_set('error_log', 'error.logs');
 error_reporting(E_ALL);
 
 // HEADERS
-header("Content-Type: application/json");
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400'); // Cache preflight for 24 hours
+    http_response_code(200);
+    exit();
+}
+
+// Regular CORS headers for actual requests
 header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header("Content-Type: application/json");
+
+// Your actual API logic here
 // header("X-Frame-Options: SAMEORIGIN");
 // file_put_contents("_request.log", print_r($_REQUEST, true));
 
