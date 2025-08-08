@@ -447,7 +447,7 @@ $router->post('agent/dashboard/bookings/recent', function () {
     required('user_id');
 
     $user_id = $_POST["user_id"];
-    $status = $_POST["status"];
+    $status = isset($_POST['status']) ? $_POST["status"] : '';
 
     // CHECK EMAIL
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
