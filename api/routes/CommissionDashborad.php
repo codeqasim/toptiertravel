@@ -81,38 +81,52 @@ $router->post('agent/dashboard/commission', function () {
                         }
                     }
 
-                    // LOOP THROUGH ALL BOOKINGS
+                    // LOOP THROUGH ALL HOTEL BOOKINGS
                     foreach ($hotel_sales as $hotel_sale) {
-                        $booking_date = $hotel_sale['booking_date'];
 
-                        // TOTAL SALES AND COMMISSIONS CALCULATION
-                        $total_sales += $hotel_sale['price_markup'];
-                        $total_commission += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                        // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
+                        $booking_date = date('Y-m-d', strtotime($hotel_sale['booking_date']));
 
-                        // COMMISSION PAID VS PENDING CALCULATION
-                        if ($hotel_sale['payment_status'] == 'paid') {
-                            $total_paid_commission_amount += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
-                        } else {
-                            $total_pending_commission_amount += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                        // VALIDATE THAT agent_fee AND price_original ARE SET AND NUMERIC
+                        $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
+                        $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
+
+                        // CALCULATE COMMISSION ONLY IF BOTH VALUES ARE VALID AND GREATER THAN ZERO
+                        $commission = 0;
+                        if ($agent_fee > 0 && $price_original > 0) {
+                            $commission = ($agent_fee * $price_original) / 100;
                         }
 
-                        // CURRENT MONTH CALCULATION
+                        // ADD TO TOTAL SALES AND COMMISSION
+                        $total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                        $total_commission += $commission;
+
+                        // CHECK IF COMMISSION IS PAID OR PENDING AND ADD TO RESPECTIVE TOTAL
+                        if (isset($hotel_sale['agent_commission_status']) && $hotel_sale['agent_commission_status'] === 'paid') {
+                            $total_paid_commission_amount += $commission;
+                        } else {
+                            $total_pending_commission_amount += $commission;
+                        }
+
+                        // CHECK IF BOOKING IS IN CURRENT MONTH AND ADD TO CURRENT TOTALS
                         if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                            $current_total_sales += $hotel_sale['price_markup'];
-                            $current_total_commissions += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                            $current_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $current_total_commissions += $commission;
                             $current_month_bookings++;
                         }
 
-                        // LAST MONTH CALCULATION
+                        // CHECK IF BOOKING IS IN LAST MONTH AND ADD TO LAST MONTH TOTALS
                         if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                            $last_total_sales += $hotel_sale['price_markup'];
-                            $last_total_commissions += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                            $last_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $last_total_commissions += $commission;
                             $last_month_bookings++;
                         }
 
-                        // TOTAL BOOKINGS
+                        // INCREMENT TOTAL BOOKINGS COUNT
                         $total_bookings++;
                     }
+
+                    
 
                     // PERCENT CHANGE FUNCTION
                     function percentChange($current, $last) {
@@ -220,37 +234,76 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             return $commission >= $value;
         });
 
-        if(!empty($hotel_sales)){
+        // CHECK IF HOTEL SALES ARRAY IS NOT EMPTY
+        if (!empty($hotel_sales)) {
+
+            // INITIALIZE DATA ARRAY
+            $data = [];
+
+            // LOOP THROUGH EACH HOTEL BOOKING
             foreach ($hotel_sales as $hotel_sale) {
 
-                $guest = json_decode($hotel_sale['guest']);
+                // VALIDATE AND DECODE GUEST JSON DATA
+                $guest = [];
+                if (isset($hotel_sale['guest'])) {
+                    $guest = json_decode($hotel_sale['guest']);
+                }
 
-                $checkin = date('M d Y', strtotime($hotel_sale['checkin']));
-                $checkout = date('M d Y', strtotime($hotel_sale['checkout']));
+                // EXTRACT GUEST NAME SAFELY
+                $guest_name = 'N/A';
+                if (!empty($guest) && isset($guest[0]->title, $guest[0]->first_name, $guest[0]->last_name)) {
+                    $guest_name = $guest[0]->title . ' ' . $guest[0]->first_name . ' ' . $guest[0]->last_name;
+                }
 
-                // Convert to DateTime objects
-                $checkinDate = new DateTime($hotel_sale['checkin']);
-                $checkoutDate = new DateTime($hotel_sale['checkout']);
+                // FORMAT CHECK-IN AND CHECK-OUT DATES
+                $checkin = isset($hotel_sale['checkin']) ? date('M d Y', strtotime($hotel_sale['checkin'])) : 'N/A';
+                $checkout = isset($hotel_sale['checkout']) ? date('M d Y', strtotime($hotel_sale['checkout'])) : 'N/A';
 
-                // Calculate duration
-                $interval = $checkinDate->diff($checkoutDate);
-                $duration = $interval->days; 
+                // CONVERT TO DATETIME OBJECTS TO CALCULATE DURATION
+                $duration = 0;
+                if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
+                    try {
+                        $checkinDate = new DateTime($hotel_sale['checkin']);
+                        $checkoutDate = new DateTime($hotel_sale['checkout']);
+                        $interval = $checkinDate->diff($checkoutDate);
+                        $duration = $interval->days;
+                    } catch (Exception $e) {
+                        $duration = 0;
+                    }
+                }
 
-                $data []= [
-                    'id' => $hotel_sale['booking_id'],
-                    'guest' => $guest[0]->title .' '. $guest[0]->first_name .' '. $guest[0]->last_name,
-                    'hotel' => $hotel_sale['hotel'],
-                    'destination' => $hotel_sale['location'],
-                    'checkin' => $hotel_sale['checkin'],
+                // VALIDATE FEE AND VALUE BEFORE CALCULATION
+                $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
+                $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
+                $commission = ($agent_fee > 0 && $price_original > 0) ? ($agent_fee * $price_original) / 100 : 0;
+
+                // ADD DATA TO RESPONSE ARRAY
+                $data[] = [
+                    'id' => $hotel_sale['booking_id'] ?? null,
+                    'guest' => $guest_name,
+                    'hotel' => $hotel_sale['hotel_name'] ?? 'N/A',
+                    'destination' => $hotel_sale['location'] ?? 'N/A',
+                    'checkin' => $hotel_sale['checkin'] ?? 'N/A',
                     'nights' => $duration,
-                    'value' => $hotel_sale['price_original'],
-                    'rate' => $hotel_sale['agent_fee'],
-                    'commission' => ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100,
+                    'value' => $price_original,
+                    'rate' => $agent_fee,
+                    'commission' => $commission,
                 ];
             }
-            $response = array ( "status" => true ,"message" => 'data is retrieved', "data" => $data);
-        }else{
-            $response = array ( "status" => false, "message"=>"no record found", "data"=> null ); 
+
+            // SET SUCCESS RESPONSE
+            $response = [
+                "status" => true,
+                "message" => 'DATA IS RETRIEVED',
+                "data" => $data
+            ];
+        } else {
+            // SET ERROR RESPONSE
+            $response = [
+                "status" => false,
+                "message" => "NO RECORD FOUND",
+                "data" => null
+            ];
         }
 
     }else{
@@ -261,59 +314,9 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 });
 
 /*==================
-AGENT NOTIFICATIONS API
+AGENT RECENT BOOKINGS API
 ==================*/
-$router->post('agent/dashboard/notifications', function () {
-    // INCLUDE CONFIG
-    include "./config.php";
-
-    $type = $_POST['status'];
-    
-    //FETCH NOTIFICATIONS BASED ON STATUS IF STATUS IS APPLIED OTHERWISE ALL NOTIFICATIONS
-    if(isset($type)){
-        $notifications = $db->select("notifications", "*", ["status" => $type]);
-    }else{
-        $notifications = $db->select("notifications", "*", []);
-    }
-
-    if(isset($notifications)){
-        $response = array ( "status" => true, "message"=>"data is retrieved", "data"=> $notifications );
-    }else{
-        $response = array ( "status" => false, "message"=>"no notification found", "data"=> null );
-    }
-
-    echo json_encode($response);
-});
-
-/*==================
-AGENT BOOKING DETAILS API
-==================*/
-$router->post('agent/dashboard/booking/details', function () {
-    // INCLUDE CONFIG
-    include "./config.php";
-
-    required('booking_ref_no');
-    $booking_ref_no = $_POST["booking_ref_no"];
-
-    $booking_details = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]);
-
-    //DECODE THE DATA THAT IS SAVED IN JSON
-    if(isset($booking_details)){
-        $booking_details[0]['room_data'] = json_decode($booking_details[0]['room_data'], true);
-        $booking_details[0]['user_data'] = json_decode($booking_details[0]['user_data'], true);
-        $booking_details[0]['guest'] = json_decode($booking_details[0]['guest'], true);
-    }
-
-    if(isset($booking_details)){
-        $response = array ( "status" => true, "message"=>"data is retrieved", "data"=> $booking_details );
-    }else{
-        $response = array ( "status" => false, "message"=>"no record found", "data"=> null );
-    }
-
-    echo json_encode($response);
-});
-
-$router->post('agent/dashboard/bookings', function () {
+$router->post('agent/dashboard/commissions/top_bookings', function () {
 
     // INCLUDE CONFIG
     include "./config.php";
@@ -321,87 +324,59 @@ $router->post('agent/dashboard/bookings', function () {
     required('user_id');
 
     $user_id = $_POST["user_id"];
-    $status = $_POST["status"];
-
-    // CHECK EMAIL
-    $user = $db->select("users", "*", [ "user_id" => $user_id]);
-
-        if(isset($user[0])){
-        
-            $user_data = (object)$user[0];
+    
+    // Fetch all matching rows first
+    $all_sales = $db->select("hotels_bookings", "*", ['agent_id' => $user_id,'agent_fee[!]' => null]);
+    
+    $data = [];
+    if(isset($all_sales) && !empty($all_sales)){
+            // INITIALIZE DATA ARRAY
+            $data = [];
             
-            if ($user_data->user_type == 'Agent') {
-                if ($user_data->status == 1) {
+            // LOOP THROUGH EACH HOTEL BOOKING
+            foreach ($all_sales as $hotel_sale) {
 
-                    // FETCH ALL BOOKINGS FOR THIS AGENT OF PREVIOUS 15 DAYS
-                    if(isset($status)){
-                        $hotel_sales = $db->select("hotels_bookings", "*", [
-                            "agent_id" => $user_id,
-                            "booking_date[>=]" => date("Y-m-d", strtotime("-15 days")),
-                            "booking_status" => $status
-                        ]);
-                    }else{
-                        $hotel_sales = $db->select("hotels_bookings", "*", [
-                            "agent_id" => $user_id,
-                        ]);
-                    }
-                    
-
-                    $data = [];
-                    
-                    if(isset($hotel_sales)){
-                        foreach ($hotel_sales as $key => $hotel_sale) {
-                            $guest = $hotel_sale['guest'];
-                            $guest = json_decode($guest);
-
-                            $user_data = $hotel_sale['user_data'];
-                            $user_data = json_decode($user_data);
-                            
-                            $checkin = date('M d Y', strtotime($hotel_sale['checkin']));
-                            $checkout = date('M d Y', strtotime($hotel_sale['checkout']));
-
-                            // Convert to DateTime objects
-                            $checkinDate = new DateTime($hotel_sale['checkin']);
-                            $checkoutDate = new DateTime($hotel_sale['checkout']);
-
-                            // Calculate duration
-                            $interval = $checkinDate->diff($checkoutDate);
-                            $duration = $interval->days; 
-
-                            $room = $hotel_sale['room_data'];
-                            $room = json_decode($room);
-
-                            $data []= [
-                                'id' => $hotel_sale['booking_id'],
-                                'guest' => $guest[0]->title .' '. $guest[0]->first_name .' '. $guest[0]->last_name,
-                                'hotel_name' => $hotel_sale['hotel_name'],
-                                'room_name' => $room[0]->room_name,
-                                'city' => $hotel_sale['location'] ?? '',
-                                'date' => date('M d, Y',strtotime($hotel_sale['booking_date'])),
-                                'duration' => $duration,
-                                'phone' => $user_data->phone,
-                                'email' => $user_data->email,
-                                'status' => $hotel_sale['booking_status']
-                            ];
-                        }
-
-                        // FINAL RESPONSE
-                        $response = array("status" => true,"message" => "data has be retrieved","data" => $data);
-                    } else {
-                        //RESPOSE WHEN NO HOTEL BOOKING ARE AVAILABLE
-                        $response = array("status" => false,"message" => "no record found","data" => null);
-                    }
-
-                } else {
-                    // USER IS NOT ACTIVATED
-                    $response = array("status" => false,"message" => "not_activated","data" => null);
+                // VALIDATE AND DECODE GUEST JSON DATA
+                $guest = [];
+                if (isset($hotel_sale['guest'])) {
+                    $guest = json_decode($hotel_sale['guest']);
                 }
-            } else {
-                $response = array ( "status"=>false, "message"=>"This user is not an agent", "data"=> null );
+
+                // EXTRACT GUEST NAME SAFELY
+                $guest_name = 'N/A';
+                if (!empty($guest) && isset($guest[0]->title, $guest[0]->first_name, $guest[0]->last_name)) {
+                    $guest_name = $guest[0]->title . ' ' . $guest[0]->first_name . ' ' . $guest[0]->last_name;
+                }
+                
+                // VALIDATE FEE AND VALUE BEFORE CALCULATION
+                $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
+                $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
+                $commission = ($agent_fee > 0 && $price_original > 0) ? ($agent_fee * $price_original) / 100 : 0;
+
+                // ADD DATA TO RESPONSE ARRAY
+                $data[] = [
+                    'guest' => $guest_name,
+                    'hotel' => $hotel_sale['hotel_name'] ?? 'N/A',
+                    'rate' => $agent_fee,
+                    'commission' => $commission,
+                ];
+                
             }
-        } else {
-            $response = array ( "status"=>false, "message"=>"no user found", "data"=> null );
-        }
+
+            // SORT DATA ARRAY BY COMMISSION IN DESCENDING ORDER
+            usort($data, function ($a, $b) {
+                return $b['commission'] <=> $a['commission'];
+            });
+
+            // GET TOP 5 COMMISSION ENTRIES
+            $top_commissions = array_slice($data, 0, 5);
+
+            // SET SUCCESS RESPONSE
+            $response = ["status" => true,"message" => 'DATA IS RETRIEVED',"data" => $top_commissions];
+
+    }else{
+        $response = array ( "status" => false, "message"=>"no record found", "data"=> null );
+    }
     echo json_encode($response);
 });
 

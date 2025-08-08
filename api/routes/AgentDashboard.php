@@ -302,7 +302,7 @@ $router->post('agent/dashboard', function () {
                     $hotel_sales = $db->select("hotels_bookings", "*", [
                         "agent_id" => $user_id
                     ]);
-
+                    
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
                     $total_commission = 0;
@@ -326,56 +326,68 @@ $router->post('agent/dashboard', function () {
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
                     if(isset($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->parent_id]);
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->child_id]);
                             if(isset($hotel_bookings)){
                                 foreach ($hotel_bookings as $hotel_booking) {
-                                    $total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
+                                    $total_partner_commission += (1 * $hotel_sale['price_original']) / 100;
                                     
                                     // CURRENT MONTH CALCULATION
                                     if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                                        $current_total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
+                                        $current_total_partner_commission += (1 * $hotel_sale['price_original']) / 100;
                                     }
 
                                     // LAST MONTH CALCULATION
                                     if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                                        $last_total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
+                                        $last_total_partner_commission += (1 * $hotel_sale['price_original']) / 100;
                                     }
                                 }
                             }
                         }
                     }
-
-                    // LOOP THROUGH ALL BOOKINGS
+                    
+                    // LOOP THROUGH ALL HOTEL BOOKINGS
                     foreach ($hotel_sales as $hotel_sale) {
-                        $booking_date = $hotel_sale['booking_date'];
 
-                        // TOTAL SALES AND COMMISSIONS CALCULATION
-                        $total_sales += $hotel_sale['price_markup'];
-                        $total_commission += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                        // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
+                        $booking_date = date('Y-m-d', strtotime($hotel_sale['booking_date']));
 
-                        // COMMISSION PAID VS PENDING CALCULATION
-                        if ($hotel_sale['payment_status'] == 'paid') {
-                            $total_paid_commission_amount += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                        // VALIDATE THAT agent_fee AND price_original ARE SET AND NUMERIC
+                        $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
+                        $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
+
+                        // CALCULATE COMMISSION ONLY IF BOTH VALUES ARE VALID AND GREATER THAN ZERO
+                        $commission = 0;
+                        if ($agent_fee > 0 && $price_original > 0) {
+                            $commission = ($agent_fee * $price_original) / 100;
+                        }
+
+                        // ADD TO TOTAL SALES AND COMMISSION
+                        $total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                        $total_commission += $commission;
+
+                        // CHECK IF COMMISSION IS PAID OR PENDING AND ADD TO RESPECTIVE TOTAL
+                        if (isset($hotel_sale['agent_commission_status']) && $hotel_sale['agent_commission_status'] === 'paid') {
+                            $total_paid_commission_amount += $commission;
                         } else {
-                            $total_pending_commission_amount += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                            $total_pending_commission_amount += $commission;
                         }
 
-                        // CURRENT MONTH CALCULATION
+                        // CHECK IF BOOKING IS IN CURRENT MONTH AND ADD TO CURRENT TOTALS
                         if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                            $current_total_sales += $hotel_sale['price_markup'];
-                            $current_total_commissions += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                            $current_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $current_total_commissions += $commission;
                         }
 
-                        // LAST MONTH CALCULATION
+                        // CHECK IF BOOKING IS IN LAST MONTH AND ADD TO LAST MONTH TOTALS
                         if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                            $last_total_sales += $hotel_sale['price_markup'];
-                            $last_total_commissions += ($hotel_sale['agent_fee'] * $hotel_sale['price_original']) / 100;
+                            $last_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $last_total_commissions += $commission;
                         }
 
-                        // TOTAL BOOKINGS
+                        // INCREMENT TOTAL BOOKINGS COUNT
                         $total_bookings++;
                     }
-
+                    
                     // PERCENT CHANGE FUNCTION
                     function percentChange($current, $last) {
                         if ($last == 0) return $current > 0 ? 100 : 0;
