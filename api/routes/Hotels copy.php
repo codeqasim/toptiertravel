@@ -278,6 +278,10 @@ $router->post('hotel_search', function () {
                     "redirect" => "",
                     "booking_data" => (object)[],
                     "color" => $module[0]['module_color'],
+                    "room_name" => "",
+                    "room_type" => "",
+                    "refundable" =>"",
+                    "amenities" =>[],
                 ];
             }
         } else {
@@ -378,6 +382,10 @@ $router->post('hotel_search', function () {
                     "redirect" => $values['redirect'],
                     "booking_data" => $values['booking_data'],
                     "color" => $getvalue[0]['module_color'],
+                    "room_name" => $values['room_name'],
+                    "room_type" => $values['room_type'],
+                    "refundable" =>$values['refundable'],
+                    "amenities" =>$values['amenities'],
                 ];
             }
             //}
@@ -799,6 +807,9 @@ $router->post('hotel_booking', function () {
     //CONFIG FILE
     include "./config.php";
 
+    //GET THE USER TO CHECK IF IT IS AGENT OR NOT
+    $user_type = $db->select('users' , 'user_type' , ['user_id' => $_POST["user_id"]]);
+
     //VALIDATION
     $param = array(
         'price_original' => $_POST["price_original"],
@@ -841,9 +852,11 @@ $router->post('hotel_booking', function () {
         'booking_date' => date('Y-m-d'),
         'payment_gateway' => $_POST["payment_gateway"],
         'agent_fee' => $agent_fee,
+        'agent_id' => $user_type[0] == 'Agent' ? $_POST["user_id"] : null,
         'payment_status' => 'unpaid',
         'booking_status' => 'pending',
     );
+
 
     $db->insert("hotels_bookings", $param); //INSERTION OF BOOKING DATA INTO DATABASE
 
@@ -859,7 +872,7 @@ $router->post('hotel_booking', function () {
     $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no']));
     // HOOK
     $hook = "hotels_booking";
-    include "./hooks.php";
+    //include "./hooks.php";
     echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no']));
 });
 
@@ -907,7 +920,7 @@ $router->post('hotels/booking_update', function () {
             'c3' => $gethotels[0]['c3'],
             'c4' => $gethotels[0]['c4'],
             'c5' => $gethotels[0]['c5'],
-            'evn' => $evn_hotel,
+            'env' => $evn_hotel,
             "booking_ref_no" => $data_hotel[0]['booking_ref_no'],
             "booking_data" => $data_hotel[0]['booking_data'],
             "guest" => $data_hotel[0]['guest'],

@@ -9,3 +9,4 @@ cache/**
 db/*
 composer.lock
 app.json
+_config.php
