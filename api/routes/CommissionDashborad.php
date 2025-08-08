@@ -46,36 +46,16 @@ $router->post('agent/dashboard/commission', function () {
                     $total_paid_commission_amount = 0;
                     $total_pending_commission_amount = 0;
 
-                    $current_total_sales = 0;
-                    $current_total_commissions = 0;
-                    $current_total_partner_commission = 0;
-                    $$current_month_bookings = 0;
-
-                    $last_total_sales = 0;
-                    $last_total_commissions = 0;
-                    $last_total_partner_commission = 0;
-                    $last_month_bookings= 0;
-
                     //GET THE PARTNER AGENTS
-                    $partners = $db->select('partners' , '*' , ['parent_id' => $user_id]);
+                    $partners = $db->select('users' , '*' , ['ref_id' => $user_id]);
 
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
                     if(isset($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->parent_id]);
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->user_id]);
                             if(isset($hotel_bookings)){
                                 foreach ($hotel_bookings as $hotel_booking) {
-                                    $total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
-                                    
-                                    // CURRENT MONTH CALCULATION
-                                    if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                                        $current_total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
-                                    }
-
-                                    // LAST MONTH CALCULATION
-                                    if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                                        $last_total_partner_commission += ($hotel_sale['partner_fee'] * $hotel_sale['price_original']) / 100;
-                                    }
+                                    $total_partner_commission += (1 * $hotel_sale['price_original']) / 100;
                                 }
                             }
                         }
@@ -84,17 +64,14 @@ $router->post('agent/dashboard/commission', function () {
                     // LOOP THROUGH ALL HOTEL BOOKINGS
                     foreach ($hotel_sales as $hotel_sale) {
 
-                        // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
-                        $booking_date = date('Y-m-d', strtotime($hotel_sale['booking_date']));
-
                         // VALIDATE THAT agent_fee AND price_original ARE SET AND NUMERIC
                         $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
                         $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
 
                         // CALCULATE COMMISSION ONLY IF BOTH VALUES ARE VALID AND GREATER THAN ZERO
                         $commission = 0;
-                        if ($agent_fee > 0 && $price_original > 0) {
-                            $commission = ($agent_fee * $price_original) / 100;
+                        if ($agent_fee > 0) {
+                            $commission = $agent_fee;
                         }
 
                         // ADD TO TOTAL SALES AND COMMISSION
@@ -106,20 +83,6 @@ $router->post('agent/dashboard/commission', function () {
                             $total_paid_commission_amount += $commission;
                         } else {
                             $total_pending_commission_amount += $commission;
-                        }
-
-                        // CHECK IF BOOKING IS IN CURRENT MONTH AND ADD TO CURRENT TOTALS
-                        if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                            $current_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
-                            $current_total_commissions += $commission;
-                            $current_month_bookings++;
-                        }
-
-                        // CHECK IF BOOKING IS IN LAST MONTH AND ADD TO LAST MONTH TOTALS
-                        if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                            $last_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
-                            $last_total_commissions += $commission;
-                            $last_month_bookings++;
                         }
 
                         // INCREMENT TOTAL BOOKINGS COUNT
@@ -134,19 +97,6 @@ $router->post('agent/dashboard/commission', function () {
                         return round((($current - $last) / $last) * 100);
                     }
                     
-                    // CURRENT MONTH AVERAGE COMMISSION CALCULATION
-                    $current_month_average_commission_rate = $cuurent_total_commissions > 0 ? ($current_total_commissions * 100 ) / $current_total_sales : 0; // PREVENT DIVISION BY ZERO
-                    
-                    // LAST MONTH AVERAGE COMMISSION CALCULATION
-                    $last_month_average_commission_rate = $last_total_commissions > 0 ? ($last_total_commissions * 100 ) / $last_total_sales : 0; // PREVENT DIVISION BY ZERO
-
-                    // PERCENT CHANGE CALCULATIONS
-                    $sales_change = percentChange($current_total_sales, $last_total_sales);
-                    $commissions_change = percentChange($current_total_commissions, $last_total_commissions);
-                    $partner_commissions_change = percentChange($current_total_partner_commission, $last_total_partner_commission);
-                    $bookings_change = percentChange($current_month_bookings, $last_month_bookings);
-                    $average_commission_change_percent = percentChange($current_month_average_commission_rate, $last_month_average_commission_rate);
-
                     // AVERAGE COMMISSION CALCULATION
                     $average_commission_rate = $total_commission > 0 ? ($total_commission * 100 ) / $total_sales : 0; // PREVENT DIVISION BY ZERO
 
@@ -157,18 +107,10 @@ $router->post('agent/dashboard/commission', function () {
                     $data = [
                         'user' => $user,
                         'notifications' => $notifications,
-                        'total_sales' => $total_sales,
-                        'sales_change_percent' => $sales_change,
-                        'total_commissions' => $total_commission,
-                        'commissions_change_percent' => $commissions_change,
-                        'partner_total_commissions' => $total_partner_commission,
-                        'partner_commissions_change_percent' => $partner_commissions_change,
-                        'total_paid_commission_amount' => $total_paid_commission_amount,
-                        'total_pending_commission_amount' => $total_pending_commission_amount,
+                        'total_sales' => number_format($total_sales,2),
+                        'total_commissions' => number_format($total_commission,2),
                         'total_bookings' => $total_bookings,
-                        'booking_change_percent' => $bookings_change,
                         'average_commission_rate' => $average_commission_rate,
-                        'average_commission_rate_change_percent' => $average_commission_change_percent,
                     ];
 
                     // FINAL RESPONSE
@@ -274,8 +216,8 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 
                 // VALIDATE FEE AND VALUE BEFORE CALCULATION
                 $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
-                $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
-                $commission = ($agent_fee > 0 && $price_original > 0) ? ($agent_fee * $price_original) / 100 : 0;
+                $subtotal = isset($hotel_sale['subtotal']) && is_numeric($hotel_sale['subtotal']) ? $hotel_sale['subtotal'] : 0;
+                $rate = ($agent_fee > 0 && $subtotal > 0) ? ($agent_fee * 100) / $subtotal : 0;
 
                 // ADD DATA TO RESPONSE ARRAY
                 $data[] = [
@@ -285,9 +227,9 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                     'destination' => $hotel_sale['location'] ?? 'N/A',
                     'checkin' => $hotel_sale['checkin'] ?? 'N/A',
                     'nights' => $duration,
-                    'value' => $price_original,
-                    'rate' => $agent_fee,
-                    'commission' => $commission,
+                    'value' => number_format($price_original,2),
+                    'rate' => number_format($rate,2),
+                    'commission' => number_format($agent_fee,2),
                 ];
             }
 
@@ -350,15 +292,15 @@ $router->post('agent/dashboard/commissions/top_bookings', function () {
                 
                 // VALIDATE FEE AND VALUE BEFORE CALCULATION
                 $agent_fee = isset($hotel_sale['agent_fee']) && is_numeric($hotel_sale['agent_fee']) ? $hotel_sale['agent_fee'] : 0;
-                $price_original = isset($hotel_sale['price_original']) && is_numeric($hotel_sale['price_original']) ? $hotel_sale['price_original'] : 0;
-                $commission = ($agent_fee > 0 && $price_original > 0) ? ($agent_fee * $price_original) / 100 : 0;
+                $subtotal = isset($hotel_sale['subtotal']) && is_numeric($hotel_sale['subtotal']) ? $hotel_sale['subtotal'] : 0;
+                $rate = ($agent_fee > 0 && $subtotal > 0) ? ($agent_fee * 100) / $subtotal : 0;
 
                 // ADD DATA TO RESPONSE ARRAY
                 $data[] = [
                     'guest' => $guest_name,
                     'hotel' => $hotel_sale['hotel_name'] ?? 'N/A',
-                    'rate' => $agent_fee,
-                    'commission' => $commission,
+                    'rate' => number_format($rate,2),
+                    'commission' => $agent_fee,
                 ];
                 
             }
@@ -379,5 +321,24 @@ $router->post('agent/dashboard/commissions/top_bookings', function () {
     }
     echo json_encode($response);
 });
+
+$router->post('agent/dashboard/commissions/trends', function () {
+
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    required('user_id');
+
+    $user_id = $_POST["user_id"];
+    
+    // Fetch all matching rows first
+    $all_sales = $db->select("hotels_bookings", "*", ['agent_id' => $user_id,'agent_fee[!]' => null]);
+    
+    $data = [];
+    
+    echo json_encode($response);
+});
+
+
 
 ?>
