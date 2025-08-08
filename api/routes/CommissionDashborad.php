@@ -227,9 +227,9 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                     'destination' => $hotel_sale['location'] ?? 'N/A',
                     'checkin' => $hotel_sale['checkin'] ?? 'N/A',
                     'nights' => $duration,
-                    'value' => number_format($price_original,2),
-                    'rate' => number_format($rate,2),
-                    'commission' => number_format($agent_fee,2),
+                    'value' => $price_original,
+                    'rate' => $rate,
+                    'commission' => $agent_fee,
                 ];
             }
 

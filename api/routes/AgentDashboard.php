@@ -539,11 +539,9 @@ $router->post('agent/dashboard/notifications', function () {
     // INCLUDE CONFIG
     include "./config.php";
 
-    $type = $_POST['status'];
-    
     //FETCH NOTIFICATIONS BASED ON STATUS IF STATUS IS APPLIED OTHERWISE ALL NOTIFICATIONS
-    if(isset($type)){
-        $notifications = $db->select("notifications", "*", ["status" => $type]);
+    if(isset($_POST['status']) ){
+        $notifications = $db->select("notifications", "*", ["status" => $_POST['status']]);
     }else{
         $notifications = $db->select("notifications", "*", []);
     }
