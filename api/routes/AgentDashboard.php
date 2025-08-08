@@ -570,15 +570,14 @@ $router->post('agent/dashboard/booking/details', function () {
     $booking_details = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]);
 
     //DECODE THE DATA THAT IS SAVED IN JSON
-    if(isset($booking_details)){
+    if(isset($booking_details) && !empty($booking_details)){
         $booking_details[0]['room_data'] = json_decode($booking_details[0]['room_data'], true);
         $booking_details[0]['user_data'] = json_decode($booking_details[0]['user_data'], true);
         $booking_details[0]['guest'] = json_decode($booking_details[0]['guest'], true);
-    }
 
-    if(isset($booking_details)){
+        // FINAL RESPONSE
         $response = array ( "status" => true, "message"=>"data is retrieved", "data"=> $booking_details );
-    }else{
+    } else {
         $response = array ( "status" => false, "message"=>"no record found", "data"=> null );
     }
 
