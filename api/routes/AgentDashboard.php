@@ -299,9 +299,7 @@ $router->post('agent/dashboard', function () {
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
                     // FETCH ALL BOOKINGS FOR THIS AGENT
-                    $hotel_sales = $db->select("hotels_bookings", "*", [
-                        "agent_id" => $user_id
-                    ]);
+                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id]);
                     
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
