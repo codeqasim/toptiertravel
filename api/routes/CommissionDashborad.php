@@ -16,6 +16,7 @@ $router->post('agent/dashboard/commission', function () {
     required('user_id');
 
     $user_id = $_POST["user_id"];
+    $interval = isset($_POST['interval']) ? $_POST['interval'] : null ;
 
     // CHECK USER
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
@@ -33,10 +34,30 @@ $router->post('agent/dashboard/commission', function () {
                     $last_month_start = date('Y-m-01', strtotime('first day of last month'));
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
-                    // FETCH ALL BOOKINGS FOR THIS AGENT
-                    $hotel_sales = $db->select("hotels_bookings", "*", [
-                        "agent_id" => $user_id
-                    ]);
+                    $conditions = ["agent_id" => $user_id];
+
+                    if (isset($interval) && $interval != null) {
+                        $today = date('Y-m-d');
+
+                        if ($interval == '1 day') {
+                            $from_date = date('Y-m-d', strtotime('-1 day'));
+                        } elseif ($interval == '5 days') {
+                            $from_date = date('Y-m-d', strtotime('-5 days'));
+                        } elseif ($interval == '1 month') {
+                            $from_date = date('Y-m-d', strtotime('-1 month'));
+                        } else {
+                            $from_date = null;
+                        }
+
+                        // Only apply booking_date filter if $from_date is set
+                        if ($from_date) {
+                            $conditions["booking_date[>=]"] = $from_date;
+                            $conditions["booking_date[<=]"] = $today;
+                        }
+                    }
+
+                    // FETCH ALL BOOKINGS FOR THIS AGENT WITH CONDITIONS
+                    $hotel_sales = $db->select("hotels_bookings", "*", $conditions);
 
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
@@ -48,21 +69,6 @@ $router->post('agent/dashboard/commission', function () {
                     $total_pending_commission_amount = 0;
 
                     $top_bookings = [];
-
-                    //GET THE PARTNER AGENTS
-                    $partners = $db->select('users' , '*' , ['ref_id' => $user_id]);
-
-                    //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
-                    if(isset($partners)){
-                        foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->user_id]);
-                            if(isset($hotel_bookings)){
-                                foreach ($hotel_bookings as $hotel_booking) {
-                                    $total_partner_commission += (1 * $hotel_sale['price_original']) / 100;
-                                }
-                            }
-                        }
-                    }
 
                     // LOOP THROUGH ALL HOTEL BOOKINGS
                     foreach ($hotel_sales as $hotel_sale) {
@@ -91,8 +97,10 @@ $router->post('agent/dashboard/commission', function () {
                         // INCREMENT TOTAL BOOKINGS COUNT
                         $total_bookings++;
 
+                        /* ======================
+                        TOP BOOKING CALCULATION AREA
+                        ====================== */
 
-                        //TOP BOOKING AREA 
                         // VALIDATE AND DECODE GUEST JSON DATA
                         $guest = [];
                         if (isset($hotel_sale['guest'])) {
