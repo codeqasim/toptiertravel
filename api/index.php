@@ -68,6 +68,7 @@ include "./routes/Blogs.php";
 include "./routes/Global.php";
 include "./routes/CommissionDashborad.php";
 include "./routes/AgentDashboard.php";
+include "./routes/ReservsationDashboard.php";
 
 $router->dispatchGlobal();
 

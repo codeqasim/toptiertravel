@@ -474,7 +474,7 @@ $router->post('agent/dashboard/bookings/recent', function () {
 
                     $data = [];
                     
-                    if(isset($hotel_sales)){
+                    if(isset($hotel_sales) & !empty($hotel_sales)){
                         foreach ($hotel_sales as $key => $hotel_sale) {
                             $guest = $hotel_sale['guest'];
                             $guest = json_decode($guest);
