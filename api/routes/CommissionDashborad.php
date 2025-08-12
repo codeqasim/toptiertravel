@@ -261,8 +261,8 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             }
 
             $data[] = [
-                'booking_id'    => $hotel_sale['booking_ref_no'],
                 'id'            => $hotel_sale['booking_id'] ?? null,
+                'booking_id'    => $hotel_sale['booking_ref_no'],
                 'guest'         => $guest_name,
                 'hotel'         => $hotel_sale['hotel_name'] ?? 'N/A',
                 'destination'   => $hotel_sale['location'] ?? 'N/A',
@@ -273,6 +273,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 'commission'    => $hotel_sale['agent_fee'] ?? 0,
                 'payment_status'=> $hotel_sale['agent_payment_status'],
                 'payment_type'  => $hotel_sale['agent_payment_type'],
+                'payment_date'  => $hotel_sale['payment_date'],
             ];
         }
 
