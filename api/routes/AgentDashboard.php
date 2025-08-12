@@ -464,7 +464,7 @@ $router->post('agent/dashboard/bookings/recent', function () {
                 // Base condition
                 $conditions = [
                     "agent_id" => $user_id,
-                    // "booking_date[>=]" => date("Y-m-d", strtotime("-15 days")),
+                    "booking_date[>=]" => date("Y-m-d", strtotime("-15 days")),
                     "LIMIT" => [$offset, $limit]
                 ];
 
