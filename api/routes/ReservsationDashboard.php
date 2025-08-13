@@ -6,7 +6,7 @@ header("X-Frame-Options: SAMEORIGIN");
 
 
 /*==================
-AGENT SALES AND COMMISSIONS API
+RSERVATION DASHBOARD API
 ==================*/
 $router->post('agent/dashboard/reservations', function () {
     
@@ -37,10 +37,17 @@ $router->post('agent/dashboard/reservations', function () {
                 $avg_stay_length = 0;
                 $sale_data = [];
 
-                    foreach ($hotel_sales as $key => $hotel_sales) {
-                        $total_reservations = count($hotel_sales);    
-                        $total_revenue = ($hotel_sale['price_markup'] ?? 0) - ($hotel_sale['price_original'] ?? 0) - ($hotel_sale['agent_fee'] ?? 0);    
-                    }
+                $total_revenue = 0.0;
+
+                foreach ($hotel_sales as $hotel_sale) {
+                    $price_markup  = isset($hotel_sale['price_markup']) ? (float)$hotel_sale['price_markup'] : 0.0;
+                    $price_original = isset($hotel_sale['price_original']) ? (float)$hotel_sale['price_original'] : 0.0;
+                    $agent_fee      = isset($hotel_sale['agent_fee']) ? (float)$hotel_sale['agent_fee'] : 0.0;
+
+                    $total_revenue += $price_markup - $price_original - $agent_fee;
+                }
+
+                $total_reservations = count($hotel_sales);
 
                 $this_week = date('Y-m-d', strtotime('-7 days'));
 
@@ -93,7 +100,7 @@ $router->post('agent/dashboard/reservations', function () {
 
 
 /*==================
-AGENT SALES AND COMMISSIONS API
+RESERVATION DASHBOARD CALENDER API
 ==================*/
 $router->post('agent/dashboard/reservations/calender', function () {
     
@@ -158,21 +165,133 @@ $router->post('agent/dashboard/reservations/calender', function () {
             ];
         }
 
-        $response = [
-            "status" => true,
-            "message" => "bookings found",
-            "data" => $groupedData
-        ];
+        $response = ["status" => true,"message" => "bookings found","data" => $groupedData];
     } else {
-        $response = [
-            "status" => false,
-            "message" => "no sales found",
-            "data" => null
-        ];
+        $response = ["status" => false,"message" => "no sales found","data" => null];
     }
 
     echo json_encode($response);
 });
 
+/*==================
+ RECENT RESERVATION API
+==================*/
+$router->post('agent/dashboard/reservations/recent', function () {
+    
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    //PARAMS
+    required('user_id');
+
+    $user_id         = $_POST["user_id"];
+    $filter_type     = $_POST["filter_type"] ?? "today"; // today | this_week | pending_checkin
+    $page            = (int)($_POST["page"] ?? 1);
+    $per_page        = 10;
+
+    // Base conditions
+    $conditions = [
+        "agent_id" => $user_id,
+        "booking_status" => ["confirmed", "pending"] // default
+    ];
+
+    // Date filters (only one applies)
+    $today = date("Y-m-d");
+
+    // if ($filter_type === "today") {
+    //     $conditions["booking_date"] = $today;
+
+    // } elseif ($filter_type === "this_week") {
+    //     $monday = date("Y-m-d", strtotime("monday this week"));
+    //     $sunday = date("Y-m-d", strtotime("sunday this week"));
+    //     $conditions["booking_date[<>]"] = [$monday, $sunday];
+
+    // } elseif ($filter_type === "pending_checkin") {
+    //     $conditions["checkin[>=]"] = $today;
+    // }
+
+    // Pagination
+    $offset = ($page - 1) * $per_page;
+    $conditions["ORDER"] = ["booking_date" => "DESC"];
+    $conditions["LIMIT"] = [$offset, $per_page];
+
+    // Fetch bookings
+    $all_sales = $db->select("hotels_bookings", "*", $conditions);
+
+    // Count for pagination
+    $count_conditions = $conditions;
+    unset($count_conditions["LIMIT"], $count_conditions["ORDER"]);
+    $total_count = $db->count("hotels_bookings", $count_conditions);
+    $total_pages = ceil($total_count / $per_page);
+
+    // Prepare response
+    if (!empty($all_sales)) {
+        $data = [];
+
+        foreach ($all_sales as $hotel_sale) {
+            // Guest
+            $guest_name = 'N/A';
+            if (!empty($hotel_sale['guest'])) {
+                $guest = json_decode($hotel_sale['guest']);
+                if (!empty($guest[0]->title) && !empty($guest[0]->first_name) && !empty($guest[0]->last_name)) {
+                    $guest_name = $guest[0]->title . ' ' . $guest[0]->first_name . ' ' . $guest[0]->last_name;
+                }
+            }
+
+            // Duration
+            $duration = 0;
+            if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
+                try {
+                    $checkinDate  = new DateTime($hotel_sale['checkin']);
+                    $checkoutDate = new DateTime($hotel_sale['checkout']);
+                    $duration = $checkinDate->diff($checkoutDate)->days;
+                } catch (Exception $e) {
+                    $duration = 0;
+                }
+            }
+            
+            //REVENUE CALCULATION
+            $price_markup  = isset($hotel_sale['price_markup']) ? (float)$hotel_sale['price_markup'] : 0.0;
+            $price_original = isset($hotel_sale['price_original']) ? (float)$hotel_sale['price_original'] : 0.0;
+            $agent_fee      = isset($hotel_sale['agent_fee']) ? (float)$hotel_sale['agent_fee'] : 0.0;
+
+            $revenue = 0;
+            $revenue = $price_markup - $price_original - $agent_fee;
+
+            $data[] = [
+                'id'            => $hotel_sale['booking_id'] ?? null,
+                'booking_id'    => $hotel_sale['booking_ref_no'],
+                'guest'         => $guest_name,
+                'hotel'         => $hotel_sale['hotel_name'] ?? 'N/A',
+                'city'   => $hotel_sale['location'] ?? 'N/A',
+                'checkin'       => $hotel_sale['checkin'] ?? 'N/A',
+                'checkout'      => $hotel_sale['checkout'] ?? 'N/A',
+                'nights'        => $duration,
+                'subtotal'      => $hotel_sale['subtotal'] ?? 0,
+                'commission'    => $hotel_sale['agent_fee'] ?? 0,
+                'revenue'       => $revenue
+            ];
+        }
+
+        $response = [
+            "status"     => true,
+            "message"    => "DATA IS RETRIEVED",
+            "pagination" => [
+                "current_page"  => $page,
+                "total_pages"   => $total_pages,
+                "total_records" => $total_count
+            ],
+            "data" => $data
+        ];
+    } else {
+        $response = [
+            "status"  => false,
+            "message" => "NO RECORD FOUND",
+            "data"    => null
+        ];
+    }
+
+    echo json_encode($response);
+});
 
 ?>
