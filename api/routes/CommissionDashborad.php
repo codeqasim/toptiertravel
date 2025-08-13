@@ -413,4 +413,111 @@ $router->post('agent/dashboard/commissions/top_bookings', function () {
     }
     echo json_encode($response);
 });
+
+/*=================
+COMMISSION DASHBOARD STATUS GRAPH API
+=================*/
+$router->post('agent/dashboard/commissions/status_graph', function () {
+    include "./config.php";
+
+    required('user_id');
+
+    $user_id     = $_POST["user_id"];
+    $filter_type = $_POST["filter_type"] ?? '7_days';
+
+    $today        = date('Y-m-d');
+    $start_date   = null;
+    $end_date     = $today; // Always end at today
+    $label_format = "Y-m-d"; // Always daily labels for these ranges
+    $interval     = new DateInterval('P1D');
+
+    // DETERMINE DATE RANGE
+    switch ($filter_type) {
+        case '7_days':
+            $start_date = date('Y-m-d', strtotime('-6 days', strtotime($today)));
+            break;
+        case '30_days':
+            $start_date = date('Y-m-d', strtotime('-29 days', strtotime($today)));
+            break;
+        case '90_days':
+            $start_date = date('Y-m-d', strtotime('-89 days', strtotime($today)));
+            break;
+        case 'all_time':
+            // Find earliest booking date for this agent
+            $earliest = $db->get("hotels_bookings", "booking_date", [
+                "agent_id" => $user_id,
+                "ORDER"    => ["booking_date" => "ASC"]
+            ]);
+            $start_date = $earliest ?: $today; // If no bookings, use today
+            break;
+        default:
+            echo json_encode([
+                "status"  => false,
+                "message" => "INVALID FILTER TYPE",
+                "data"    => []
+            ]);
+            return;
+    }
+
+    // BUILD QUERY CONDITIONS
+    $conditions = [
+        "agent_id"         => $user_id,
+        "booking_date[>=]" => $start_date,
+        "booking_date[<=]" => $end_date
+    ];
+
+    $hotel_sales = $db->select("hotels_bookings", '*', $conditions);
+
+    // PRE-FILL RESULT ARRAY
+    $period = new DatePeriod(
+        new DateTime($start_date),
+        $interval,
+        (new DateTime($end_date))->modify('+1 day')
+    );
+
+    $result = [];
+    foreach ($period as $dt) {
+        $label = $dt->format($label_format);
+        $result[$label] = [
+            'label'             => $label,
+            'total_commission'  => 0,
+            'paid_commission'   => 0,
+            'pending_commission'=> 0
+        ];
+    }
+
+    // IF DATA EXISTS
+    if (!empty($hotel_sales)) {
+        foreach ($hotel_sales as $hotel_sale) {
+            $label     = date($label_format, strtotime($hotel_sale['booking_date']));
+            $agent_fee = (float)$hotel_sale['agent_fee'];
+
+            $result[$label]['total_commission'] += $agent_fee;
+
+            if (strtolower($hotel_sale['agent_payment_status']) === 'paid') {
+                $result[$label]['paid_commission'] += $agent_fee;
+            } else {
+                $result[$label]['pending_commission'] += $agent_fee;
+            }
+        }
+        $message = "DATA IS RETRIEVED";
+    } 
+    // IF NO DATA FOUND
+    else {
+        $message = "NO DATA FOUND FOR SELECTED RANGE";
+    }
+
+    // SORT AND SEND RESPONSE
+    ksort($result);
+
+    $response = [
+        "status"  => true,
+        "message" => $message,
+        "data"    => array_values($result)
+    ];
+
+    echo json_encode($response);
+});
+
+
 ?>
