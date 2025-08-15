@@ -506,6 +506,7 @@ $router->post('agent/dashboard/bookings/recent', function () {
 
                         $data[] = [
                             'id' => $hotel_sale['booking_id'],
+                            'booking_ref_no' => $hotel_sale['booking_ref_no'],
                             'guest' => $guest[0]->title .' '. $guest[0]->first_name .' '. $guest[0]->last_name,
                             'hotel_name' => $hotel_sale['hotel_name'],
                             'room_name' => $room[0]->room_name,
