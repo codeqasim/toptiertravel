@@ -343,7 +343,7 @@ $router->post('agent/dashboard', function () {
                         }
                     }
                     
-                    // LOOP THROUGH ALL HOTEL BOOKINGS
+                    // LOOP THROUGH ALL HOTEL BOOKING
                     foreach ($hotel_sales as $hotel_sale) {
 
                         // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
