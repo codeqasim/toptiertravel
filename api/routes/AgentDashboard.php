@@ -12,71 +12,103 @@ $router->post('agent/dashboard/signup', function () {
     // INCLUDE CONFIG
     include "./config.php";
 
-        // VALIDATION
-        required('first_name');
-        required('last_name');
-        required('phone');
-        required('phone_country_code');
-        required('email');
-        required('password');
+    // REQUIRED FIELD VALIDATION
+    required('first_name');
+    required('last_name');
+    required('phone_country_code');
+    required('country_code');
+    required('phone');
+    required('address');
+    required('agency_name');
+    required('agency_license');
+    required('email');
+    required('password');
+    required('confirm_password');
 
-        $mob = $new_str = str_replace(' ', '', $_POST['phone']);
-        $phone = preg_replace('/[^A-Za-z0-9\-]/', '', $mob); // removes special chars.
-
-        // EMAIL EXIST VALIDATION
-        $exist_mail = $db->select('users', [ 'email', ], [ 'email' => $_POST['email'], ]);
-        if (isset($exist_mail[0]['email'])) {
-            $response = array ( "status"=>false, "message"=>"email already exist.", "data"=> "" );
-            echo json_encode($response);
-            die;
-        }
-
-        // GENERATE RANDOM CODE FOR EMAIL
-        $mail_code = rand(100000, 999999);
-
-        // UUID
-        $rand = rand(100, 99);
-        $date = date('Ymdhis');
-        $user_id = $date.$rand;
-
-        // GENERATE PASSWORD AND DATETIME
-        $password = md5($_POST['password']);
-        $date = date('Y-m-d H:i:s');
-
-        // GET DEFAULT CURRENCY NAME
-        $currencies = $db->select("currencies","*" );
-        foreach ($currencies as $currency){ if($currency['default'] == 1){ $currency_id = $currency['name']; } }
-
-        $db->insert("users", [
-            "user_id" => $user_id,
-            "first_name" => $_POST['first_name'],
-            "last_name" => $_POST['last_name'],
-            "phone_country_code" => $_POST['phone_country_code'],
-            "country_code" => $_POST['country_code'],
-            "address1" => $_POST['address'],
-            "company_name" => $_POST['agency_name'],
-            "company_license" => $_POST['agency_license'],
-            "email" => $_POST['email'],
-            "phone" => $phone,
-            "email_code" => $mail_code,
-            "currency_id" => $currency_id,
-            "password" => $password,
-            "status" => $_POST['status'] ?? 0,
-            "user_type" => "Agent",
-            "created_at" => $date,
+    // PASSWORD CONFIRMATION
+    if ($_POST['password'] !== $_POST['confirm_password']) {
+        echo json_encode([
+            "status"  => false,
+            "message" => "Password and Confirm Password do not match.",
+            "data"    => ""
         ]);
+        die;
+    }
 
-        $user_id_ = $db->id();
-        $user_info = $db->select("users","*", [ "id" => $user_id_ ]);
+    // SANITIZE PHONE
+    $mob = str_replace(' ', '', $_POST['phone']);
+    $phone = preg_replace('/[^0-9]/', '', $mob); // Keep only digits
 
-        $response = array ( "status"=>true, "message"=>"account registered successfully.", "data"=> $user_info );
-        echo json_encode($response);
+    // EMAIL EXIST VALIDATION
+    $exist_mail = $db->select('users', ['email'], ['email' => $_POST['email']]);
+    if (!empty($exist_mail)) {
+        echo json_encode([
+            "status"  => false,
+            "message" => "Email already exists.",
+            "data"    => ""
+        ]);
+        die;
+    }
 
-        $link = root.'../'.'account/activation/'.$user_id.'/'.$mail_code;
+    // GENERATE RANDOM CODE FOR EMAIL VERIFICATION
+    $mail_code = rand(100000, 999999);
 
-        // HOOK
-        $hook="user_signup";
-        include "./hooks.php";
+    // GENERATE USER ID
+    $date_str = date('YmdHis');
+    $rand = rand(10, 99);
+    $user_id = $date_str . $rand;
+
+    // ENCRYPT PASSWORD
+    $password = md5($_POST['password']);
+    $date = date('Y-m-d H:i:s');
+
+    // GET DEFAULT CURRENCY NAME
+    $currency_id = null;
+    $currencies = $db->select("currencies", "*");
+    foreach ($currencies as $currency) {
+        if ($currency['default'] == 1) {
+            $currency_id = $currency['name'];
+            break;
+        }
+    }
+
+    // INSERT USER
+    $db->insert("users", [
+        "user_id"           => $user_id,
+        "first_name"        => $_POST['first_name'],
+        "last_name"         => $_POST['last_name'],
+        "phone_country_code"=> $_POST['phone_country_code'],
+        "country_code"      => $_POST['country_code'],
+        "address1"          => $_POST['address'],
+        "company_name"      => $_POST['agency_name'],
+        "company_license"   => $_POST['agency_license'],
+        "email"             => $_POST['email'],
+        "phone"             => $phone,
+        "email_code"        => $mail_code,
+        "currency_id"       => $currency_id,
+        "password"          => $password,
+        "status"            => $_POST['status'] ?? 0,
+        "user_type"         => "Agent",
+        "created_at"        => $date,
+    ]);
+
+    // GET INSERTED USER
+    $user_id_ = $db->id();
+    $user_info = $db->select("users", "*", ["id" => $user_id_]);
+
+    // RESPONSE
+    echo json_encode([
+        "status"  => true,
+        "message" => "Account registered successfully.",
+        "data"    => $user_info
+    ]);
+
+    // ACTIVATION LINK
+    $link = root . '../' . 'account/activation/' . $user_id . '/' . $mail_code;
+
+    // HOOK
+    $hook = "user_signup";
+    include "./hooks.php";
 });
 
 /*==================
