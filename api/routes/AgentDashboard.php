@@ -19,7 +19,7 @@ $router->post('agent/dashboard/signup', function () {
     required('country_code');
     required('phone');
     required('address');
-    required('city');
+    required('agency_city');
     required('agency_name');
     required('agency_license');
     required('email');
