@@ -559,6 +559,11 @@ AGENT NOTIFICATIONS API
 $router->post('agent/dashboard/notifications', function () {
     // INCLUDE CONFIG
     include "./config.php";
+    
+    //MARK ALL NOTIFICATIONS AS READ
+    if (isset($_POST['action']) && $_POST['action'] === 'mark_all_read') {
+        $db->update("notifications", ["status" => '0']);
+    }
 
     //FETCH NOTIFICATIONS BASED ON STATUS IF STATUS IS APPLIED OTHERWISE ALL NOTIFICATIONS
     if (isset($_POST['status'])) {
