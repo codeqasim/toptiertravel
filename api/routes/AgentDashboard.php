@@ -52,13 +52,17 @@ $router->post('agent/dashboard/signup', function () {
             "first_name" => $_POST['first_name'],
             "last_name" => $_POST['last_name'],
             "phone_country_code" => $_POST['phone_country_code'],
+            "country_code" => $_POST['country_code'],
+            "address1" => $_POST['address'],
+            "company_name" => $_POST['agency_name'],
+            "company_license" => $_POST['agency_license'],
             "email" => $_POST['email'],
             "phone" => $phone,
             "email_code" => $mail_code,
             "currency_id" => $currency_id,
             "password" => $password,
             "status" => $_POST['status'] ?? 0,
-            "user_type" => "Customer",
+            "user_type" => "Agent",
             "created_at" => $date,
         ]);
 
