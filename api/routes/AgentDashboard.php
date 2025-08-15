@@ -19,6 +19,7 @@ $router->post('agent/dashboard/signup', function () {
     required('country_code');
     required('phone');
     required('address');
+    required('city');
     required('agency_name');
     required('agency_license');
     required('email');
@@ -83,6 +84,7 @@ $router->post('agent/dashboard/signup', function () {
         "company_name"      => $_POST['agency_name'],
         "company_license"   => $_POST['agency_license'],
         "email"             => $_POST['email'],
+        "city"              => $_POST['agency_city'],
         "phone"             => $phone,
         "email_code"        => $mail_code,
         "currency_id"       => $currency_id,
