@@ -33,8 +33,11 @@ $router->post('agent/dashboard/reservations', function () {
 
                 $total_reservations = 0;
                 $total_revenue = 0;
-                $occupancy_rate = 0;
+                $average_sale_amount = 0;
                 $avg_stay_length = 0;
+                $total_sales = 0;
+                $total_bookings = 0;
+                $total_stay_length = 0;
                 $sale_data = [];
 
                 $total_revenue = 0.0;
@@ -45,7 +48,26 @@ $router->post('agent/dashboard/reservations', function () {
                     $agent_fee      = isset($hotel_sale['agent_fee']) ? (float)$hotel_sale['agent_fee'] : 0.0;
 
                     $total_revenue += $price_markup - $price_original - $agent_fee;
+                    $total_sales += $price_markup;
+                    $total_bookings++;
+
+                    // --- Stay length calculation ---
+                    if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
+                        $checkin  = DateTime::createFromFormat('d-m-Y', $hotel_sale['checkin']);
+                        $checkout = DateTime::createFromFormat('d-m-Y', $hotel_sale['checkout']);
+
+                        if ($checkin && $checkout) {
+                            $interval = $checkin->diff($checkout);
+                            $total_stay_length += $interval->days; // add number of days for this booking
+                        }
+                    }
                 }
+
+                // Avoid division by zero
+                $avg_stay_length = $total_bookings > 0 ? round($total_stay_length / $total_bookings) : 0;
+
+                // AVERAGE SALE AMOUNT CALCULATION
+                $average_sale_amount = $total_bookings > 0 ? round($total_sales / $total_bookings,2) : 0; // PREVENT DIVISION BY ZERO
 
                 $total_reservations = count($hotel_sales);
 
@@ -83,7 +105,7 @@ $router->post('agent/dashboard/reservations', function () {
                 $data = [
                     'total_reservations' => $total_reservations,
                     'total_revenue' => $total_revenue,
-                    'occupancy_rate' => $occupancy_rate,
+                    'average_sale_amount' => $average_sale_amount,
                     'avg_stay_length' => $avg_stay_length,
                     'last_seven_days_sales' => $sale_data
                 ];
@@ -97,7 +119,6 @@ $router->post('agent/dashboard/reservations', function () {
         }
     echo json_encode($response);
 });
-
 
 /*==================
 RESERVATION DASHBOARD CALENDER API
