@@ -299,7 +299,7 @@ $router->post('agent/dashboard', function () {
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
                     // FETCH ALL BOOKINGS FOR THIS AGENT
-                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id]);
+                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id, "payment_status" => "paid"]);
                     
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
@@ -324,7 +324,7 @@ $router->post('agent/dashboard', function () {
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
                     if(isset($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->user_id]);
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->user_id, "payment_status" => "paid"]);
                             if(isset($hotel_bookings)){
                                 foreach ($hotel_bookings as $hotel_booking) {
                                     $total_partner_commission += (1 * $hotel_sale['subtotal']) / 100;
