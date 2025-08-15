@@ -210,7 +210,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
     $filter_type     = $_POST["filter_type"] ?? "today"; // today | this_week | pending_checkin
     $search          = $_POST["search"] ?? null;        // SEARCH TERM
     $page            = (int)($_POST["page"] ?? 1);
-    $per_page        = 5;
+    $per_page        = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5;;
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [

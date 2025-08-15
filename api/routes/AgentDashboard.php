@@ -458,8 +458,8 @@ $router->post('agent/dashboard/bookings/recent', function () {
             if ($user_data->status == 1) {
 
                 // Pagination variables
-                $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
-                $limit = 5; // Records per page
+                $page = isset($_POST['page']) && is_numeric($_POST['page']) ? (int) $_POST['page'] : 1;
+                $limit = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5; // Records per page
                 $offset = ($page - 1) * $limit;
 
                 // Base condition
@@ -620,8 +620,8 @@ $router->post('agent/dashboard/bookings', function () {
             if ($user_data->status == 1) {
 
                 // PAGINATION VARIABLES
-                $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+                $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+                $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
                 $offset = ($page - 1) * $limit;
 
                 // Base conditions

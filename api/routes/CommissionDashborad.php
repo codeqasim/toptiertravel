@@ -156,7 +156,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
     $booking_value   = $_POST["booking_value"] ?? [];   // ARRAY FROM CHECKBOXES
     $search          = $_POST["search"] ?? null; // SEARCH TERM (NEW FEATURE)
     $page            = (int)($_POST["page"] ?? 1);
-    $per_page        = 5;
+    $per_page        = isset($_GET['limit']) && is_numeric($_GET['limit']) ? (int) $_GET['limit'] : 5;
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [
