@@ -363,7 +363,7 @@ $router->post('agent/dashboard', function () {
                         $total_commission += $commission;
 
                         // CHECK IF COMMISSION IS PAID OR PENDING AND ADD TO RESPECTIVE TOTAL
-                        if (isset($hotel_sale['agent_commission_status']) && $hotel_sale['agent_commission_status'] === 'paid') {
+                        if (isset($hotel_sale['agent_payment_status']) && $hotel_sale['agent_payment_status'] === 'paid') {
                             $total_paid_commission_amount += $commission;
                         } else {
                             $total_pending_commission_amount += $commission;
