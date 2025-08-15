@@ -579,27 +579,19 @@ $router->post('agent/dashboard/notifications', function () {
 AGENT BOOKING DETAILS API
 ==================*/
 $router->post('agent/dashboard/booking/details', function () {
-    // INCLUDE CONFIG
+    // CONFIG FILE
     include "./config.php";
 
+    // VALIDATION
     required('booking_ref_no');
     $booking_ref_no = $_POST["booking_ref_no"];
 
-    $booking_details = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]);
-
-    //DECODE THE DATA THAT IS SAVED IN JSON
-    if(isset($booking_details) && !empty($booking_details)){
-        $booking_details[0]['room_data'] = json_decode($booking_details[0]['room_data'], true);
-        $booking_details[0]['user_data'] = json_decode($booking_details[0]['user_data'], true);
-        $booking_details[0]['guest'] = json_decode($booking_details[0]['guest'], true);
-
-        // FINAL RESPONSE
-        $response = array ( "status" => true, "message"=>"data is retrieved", "data"=> $booking_details );
+    $response = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]); // SELECT THE BOOKING DATA FROM DATABASE ACCORDING TO BOOKING REFERENCE NUMBER
+    if (!empty($response)) {
+        echo json_encode(array('status' => true, 'response' => $response)); // RETURN INVOICE IF BOOKING REFERENCE NUMBER IS CORRECT
     } else {
-        $response = array ( "status" => false, "message"=>"no record found", "data"=> null );
+        echo json_encode(array('status' => false, 'response' => 'The booking reference number in invalid')); // RETURN IF BOOKING REFERENCE NUMBER IS CORRECT
     }
-
-    echo json_encode($response);
 });
 
 /*==================
