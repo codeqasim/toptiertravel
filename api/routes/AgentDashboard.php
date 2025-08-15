@@ -106,7 +106,7 @@ $router->post('agent/dashboard/signup', function () {
     ]);
 
     // ACTIVATION LINK
-    $link = root . '../' . 'account/activation/' . $user_id . '/' . $mail_code;
+    // $link = root . '../' . 'account/activation/' . $user_id . '/' . $mail_code;
 
     // HOOK
     $hook = "user_signup";
