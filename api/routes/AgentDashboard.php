@@ -95,8 +95,15 @@ $router->post('agent/dashboard/signup', function () {
     ]);
 
     // GET INSERTED USER
-    $user_id_ = $db->id();
-    $user_info = $db->select("users", "*", ["id" => $user_id_]);
+    $user_id = $db->id();
+
+    // if ref_id is available in post (or generate one)
+    if (!empty($_POST['ref_id'])) {
+        $db->update("users", ["ref_id" => $_POST['ref_id']], ["id" => $user_id]);
+    }
+
+    // GET UPDATED USER INFO
+    $user_info = $db->get("users", "*", ["id" => $user_id]);
 
     // RESPONSE
     echo json_encode([
@@ -235,7 +242,7 @@ $router->post('agent/dashboard/forgot-password', function () {
                     // HOOK
                     $hook="forget_password";
                     
-                    // include "./hooks.php";
+                    include "./hooks.php";
                 }
 
             } else {
