@@ -608,8 +608,7 @@ $router->post('agent/dashboard/notifications', function () {
     $response = [
         "status"  => false,
         "message" => "Invalid request",
-        "data"    => null,
-        "meta"    => null
+        "data"    => null
     ];
 
     // MARK NOTIFICATIONS AS READ
@@ -620,8 +619,7 @@ $router->post('agent/dashboard/notifications', function () {
                 $response = [
                     "status"  => true,
                     "message" => "All notifications marked as read",
-                    "data"    => null,
-                    "meta"    => null
+                    "data"    => null
                 ];
                 echo json_encode($response);
                 return;
@@ -634,15 +632,13 @@ $router->post('agent/dashboard/notifications', function () {
                         "message" => "Notification marked as read",
                         "data"    => [
                             "id" => $_POST['id']
-                        ],
-                        "meta"    => null
+                        ]
                     ];
                 } else {
                     $response = [
                         "status"  => false,
                         "message" => "Notification ID is required",
-                        "data"    => null,
-                        "meta"    => null
+                        "data"    => null
                     ];
                 }
                 echo json_encode($response);
