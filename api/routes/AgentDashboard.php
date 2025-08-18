@@ -97,8 +97,8 @@ $router->post('agent/dashboard/signup', function () {
     // GET INSERTED USER
     $user_id = $db->id();
 
-    // if ref_id is available in post (or generate one)
-    if (!empty($_POST['ref_id'])) {
+    // if ref_id is available in post then it should be saved 
+    if (isset($_POST['ref_id']) && !empty($_POST['ref_id']) && $_POST['ref_id'] != null) {
         $db->update("users", ["ref_id" => $_POST['ref_id']], ["id" => $user_id]);
     }
 
