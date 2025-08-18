@@ -602,29 +602,108 @@ $router->post('agent/dashboard/bookings/recent', function () {
 AGENT NOTIFICATIONS API
 ==================*/
 $router->post('agent/dashboard/notifications', function () {
-    // INCLUDE CONFIG
     include "./config.php";
-    
-    //MARK ALL NOTIFICATIONS AS READ
-    if (isset($_POST['action']) && $_POST['action'] === 'mark_all_read') {
-        $db->update("notifications", ["status" => '0']);
+    session_start();
+
+    $response = [
+        "status"  => false,
+        "message" => "Invalid request",
+        "data"    => null,
+        "meta"    => null
+    ];
+
+    // MARK NOTIFICATIONS AS READ
+    if (!empty($_POST['action'])) {
+        switch ($_POST['action']) {
+            case 'mark_all_read':
+                $db->update("notifications", ["status" => '0']);
+                $response = [
+                    "status"  => true,
+                    "message" => "All notifications marked as read",
+                    "data"    => null,
+                    "meta"    => null
+                ];
+                echo json_encode($response);
+                return;
+
+            case 'mark_one':
+                if (!empty($_POST['id'])) {
+                    $db->update("notifications", ["status" => '0'], ['id' => $_POST['id']]);
+                    $response = [
+                        "status"  => true,
+                        "message" => "Notification marked as read",
+                        "data"    => [
+                            "id" => $_POST['id']
+                        ],
+                        "meta"    => null
+                    ];
+                } else {
+                    $response = [
+                        "status"  => false,
+                        "message" => "Notification ID is required",
+                        "data"    => null,
+                        "meta"    => null
+                    ];
+                }
+                echo json_encode($response);
+                return;
+
+        }
     }
 
-    //FETCH NOTIFICATIONS BASED ON STATUS IF STATUS IS APPLIED OTHERWISE ALL NOTIFICATIONS
-    if (isset($_POST['status'])) {
-        $notifications = $db->select("notifications", "*", ["status" => $_POST['status'],"ORDER" => ["date" => "DESC"]]);
+    // FETCH NOTIFICATIONS
+    $limit = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int)$_POST['limit'] : 10;
+
+    if (!isset($_SESSION['last_offset'])) {
+        $_SESSION['last_offset'] = 0;
+    }
+
+    $offset = $_SESSION['last_offset'];
+    $where = [
+        "ORDER" => ["id" => "DESC"], // latest first
+        "LIMIT" => [$offset, $limit]
+    ];
+
+    if (!empty($_POST['status'])) {
+        $where["status"] = $_POST['status'];
+    }
+
+    $newRecords = $db->select("notifications", "*", $where);
+
+    // Update session for next scroll
+    $_SESSION['last_offset'] += $limit;
+
+    $totalCount = $db->count("notifications", !empty($_POST['status']) ? ["status" => $_POST['status']] : []);
+
+    if (!empty($newRecords)) {
+        $response = [
+            "status"  => true,
+            "message" => "Notifications retrieved successfully",
+            "data"    => $newRecords,
+            "meta"    => [
+                "total"       => $totalCount,
+                "fetched"     => count($newRecords),
+                "last_offset" => $_SESSION['last_offset'],
+                "has_more"    => ($_SESSION['last_offset'] < $totalCount)
+            ]
+        ];
     } else {
-        $notifications = $db->select("notifications", "*", ["ORDER" => ["date" => "DESC"]]);
-    }
-
-    if(isset($notifications)){
-        $response = array ( "status" => true, "message"=>"data is retrieved", "data"=> $notifications );
-    }else{
-        $response = array ( "status" => false, "message"=>"no notification found", "data"=> null );
+        $response = [
+            "status"  => false,
+            "message" => "No more notifications found",
+            "data"    => [],
+            "meta"    => [
+                "total"       => $totalCount,
+                "fetched"     => 0,
+                "last_offset" => $_SESSION['last_offset'],
+                "has_more"    => false
+            ]
+        ];
     }
 
     echo json_encode($response);
 });
+
 
 /*==================
 AGENT BOOKING DETAILS API
