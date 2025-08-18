@@ -113,7 +113,7 @@ $router->post('agent/dashboard/signup', function () {
     ]);
 
     // ACTIVATION LINK
-    // $link = root . '../' . 'account/activation/' . $user_id . '/' . $mail_code;
+    $link = root . '../' . 'account/activation/' . $user_id . '/' . $mail_code;
 
     // HOOK
     $hook = "user_signup";
@@ -367,10 +367,10 @@ $router->post('agent/dashboard', function () {
                     $partners = $db->select('users' , '*' , ['ref_id' => $user_id]);
 
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
-                    if(isset($partners)){
+                    if(isset($partners) && !empty($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner->user_id, "payment_status" => "paid"]);
-                            if(isset($hotel_bookings)){
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id'], "payment_status" => "paid"]);
+                            if(isset($hotel_bookings) && !empty($hotels_bookings)){
                                 foreach ($hotel_bookings as $hotel_booking) {
                                     $total_partner_commission += (1 * $hotel_sale['subtotal']) / 100;
                                     
