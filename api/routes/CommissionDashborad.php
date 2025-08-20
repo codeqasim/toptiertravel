@@ -521,28 +521,31 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
 
     $today        = date('Y-m-d');
     $start_date   = null;
-    $end_date     = $today; // Always end at today
-    $label_format = "Y-m-d"; // Always daily labels for these ranges
+    $end_date     = $today;
+    $label_format = "Y-m-d";
     $interval     = new DateInterval('P1D');
 
-    // DETERMINE DATE RANGE
+    // DETERMINE DATE RANGE FOR CURRENT PERIOD
     switch ($filter_type) {
         case '7_days':
             $start_date = date('Y-m-d', strtotime('-6 days', strtotime($today)));
+            $days_count = 7;
             break;
         case '30_days':
             $start_date = date('Y-m-d', strtotime('-29 days', strtotime($today)));
+            $days_count = 30;
             break;
         case '90_days':
             $start_date = date('Y-m-d', strtotime('-89 days', strtotime($today)));
+            $days_count = 90;
             break;
         case 'all_time':
-            // Find earliest booking date for this agent
             $earliest = $db->get("hotels_bookings", "booking_date", [
                 "agent_id" => $user_id,
                 "ORDER"    => ["booking_date" => "ASC"]
             ]);
-            $start_date = $earliest ?: $today; // If no bookings, use today
+            $start_date = $earliest ?: $today;
+            $days_count = (strtotime($today) - strtotime($start_date)) / (60*60*24) + 1;
             break;
         default:
             echo json_encode([
@@ -553,16 +556,27 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             return;
     }
 
-    // BUILD QUERY CONDITIONS
-    $conditions = [
+    // CALCULATE PREVIOUS PERIOD DATES
+    $prev_end_date = date('Y-m-d', strtotime('-1 day', strtotime($start_date)));
+    $prev_start_date = date('Y-m-d', strtotime("-{$days_count} days", strtotime($prev_end_date)));
+
+    // GET CURRENT PERIOD DATA
+    $current_conditions = [
         "agent_id"         => $user_id,
         "booking_date[>=]" => $start_date,
         "booking_date[<=]" => $end_date
     ];
+    $current_sales = $db->select("hotels_bookings", '*', $current_conditions);
 
-    $hotel_sales = $db->select("hotels_bookings", '*', $conditions);
+    // GET PREVIOUS PERIOD DATA
+    $previous_conditions = [
+        "agent_id"         => $user_id,
+        "booking_date[>=]" => $prev_start_date,
+        "booking_date[<=]" => $prev_end_date
+    ];
+    $previous_sales = $db->select("hotels_bookings", '*', $previous_conditions);
 
-    // PRE-FILL RESULT ARRAY
+    // PRE-FILL RESULT ARRAY FOR CURRENT PERIOD
     $period = new DatePeriod(
         new DateTime($start_date),
         $interval,
@@ -580,13 +594,18 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         ];
     }
 
-    // IF DATA EXISTS
-    if (!empty($hotel_sales)) {
-        foreach ($hotel_sales as $hotel_sale) {
+    // CALCULATE TOTALS
+    $current_total = 0;
+    $previous_total = 0;
+
+    // PROCESS CURRENT PERIOD DATA
+    if (!empty($current_sales)) {
+        foreach ($current_sales as $hotel_sale) {
             $label     = date($label_format, strtotime($hotel_sale['booking_date']));
             $agent_fee = (float)$hotel_sale['agent_fee'];
 
             $result[$label]['total_commission'] += $agent_fee;
+            $current_total += $agent_fee;
 
             if (strtolower($hotel_sale['agent_payment_status']) === 'paid') {
                 $result[$label]['paid_commission'] += $agent_fee;
@@ -595,10 +614,24 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             }
         }
         $message = "DATA IS RETRIEVED";
-    } 
-    // IF NO DATA FOUND
-    else {
+    } else {
         $message = "NO DATA FOUND FOR SELECTED RANGE";
+    }
+
+    // PROCESS PREVIOUS PERIOD DATA
+    if (!empty($previous_sales)) {
+        foreach ($previous_sales as $hotel_sale) {
+            $agent_fee = (float)$hotel_sale['agent_fee'];
+            $previous_total += $agent_fee;
+        }
+    }
+
+    // CALCULATE SINGLE GROWTH VALUE
+    $growth = 0;
+    if ($previous_total > 0) {
+        $growth = round((($current_total - $previous_total) / $previous_total) * 100, 2);
+    } else {
+        $growth = $current_total > 0 ? 100 : 0;
     }
 
     // SORT AND SEND RESPONSE
@@ -607,11 +640,10 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     $response = [
         "status"  => true,
         "message" => $message,
-        "data"    => array_values($result)
+        "data"    => array_values($result),
+        "growth"  => $growth // Single growth percentage value
     ];
 
     echo json_encode($response);
 });
-
-
 ?>
