@@ -580,15 +580,20 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     $previous_month_sales = $db->select("hotels_bookings", '*', $previous_month_conditions);
 
     // FUNCTION TO GET GROUP KEY
-    function getGroupKey($date, $group_by) {
+    function getGroupKey($date, $group_by, $start_date = null) {
         switch ($group_by) {
             case 'day':
                 return date('Y-m-d', strtotime($date));
             case 'week':
-                // Get the Monday of the week
-                $week_start = date('Y-m-d', strtotime('monday this week', strtotime($date)));
-                $week_end = date('Y-m-d', strtotime('sunday this week', strtotime($date)));
-                return $week_start;
+                // Calculate week number within the period
+                if ($start_date) {
+                    $period_start = new DateTime($start_date);
+                    $current_date = new DateTime($date);
+                    $week_diff = $period_start->diff($current_date)->days;
+                    $week_number = floor($week_diff / 7) + 1;
+                    return 'Week ' . $week_number;
+                }
+                return 'Week';
             case 'month':
                 return date('Y-m', strtotime($date));
             default:
@@ -602,15 +607,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             case 'day':
                 return date('M d', strtotime($key));
             case 'week':
-                // Calculate week number within the period
-                if ($start_date) {
-                    $period_start = new DateTime($start_date);
-                    $current_week = new DateTime($key);
-                    $week_diff = $period_start->diff($current_week)->days;
-                    $week_number = floor($week_diff / 7) + 1;
-                    return 'Week ' . $week_number;
-                }
-                return 'Week';
+                // Return the week key as is (Week 1, Week 2, etc.)
+                return $key;
             case 'month':
                 return date('F', strtotime($key . '-01')); // Full month name like "January"
             default:
@@ -639,17 +637,17 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             ];
         }
     } elseif ($group_by === 'week') {
-        // For weeks, create entry for each week
+        // For weeks, create entry for each week using relative week numbers
         $current_date = new DateTime($start_date);
         $end_date_obj = new DateTime($end_date);
+        $week_counter = 1;
         
         while ($current_date <= $end_date_obj) {
-            $week_start = $current_date->format('Y-m-d');
-            $monday = date('Y-m-d', strtotime('monday this week', strtotime($week_start)));
+            $week_key = 'Week ' . $week_counter;
             
-            if (!isset($result[$monday])) {
-                $result[$monday] = [
-                    'label'             => getDisplayLabel($monday, $group_by, $start_date),
+            if (!isset($result[$week_key])) {
+                $result[$week_key] = [
+                    'label'             => $week_key,
                     'total_commission'  => 0,
                     'paid_commission'   => 0,
                     'pending_commission'=> 0
@@ -657,6 +655,7 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             }
             
             $current_date->modify('+7 days');
+            $week_counter++;
         }
     } else {
         // For months, create entry for each month (including current month)
@@ -690,7 +689,7 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     // PROCESS CURRENT PERIOD DATA
     if (!empty($current_sales)) {
         foreach ($current_sales as $hotel_sale) {
-            $group_key = getGroupKey($hotel_sale['booking_date'], $group_by);
+            $group_key = getGroupKey($hotel_sale['booking_date'], $group_by, $start_date);
             $agent_fee = (float)$hotel_sale['agent_fee'];
 
             // Make sure the group key exists in result array
@@ -733,8 +732,18 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         $growth = $current_total > 0 ? 100 : 0;
     }
 
-    // SORT AND SEND RESPONSE
-    ksort($result);
+    // SORT RESULT - Custom sorting for weeks
+    if ($group_by === 'week') {
+        // Sort weeks by week number
+        uksort($result, function($a, $b) {
+            $week_a = (int) str_replace('Week ', '', $a);
+            $week_b = (int) str_replace('Week ', '', $b);
+            return $week_a - $week_b;
+        });
+    } else {
+        // Default sort for other groupings
+        ksort($result);
+    }
 
     $response = [
         "status"  => true,
