@@ -158,11 +158,20 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
     $page            = (int)($_POST["page"] ?? 1);
     $per_page        = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5;
 
-    // FIX: Handle comma-separated strings in arrays
+    // FIX: Handle JSON data from frontend
+    if (!empty($commission_rate) && is_string($commission_rate)) {
+        $commission_rate = json_decode($commission_rate, true) ?? [];
+    }
+    
+    if (!empty($booking_value) && is_string($booking_value)) {
+        $booking_value = json_decode($booking_value, true) ?? [];
+    }
+
+    // FIX: Handle comma-separated strings in arrays (keep existing logic for backward compatibility)
     if (!empty($commission_rate) && is_array($commission_rate)) {
         $fixed_commission_rate = [];
         foreach ($commission_rate as $rate) {
-            if (strpos($rate, ',') !== false) {
+            if (is_string($rate) && strpos($rate, ',') !== false) {
                 // Split comma-separated values
                 $split_rates = explode(',', $rate);
                 foreach ($split_rates as $split_rate) {
@@ -181,7 +190,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
     if (!empty($booking_value) && is_array($booking_value)) {
         $fixed_booking_value = [];
         foreach ($booking_value as $value_item) {
-            if (strpos($value_item, ',') !== false) {
+            if (is_string($value_item) && strpos($value_item, ',') !== false) {
                 // Split comma-separated values
                 $split_values = explode(',', $value_item);
                 foreach ($split_values as $split_value) {
