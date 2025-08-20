@@ -519,25 +519,26 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     $user_id     = $_POST["user_id"];
     $filter_type = $_POST["filter_type"] ?? '7_days';
 
-    $today        = date('Y-m-d');
-    $start_date   = null;
-    $end_date     = $today;
-    $label_format = "Y-m-d";
-    $interval     = new DateInterval('P1D');
+    $today = date('Y-m-d');
+    $start_date = null;
+    $end_date = $today;
 
     // DETERMINE DATE RANGE FOR CURRENT PERIOD
     switch ($filter_type) {
         case '7_days':
             $start_date = date('Y-m-d', strtotime('-6 days', strtotime($today)));
             $days_count = 7;
+            $group_by = 'day';
             break;
         case '30_days':
             $start_date = date('Y-m-d', strtotime('-29 days', strtotime($today)));
             $days_count = 30;
+            $group_by = 'week';
             break;
         case '90_days':
             $start_date = date('Y-m-d', strtotime('-89 days', strtotime($today)));
             $days_count = 90;
+            $group_by = 'month';
             break;
         case 'all_time':
             $earliest = $db->get("hotels_bookings", "booking_date", [
@@ -546,6 +547,7 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             ]);
             $start_date = $earliest ?: $today;
             $days_count = (strtotime($today) - strtotime($start_date)) / (60*60*24) + 1;
+            $group_by = 'month';
             break;
         default:
             echo json_encode([
@@ -556,9 +558,9 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             return;
     }
 
-    // CALCULATE PREVIOUS PERIOD DATES
-    $prev_end_date = date('Y-m-d', strtotime('-1 day', strtotime($start_date)));
-    $prev_start_date = date('Y-m-d', strtotime("-{$days_count} days", strtotime($prev_end_date)));
+    // CALCULATE PREVIOUS MONTH DATES FOR GROWTH CALCULATION
+    $prev_month_start = date('Y-m-01', strtotime('-1 month', strtotime($today)));
+    $prev_month_end = date('Y-m-t', strtotime('-1 month', strtotime($today)));
 
     // GET CURRENT PERIOD DATA
     $current_conditions = [
@@ -568,49 +570,141 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     ];
     $current_sales = $db->select("hotels_bookings", '*', $current_conditions);
 
-    // GET PREVIOUS PERIOD DATA
-    $previous_conditions = [
+    // GET PREVIOUS MONTH DATA FOR GROWTH CALCULATION
+    $previous_month_conditions = [
         "agent_id"         => $user_id,
-        "booking_date[>=]" => $prev_start_date,
-        "booking_date[<=]" => $prev_end_date
+        "booking_date[>=]" => $prev_month_start,
+        "booking_date[<=]" => $prev_month_end
     ];
-    $previous_sales = $db->select("hotels_bookings", '*', $previous_conditions);
+    $previous_month_sales = $db->select("hotels_bookings", '*', $previous_month_conditions);
+
+    // FUNCTION TO GET GROUP KEY
+    function getGroupKey($date, $group_by) {
+        switch ($group_by) {
+            case 'day':
+                return date('Y-m-d', strtotime($date));
+            case 'week':
+                // Get the Monday of the week
+                $week_start = date('Y-m-d', strtotime('monday this week', strtotime($date)));
+                $week_end = date('Y-m-d', strtotime('sunday this week', strtotime($date)));
+                return $week_start;
+            case 'month':
+                return date('Y-m', strtotime($date));
+            default:
+                return date('Y-m-d', strtotime($date));
+        }
+    }
+
+    // FUNCTION TO GET DISPLAY LABEL
+    function getDisplayLabel($key, $group_by, $start_date = null) {
+        switch ($group_by) {
+            case 'day':
+                return date('M d', strtotime($key));
+            case 'week':
+                // Calculate week number within the period
+                if ($start_date) {
+                    $period_start = new DateTime($start_date);
+                    $current_week = new DateTime($key);
+                    $week_diff = $period_start->diff($current_week)->days;
+                    $week_number = floor($week_diff / 7) + 1;
+                    return 'Week ' . $week_number;
+                }
+                return 'Week';
+            case 'month':
+                return date('F', strtotime($key . '-01')); // Full month name like "January"
+            default:
+                return $key;
+        }
+    }
 
     // PRE-FILL RESULT ARRAY FOR CURRENT PERIOD
-    $period = new DatePeriod(
-        new DateTime($start_date),
-        $interval,
-        (new DateTime($end_date))->modify('+1 day')
-    );
-
     $result = [];
-    foreach ($period as $dt) {
-        $label = $dt->format($label_format);
-        $result[$label] = [
-            'label'             => $label,
-            'total_commission'  => 0,
-            'paid_commission'   => 0,
-            'pending_commission'=> 0
-        ];
+    
+    if ($group_by === 'day') {
+        // For days, create entry for each day
+        $period = new DatePeriod(
+            new DateTime($start_date),
+            new DateInterval('P1D'),
+            (new DateTime($end_date))->modify('+1 day')
+        );
+        
+        foreach ($period as $dt) {
+            $key = $dt->format('Y-m-d');
+            $result[$key] = [
+                'label'             => getDisplayLabel($key, $group_by, $start_date),
+                'total_commission'  => 0,
+                'paid_commission'   => 0,
+                'pending_commission'=> 0
+            ];
+        }
+    } elseif ($group_by === 'week') {
+        // For weeks, create entry for each week
+        $current_date = new DateTime($start_date);
+        $end_date_obj = new DateTime($end_date);
+        
+        while ($current_date <= $end_date_obj) {
+            $week_start = $current_date->format('Y-m-d');
+            $monday = date('Y-m-d', strtotime('monday this week', strtotime($week_start)));
+            
+            if (!isset($result[$monday])) {
+                $result[$monday] = [
+                    'label'             => getDisplayLabel($monday, $group_by, $start_date),
+                    'total_commission'  => 0,
+                    'paid_commission'   => 0,
+                    'pending_commission'=> 0
+                ];
+            }
+            
+            $current_date->modify('+7 days');
+        }
+    } else {
+        // For months, create entry for each month
+        $current_date = new DateTime($start_date);
+        $end_date_obj = new DateTime($end_date);
+        
+        while ($current_date <= $end_date_obj) {
+            $month_key = $current_date->format('Y-m');
+            
+            if (!isset($result[$month_key])) {
+                $result[$month_key] = [
+                    'label'             => getDisplayLabel($month_key, $group_by, $start_date),
+                    'total_commission'  => 0,
+                    'paid_commission'   => 0,
+                    'pending_commission'=> 0
+                ];
+            }
+            
+            $current_date->modify('+1 month');
+        }
     }
 
     // CALCULATE TOTALS
     $current_total = 0;
-    $previous_total = 0;
+    $previous_month_total = 0;
 
     // PROCESS CURRENT PERIOD DATA
     if (!empty($current_sales)) {
         foreach ($current_sales as $hotel_sale) {
-            $label     = date($label_format, strtotime($hotel_sale['booking_date']));
+            $group_key = getGroupKey($hotel_sale['booking_date'], $group_by);
             $agent_fee = (float)$hotel_sale['agent_fee'];
 
-            $result[$label]['total_commission'] += $agent_fee;
+            // Make sure the group key exists in result array
+            if (!isset($result[$group_key])) {
+                $result[$group_key] = [
+                    'label'             => getDisplayLabel($group_key, $group_by, $start_date),
+                    'total_commission'  => 0,
+                    'paid_commission'   => 0,
+                    'pending_commission'=> 0
+                ];
+            }
+
+            $result[$group_key]['total_commission'] += $agent_fee;
             $current_total += $agent_fee;
 
             if (strtolower($hotel_sale['agent_payment_status']) === 'paid') {
-                $result[$label]['paid_commission'] += $agent_fee;
+                $result[$group_key]['paid_commission'] += $agent_fee;
             } else {
-                $result[$label]['pending_commission'] += $agent_fee;
+                $result[$group_key]['pending_commission'] += $agent_fee;
             }
         }
         $message = "DATA IS RETRIEVED";
@@ -618,18 +712,18 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         $message = "NO DATA FOUND FOR SELECTED RANGE";
     }
 
-    // PROCESS PREVIOUS PERIOD DATA
-    if (!empty($previous_sales)) {
-        foreach ($previous_sales as $hotel_sale) {
+    // PROCESS PREVIOUS MONTH DATA FOR GROWTH CALCULATION
+    if (!empty($previous_month_sales)) {
+        foreach ($previous_month_sales as $hotel_sale) {
             $agent_fee = (float)$hotel_sale['agent_fee'];
-            $previous_total += $agent_fee;
+            $previous_month_total += $agent_fee;
         }
     }
 
-    // CALCULATE SINGLE GROWTH VALUE
+    // CALCULATE GROWTH COMPARED TO PREVIOUS MONTH
     $growth = 0;
-    if ($previous_total > 0) {
-        $growth = round((($current_total - $previous_total) / $previous_total) * 100, 2);
+    if ($previous_month_total > 0) {
+        $growth = round((($current_total - $previous_month_total) / $previous_month_total) * 100, 2);
     } else {
         $growth = $current_total > 0 ? 100 : 0;
     }
@@ -641,7 +735,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         "status"  => true,
         "message" => $message,
         "data"    => array_values($result),
-        "growth"  => $growth // Single growth percentage value
+        "growth"  => $growth, // Growth compared to previous month
+        "group_by" => $group_by
     ];
 
     echo json_encode($response);
