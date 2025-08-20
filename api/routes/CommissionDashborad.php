@@ -536,7 +536,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             $group_by = 'week';
             break;
         case '90_days':
-            $start_date = date('Y-m-d', strtotime('-89 days', strtotime($today)));
+            // Start from 3 months ago (including current month = 3 total months)
+            $start_date = date('Y-m-01', strtotime('-2 months', strtotime($today)));
             $days_count = 90;
             $group_by = 'month';
             break;
@@ -658,11 +659,15 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
             $current_date->modify('+7 days');
         }
     } else {
-        // For months, create entry for each month
+        // For months, create entry for each month (including current month)
         $current_date = new DateTime($start_date);
         $end_date_obj = new DateTime($end_date);
         
-        while ($current_date <= $end_date_obj) {
+        // Ensure we include the current month
+        $current_month = date('Y-m');
+        $start_month = $current_date->format('Y-m');
+        
+        while ($current_date->format('Y-m') <= $current_month) {
             $month_key = $current_date->format('Y-m');
             
             if (!isset($result[$month_key])) {
@@ -736,7 +741,9 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         "message" => $message,
         "data"    => array_values($result),
         "growth"  => $growth, // Growth compared to previous month
-        "group_by" => $group_by
+        "group_by" => $group_by,
+        "previous_month_total" => $previous_month_total, // Added for reference
+        "current_total" => $current_total // Added for reference
     ];
 
     echo json_encode($response);
