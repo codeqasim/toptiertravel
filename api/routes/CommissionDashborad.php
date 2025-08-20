@@ -149,14 +149,53 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 
     // GET POST PARAMETERS
     $user_id         = $_POST["user_id"];
-    $value           = $_POST["value"] ?? null; // MINIMUM COMMISSION VALUE
-    $month           = $_POST["month"] ?? null; // FORMAT: YYYY-MM
-    $status          = $_POST["status"] ?? null; // BOOKING STATUS
-    $commission_rate = $_POST["commission_rate"] ?? []; // ARRAY FROM CHECKBOXES
-    $booking_value   = $_POST["booking_value"] ?? [];   // ARRAY FROM CHECKBOXES
-    $search          = $_POST["search"] ?? null; // SEARCH TERM
+    $value           = $_POST["value"] ?? null;
+    $month           = $_POST["month"] ?? null;
+    $status          = $_POST["status"] ?? null;
+    $commission_rate = $_POST["commission_rate"] ?? [];
+    $booking_value   = $_POST["booking_value"] ?? [];
+    $search          = $_POST["search"] ?? null;
     $page            = (int)($_POST["page"] ?? 1);
     $per_page        = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5;
+
+    // FIX: Handle comma-separated strings in arrays
+    if (!empty($commission_rate) && is_array($commission_rate)) {
+        $fixed_commission_rate = [];
+        foreach ($commission_rate as $rate) {
+            if (strpos($rate, ',') !== false) {
+                // Split comma-separated values
+                $split_rates = explode(',', $rate);
+                foreach ($split_rates as $split_rate) {
+                    $trimmed = trim($split_rate);
+                    if (!empty($trimmed)) {
+                        $fixed_commission_rate[] = $trimmed;
+                    }
+                }
+            } else {
+                $fixed_commission_rate[] = trim($rate);
+            }
+        }
+        $commission_rate = $fixed_commission_rate;
+    }
+
+    if (!empty($booking_value) && is_array($booking_value)) {
+        $fixed_booking_value = [];
+        foreach ($booking_value as $value_item) {
+            if (strpos($value_item, ',') !== false) {
+                // Split comma-separated values
+                $split_values = explode(',', $value_item);
+                foreach ($split_values as $split_value) {
+                    $trimmed = trim($split_value);
+                    if (!empty($trimmed)) {
+                        $fixed_booking_value[] = $trimmed;
+                    }
+                }
+            } else {
+                $fixed_booking_value[] = trim($value_item);
+            }
+        }
+        $booking_value = $fixed_booking_value;
+    }
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [
@@ -177,79 +216,106 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
         $conditions["booking_date[<>]"] = [$start_date, $end_date];
     }
 
-    // BOOKING VALUE FILTER
-    if (!empty($booking_value) && is_array($booking_value)) {
-        $value_or = [];
-        foreach ($booking_value as $bv) {
-            if ($bv === 'premium') {
-                $value_or[] = ["price_markup[>=]" => 10000];
-            } elseif ($bv === 'standard') {
-                $value_or[] = ["price_markup[>=]" => 5000, "price_markup[<]" => 10000];
-            }
-        }
-        if (!empty($value_or)) {
-            $conditions["OR #booking_value"] = $value_or;
-        }
-    }
-
-    // SEARCH FILTER
-    if (!empty($search)) {
-        $conditions["OR #search"] = [
-            "hotel_name[~]"      => $search,
-            "location[~]"        => $search,
-            "booking_ref_no[~]"  => $search
-        ];
-    }
-
-    // COMMISSION RATE FILTER (USING MEDOO SYNTAX)
-    if (!empty($commission_rate) && is_array($commission_rate)) {
-        $conditions["price_original[>]"] = 0; // Avoid division by zero
-        
-        $commission_or = [];
-        foreach ($commission_rate as $rate) {
-            if ($rate === 'high') {
-                // For high commission: agent_fee >= (price_original * 0.15)
-                // Using raw SQL in Medoo format
-                $commission_or[] = ["#commission_high" => "agent_fee >= (price_original * 0.15)"];
-            } elseif ($rate === 'standard') {
-                // For standard commission: agent_fee between 10-14% of price_original
-                $commission_or[] = [
-                    "AND" => [
-                        "#commission_std_min" => "agent_fee >= (price_original * 0.10)",
-                        "#commission_std_max" => "agent_fee <= (price_original * 0.14)"
-                    ]
-                ];
-            }
-        }
-        if (!empty($commission_or)) {
-            $conditions["OR #commission_rate"] = $commission_or;
-        }
-    }
-
     // MINIMUM COMMISSION VALUE FILTER
     if (!empty($value)) {
-        $conditions["price_original[>]"] = 0; // Avoid division by zero
+        $conditions["price_original[>]"] = 0;
         $conditions["agent_fee[>=]"] = $value;
     }
 
-    // COUNT TOTAL RECORDS FOR PAGINATION (BEFORE ADDING LIMIT/ORDER)
-    $count_conditions = $conditions;
-    $total_count = $db->count("hotels_bookings", $count_conditions);
-    $total_pages = ceil($total_count / $per_page);
-
-    // ADD PAGINATION AND ORDERING
-    $offset = ($page - 1) * $per_page;
+    // Get all records first
     $conditions["ORDER"] = ["booking_date" => "DESC"];
-    $conditions["LIMIT"] = [$offset, $per_page];
+    $all_records = $db->select("hotels_bookings", "*", $conditions);
 
-    // FETCH MATCHING BOOKINGS FROM DATABASE
-    $all_sales = $db->select("hotels_bookings", "*", $conditions);
+    // FILTER LOGIC
+    $filtered_records = [];
+    
+    foreach ($all_records as $record) {
+        $include_record = false;
+        
+        // If no filters applied, include all records
+        if (empty($booking_value) && empty($commission_rate) && empty($search)) {
+            $include_record = true;
+        } else {
+            // Check each filter type - if ANY match, include the record
+            
+            // BOOKING VALUE FILTER
+            if (!empty($booking_value) && is_array($booking_value)) {
+                $markup = (float)($record['price_markup'] ?? 0);
+                
+                foreach ($booking_value as $bv) {
+                    if (($bv === 'premium' && $markup >= 10000) || 
+                        ($bv === 'standard' && $markup >= 5000 && $markup < 10000)) {
+                        $include_record = true;
+                        break;
+                    }
+                }
+            }
+            
+            // COMMISSION RATE FILTER
+            if (!$include_record && !empty($commission_rate) && is_array($commission_rate)) {
+                $original_price = (float)($record['price_original'] ?? 0);
+                $agent_fee = (float)($record['agent_fee'] ?? 0);
+                
+                if ($original_price > 0 && $agent_fee > 0) {
+                    $commission_percentage = ($agent_fee / $original_price) * 100;
+                    
+                    foreach ($commission_rate as $rate) {
+                        if (($rate === 'high' && $commission_percentage >= 15) ||
+                            ($rate === 'standard' && $commission_percentage >= 10 && $commission_percentage < 15)) {
+                            $include_record = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // SEARCH FILTER
+            if (!$include_record && !empty($search)) {
+                // Check regular fields
+                if (stripos($record['hotel_name'] ?? '', $search) !== false ||
+                    stripos($record['location'] ?? '', $search) !== false ||
+                    stripos($record['booking_ref_no'] ?? '', $search) !== false) {
+                    $include_record = true;
+                }
+                
+                // Check guest JSON if no match yet
+                if (!$include_record && !empty($record['guest'])) {
+                    $guest = json_decode($record['guest']);
+                    if (!empty($guest[0])) {
+                        $guest_obj = $guest[0];
+                        
+                        $title = $guest_obj->title ?? '';
+                        $first_name = $guest_obj->first_name ?? '';
+                        $last_name = $guest_obj->last_name ?? '';
+                        $full_name = trim($title . ' ' . $first_name . ' ' . $last_name);
+                        
+                        if (stripos($title, $search) !== false ||
+                            stripos($first_name, $search) !== false ||
+                            stripos($last_name, $search) !== false ||
+                            stripos($full_name, $search) !== false) {
+                            $include_record = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if ($include_record) {
+            $filtered_records[] = $record;
+        }
+    }
+
+    // Calculate pagination
+    $total_count = count($filtered_records);
+    $total_pages = ceil($total_count / $per_page);
+    $offset = ($page - 1) * $per_page;
+    $paginated_records = array_slice($filtered_records, $offset, $per_page);
 
     // PREPARE RESPONSE DATA
-    if (!empty($all_sales)) {
+    if (!empty($paginated_records)) {
         $data = [];
 
-        foreach ($all_sales as $hotel_sale) {
+        foreach ($paginated_records as $hotel_sale) {
             // GUEST NAME
             $guest_name = 'N/A';
             if (!empty($hotel_sale['guest'])) {
@@ -262,13 +328,9 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             // DURATION IN NIGHTS
             $duration = 0;
             if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
-                try {
-                    $checkinDate  = new DateTime($hotel_sale['checkin']);
-                    $checkoutDate = new DateTime($hotel_sale['checkout']);
-                    $duration = $checkinDate->diff($checkoutDate)->days;
-                } catch (Exception $e) {
-                    $duration = 0;
-                }
+                $checkinDate  = new DateTime($hotel_sale['checkin']);
+                $checkoutDate = new DateTime($hotel_sale['checkout']);
+                $duration = $checkinDate->diff($checkoutDate)->days;
             }
 
             // CALCULATE COMMISSION PERCENTAGE FOR DISPLAY
@@ -277,7 +339,6 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 $commission_percentage = ($hotel_sale['agent_fee'] / $hotel_sale['price_original']) * 100;
             }
 
-            // ADD BOOKING DATA TO RESPONSE ARRAY
             $data[] = [
                 'id'            => $hotel_sale['booking_id'] ?? null,
                 'booking_id'    => $hotel_sale['booking_ref_no'],
@@ -288,15 +349,14 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 'checkout'      => $hotel_sale['checkout'] ?? 'N/A',
                 'nights'        => $duration,
                 'subtotal'      => $hotel_sale['subtotal'] ?? 0,
-                'commission'    => $hotel_sale['agent_fee'] ?? 0, // This is the commission amount
-                'commission_rate' => round($commission_percentage, 2), // Calculate percentage for display
+                'commission'    => $hotel_sale['agent_fee'] ?? 0,
+                'commission_rate' => round($commission_percentage, 2),
                 'payment_status'=> $hotel_sale['agent_payment_status'],
                 'payment_type'  => $hotel_sale['agent_payment_type'],
                 'payment_date'  => $hotel_sale['payment_date'],
             ];
         }
 
-        // SUCCESS RESPONSE
         $response = [
             "status"     => true,
             "message"    => "DATA IS RETRIEVED",
@@ -309,7 +369,6 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             "data" => $data
         ];
     } else {
-        // NO RECORD FOUND RESPONSE
         $response = [
             "status"  => false,
             "message" => "NO RECORD FOUND",
@@ -323,64 +382,20 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
         ];
     }
     
-    // CALCULATE FILTER COUNTS (FOR SIDEBAR FILTERS)
-    $filter_counts = [];
-    
-    // Base conditions for filter counts (without commission and value filters)
-    $base_conditions = [
-        "agent_id" => $user_id
-    ];
-    
-    // Apply basic filters to base conditions
-    if (!empty($status)) {
-        $base_conditions["booking_status"] = $status;
-    } else {
-        $base_conditions["booking_status"] = ["confirmed", "pending"];
-    }
-    
-    if (!empty($month)) {
-        $start_date = $month . "-01";
-        $end_date = date("Y-m-t", strtotime($start_date));
-        $base_conditions["booking_date[<>]"] = [$start_date, $end_date];
-    }
-    
-    if (!empty($search)) {
-        $base_conditions["OR #search"] = [
-            "hotel_name[~]"      => $search,
-            "location[~]"        => $search,
-            "booking_ref_no[~]"  => $search
-        ];
-    }
-    
-    // Get all records for filter counting
-    $all_records_for_count = $db->select("hotels_bookings", "*", $base_conditions);
-  
-    // Commission Rate Counts
-    $filter_counts['commission_rate'] = [
-        'high' => 0,
-        'standard' => 0
-    ];
-    
-    // Booking Value Counts
-    $filter_counts['booking_value'] = [
-        'premium' => 0,
-        'standard' => 0
+    // Calculate filter counts
+    $filter_counts = [
+        'commission_rate' => ['high' => 0, 'standard' => 0],
+        'booking_value' => ['premium' => 0, 'standard' => 0]
     ];
       
-    foreach ($all_records_for_count as $record) {
+    foreach ($all_records as $record) {
         // Count commission rates
-        if (
-            !empty($record['price_original']) && 
-            $record['price_original'] > 0 &&
-            !empty($record['agent_fee']) && 
-            $record['agent_fee'] > 0
-        ) {
-            // Calculate commission percentage
+        if (!empty($record['price_original']) && $record['price_original'] > 0 &&
+            !empty($record['agent_fee']) && $record['agent_fee'] > 0) {
             $commission_percentage = ($record['agent_fee'] / $record['price_original']) * 100;
-
             if ($commission_percentage >= 15) {
                 $filter_counts['commission_rate']['high']++;
-            } elseif ($commission_percentage >= 10 && $commission_percentage <= 14) {
+            } elseif ($commission_percentage >= 10 && $commission_percentage < 15) {
                 $filter_counts['commission_rate']['standard']++;
             }
         }
@@ -395,14 +410,8 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
         }
     }
 
-    // Add filter counts to response
-    if (isset($response['status']) && $response['status']) {
-        $response['filter_counts'] = $filter_counts;
-    } else {
-        $response['filter_counts'] = $filter_counts;
-    }
+    $response['filter_counts'] = $filter_counts;
 
-    // OUTPUT JSON RESPONSE
     echo json_encode($response);
 });
 /*==================
