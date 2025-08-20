@@ -851,4 +851,388 @@ $router->post('agent/dashboard/bookings', function () {
     echo json_encode($response);
 });
 
+/*==================
+AGENT SETTINGS API
+==================*/
+$router->post('agent/dashboard/settings', function () {
+    
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    required('user_id');
+    required('type'); // 'general' or 'personal'
+
+    $user_id = $_POST["user_id"];
+    $type = $_POST["type"];
+    
+    $response = [
+        "status" => false,
+        "message" => "Invalid request",
+        "data" => null
+    ];
+
+    if ($type === 'general') {
+
+        $settings = $db->get("settings", "*", ["user_id" => $user_id]);
+    
+        if (!$settings) {
+            $response = [
+                "status" => false,
+                "message" => "No user data found",
+                "data" => null
+            ];
+            echo json_encode($response);
+            return;
+        }
+
+        // FORM GENERAL SETTINGS DATA ARRAY
+        $response = [
+            "status" => true,
+            "message" => "General settings retrieved successfully",
+            "data" => [
+                "business_name" => $settings['business_name'] ?? '',
+                "domain_name" => $settings['site_url'] ?? '',
+                "website_offline" => $settings['site_offline'] ?? 'No',
+                "offline_message" => $settings['offline_message'] ?? '',
+                "business_logo" => $settings['header_logo_img'] ?? null,
+                "favicon" => $settings['favicon_img'] ?? null
+            ]
+        ];
+        
+    } elseif ($type === 'personal') {
+        $user = $db->get("users", "*", ["user_id" => $user_id]);
+
+        if (!$user) {
+            $response = [
+                "status" => false,
+                "message" => "No user found",
+                "data" => null
+            ];
+            echo json_encode($response);
+            return;
+        }
+
+        $country_name = '';
+        if (!empty($user['country_code']) && $user['country_code'] != null) {
+            $country = $db->get("countries", "*", [
+                "id" => $user['country_code']
+            ]);
+
+            $country_name = isset($country['name']) ? $country['name'] : '';
+        }
+        // FORM PERSONAL SETTINGS DATA ARRAY
+        $response = [
+            "status" => true,
+            "message" => "Personal settings retrieved successfully",
+            "data" => [
+                "profile_photo" => $user['profile_photo'] ?? null,
+                "first_name" => $user['first_name'] ?? '',
+                "last_name" => $user['last_name'] ?? '',
+                "email" => $user['email'] ?? '',
+                "phone_number" => $user['phone'] ?? '',
+                "country" => $country_name,
+                "address" => $user['address1'] ?? '',
+                "bio" => $user['note'] ?? '',
+                "linkedin_url" => $user['linkedin_url'] ?? '',
+                "twitter_url" => $user['twitter_url'] ?? '',
+                "website_url" => $user['website_url'] ?? '',
+                "preferred_payment_method" => $user['preferred_payment_method'] ?? '',
+                "payment_details" => $user['payment_details'] ?? ''
+            ]
+        ];
+        
+    } else {
+        $response = [
+            "status" => false,
+            "message" => "Invalid type. Use 'general' or 'personal'",
+            "data" => null
+        ];
+    }
+
+    echo json_encode($response);
+});
+
+/*==================
+AGENT SETTINGS API
+==================*/
+$router->post('agent/dashboard/settings/save', function () {
+    
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    required('user_id');
+    required('type'); // 'general' or 'personal'
+
+    $user_id = $_POST["user_id"];
+    $type = $_POST["type"];
+    
+    $response = [
+        "status" => false,
+        "message" => "Invalid request",
+        "data" => null
+    ];
+
+    // FUNCTION TO HANDLE FILE UPLOADS
+    function uploadFile($fileInputName, $uploadDir = 'assets/uploads/') {
+        if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        $file = $_FILES[$fileInputName];
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        $maxSize = 2 * 1024 * 1024; // 2MB
+
+        // VALIDATE FILE TYPE
+        if (!in_array($file['type'], $allowedTypes)) {
+            return ['error' => 'Invalid file type. Only JPG, PNG, and GIF are allowed.'];
+        }
+
+        // VALIDATE FILE SIZE
+        if ($file['size'] > $maxSize) {
+            return ['error' => 'File too large. Maximum size is 2MB.'];
+        }
+
+        // CREATE UPLOAD DIRECTORY IF NOT EXISTS
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        // GENERATE UNIQUE FILENAME
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid() . '_' . time() . '.' . $extension;
+        $filepath = $uploadDir . $filename;
+
+        // MOVE UPLOADED FILE
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            return $filename;
+        } else {
+            return ['error' => 'Failed to upload file.'];
+        }
+    }
+
+    if ($type === 'general') {
+
+        // VERIFY USER EXISTS IN USERS TABLE
+        $userExists = $db->get("users", "user_id", ["user_id" => $user_id]);
+        
+        if (!$userExists) {
+            $response = [
+                "status" => false,
+                "message" => "User not found",
+                "data" => null
+            ];
+            echo json_encode($response);
+            return;
+        }
+
+        // PREPARE GENERAL SETTINGS DATA FOR UPDATE
+        $updateData = [];
+        
+        if (isset($_POST['business_name'])) {
+            $updateData['business_name'] = $_POST['business_name'];
+        }
+        if (isset($_POST['domain_name'])) {
+            $updateData['site_url'] = $_POST['domain_name'];
+        }
+        if (isset($_POST['website_offline'])) {
+            $updateData['site_offline'] = $_POST['website_offline'];
+        }
+        if (isset($_POST['offline_message'])) {
+            $updateData['offline_message'] = $_POST['offline_message'];
+        }
+
+        // HANDLE BUSINESS LOGO UPLOAD
+        if (isset($_FILES['business_logo'])) {
+            $logoUpload = uploadFile('business_logo');
+            if (is_array($logoUpload) && isset($logoUpload['error'])) {
+                $response = [
+                    "status" => false,
+                    "message" => "Business logo upload error: " . $logoUpload['error'],
+                    "data" => null
+                ];
+                echo json_encode($response);
+                return;
+            } elseif ($logoUpload) {
+                $updateData['header_logo_img'] = $logoUpload;
+            }
+        } elseif (isset($_POST['business_logo'])) {
+            $updateData['header_logo_img'] = $_POST['business_logo'];
+        }
+
+        // HANDLE FAVICON UPLOAD
+        if (isset($_FILES['favicon'])) {
+            $faviconUpload = uploadFile('favicon');
+            if (is_array($faviconUpload) && isset($faviconUpload['error'])) {
+                $response = [
+                    "status" => false,
+                    "message" => "Favicon upload error: " . $faviconUpload['error'],
+                    "data" => null
+                ];
+                echo json_encode($response);
+                return;
+            } elseif ($faviconUpload) {
+                $updateData['favicon_img'] = $faviconUpload;
+            }
+        } elseif (isset($_POST['favicon'])) {
+            $updateData['favicon_img'] = $_POST['favicon'];
+        }
+
+        if (!empty($updateData)) {
+            // CHECK IF SETTINGS RECORD EXISTS FOR THIS USER
+            $existingSettings = $db->get("settings", "*", ["user_id" => $user_id]);
+            
+            if ($existingSettings) {
+                // UPDATE EXISTING SETTINGS RECORD
+                $result = $db->update("settings", $updateData, ["user_id" => $user_id]);
+                $message = "General settings updated successfully";
+            } else {
+                // CREATE NEW SETTINGS RECORD FOR THIS USER
+                $updateData['user_id'] = $user_id;
+                $updateData['created_at'] = date('Y-m-d H:i:s');
+                $result = $db->insert("settings", $updateData);
+                $message = "New settings record created and general settings saved successfully";
+            }
+
+            if ($result) {
+                $response = [
+                    "status" => true,
+                    "message" => $message,
+                    "data" => [
+                        "business_logo" => isset($updateData['header_logo_img']) ? 'assets/uploads/' . $updateData['header_logo_img'] : null,
+                        "favicon" => isset($updateData['favicon_img']) ? 'assets/uploads/' . $updateData['favicon_img'] : null,
+                        "settings_created" => !$existingSettings
+                    ]
+                ];
+            } else {
+                $response = [
+                    "status" => false,
+                    "message" => "Failed to save general settings",
+                    "data" => null
+                ];
+            }
+        } else {
+            $response = [
+                "status" => false,
+                "message" => "No data provided to update",
+                "data" => null
+            ];
+        }
+        
+    } elseif ($type === 'personal') {
+        
+        // VERIFY USER EXISTS IN USERS TABLE
+        $userExists = $db->get("users", "user_id", ["user_id" => $user_id]);
+        
+        if (!$userExists) {
+            $response = [
+                "status" => false,
+                "message" => "User not found",
+                "data" => null
+            ];
+            echo json_encode($response);
+            return;
+        }
+        
+        // PREPARE PERSONAL SETTINGS DATA FOR UPDATE
+        $updateData = [];
+        
+        // HANDLE PROFILE PHOTO UPLOAD
+        if (isset($_FILES['profile_photo'])) {
+            $photoUpload = uploadFile('profile_photo');
+            if (is_array($photoUpload) && isset($photoUpload['error'])) {
+                $response = [
+                    "status" => false,
+                    "message" => "Profile photo upload error: " . $photoUpload['error'],
+                    "data" => null
+                ];
+                echo json_encode($response);
+                return;
+            } elseif ($photoUpload) {
+                $updateData['profile_photo'] = $photoUpload;
+            }
+        } elseif (isset($_POST['profile_photo'])) {
+            $updateData['profile_photo'] = $_POST['profile_photo'];
+        }
+
+        if (isset($_POST['first_name'])) {
+            $updateData['first_name'] = $_POST['first_name'];
+        }
+        if (isset($_POST['last_name'])) {
+            $updateData['last_name'] = $_POST['last_name'];
+        }
+        if (isset($_POST['email'])) {
+            $updateData['email'] = $_POST['email'];
+        }
+        if (isset($_POST['phone_number'])) {
+            $updateData['phone'] = $_POST['phone_number'];
+        }
+        if (isset($_POST['country'])) {
+            // CONVERT COUNTRY NAME TO ID IF NEEDED
+            if (!is_numeric($_POST['country'])) {
+                $country = $db->get("countries", "id", ["name" => $_POST['country']]);
+                $updateData['country_code'] = $country ? $country : null;
+            } else {
+                $updateData['country_code'] = $_POST['country'];
+            }
+        }
+        if (isset($_POST['address'])) {
+            $updateData['address1'] = $_POST['address'];
+        }
+        if (isset($_POST['bio'])) {
+            $updateData['note'] = $_POST['bio'];
+        }
+        if (isset($_POST['linkedin_url'])) {
+            $updateData['linkedin_url'] = $_POST['linkedin_url'];
+        }
+        if (isset($_POST['twitter_url'])) {
+            $updateData['twitter_url'] = $_POST['twitter_url'];
+        }
+        if (isset($_POST['website_url'])) {
+            $updateData['website_url'] = $_POST['website_url'];
+        }
+        if (isset($_POST['preferred_payment_method'])) {
+            $updateData['preferred_payment_method'] = $_POST['preferred_payment_method'];
+        }
+        if (isset($_POST['payment_details'])) {
+            $updateData['payment_details'] = $_POST['payment_details'];
+        }
+
+        if (!empty($updateData)) {
+            // UPDATE USER RECORD (USER ALWAYS EXISTS)
+            $result = $db->update("users", $updateData, ["user_id" => $user_id]);
+
+            if ($result) {
+                $response = [
+                    "status" => true,
+                    "message" => "Personal settings updated successfully",
+                    "data" => [
+                        "profile_photo" => isset($updateData['profile_photo']) ? 'assets/uploads/' . $updateData['profile_photo'] : null
+                    ]
+                ];
+            } else {
+                $response = [
+                    "status" => false,
+                    "message" => "Failed to save personal settings",
+                    "data" => null
+                ];
+            }
+        } else {
+            $response = [
+                "status" => false,
+                "message" => "No data provided to update",
+                "data" => null
+            ];
+        }
+        
+    } else {
+        $response = [
+            "status" => false,
+            "message" => "Invalid type. Use 'general' or 'personal'",
+            "data" => null
+        ];
+    }
+
+    echo json_encode($response);
+});
+
 ?>
