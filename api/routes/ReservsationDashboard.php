@@ -71,7 +71,7 @@ $router->post('agent/dashboard/reservations', function () {
 
                 $total_reservations = count($hotel_sales);
 
-                $this_week = date('Y-m-d', strtotime('-7 days'));
+                $this_week = date('Y-m-d', strtotime('last sunday', strtotime('tomorrow')));
 
                 $last_seven_days_sales = array_filter($hotel_sales, function($sale) use ($this_week) {
                     return isset($sale['booking_date']) && $sale['booking_date'] >= $this_week;
@@ -207,83 +207,201 @@ $router->post('agent/dashboard/reservations/recent', function () {
 
     // GET POST PARAMETERS
     $user_id         = $_POST["user_id"];
-    $filter_type     = $_POST["filter_type"] ?? "today"; // today | this_week | pending_checkin
-    $search          = $_POST["search"] ?? null;        // SEARCH TERM
+    $duration        = $_POST["duration"] ?? null; // today | week
+    $status          = $_POST["status"] ?? null; // pending_checkin or booking status
+    $commission_rate = $_POST["commission_rate"] ?? []; // ARRAY FROM CHECKBOXES
+    $booking_value   = $_POST["booking_value"] ?? [];   // ARRAY FROM CHECKBOXES
+    $search          = $_POST["search"] ?? null; // SEARCH TERM
     $page            = (int)($_POST["page"] ?? 1);
-    $per_page        = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5;;
+    $per_page        = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5;
+
+    // FIX: Handle comma-separated strings in arrays
+    if (!empty($commission_rate) && is_array($commission_rate)) {
+        $fixed_commission_rate = [];
+        foreach ($commission_rate as $rate) {
+            if (strpos($rate, ',') !== false) {
+                // Split comma-separated values
+                $split_rates = explode(',', $rate);
+                foreach ($split_rates as $split_rate) {
+                    $trimmed = trim($split_rate);
+                    if (!empty($trimmed)) {
+                        $fixed_commission_rate[] = $trimmed;
+                    }
+                }
+            } else {
+                $fixed_commission_rate[] = trim($rate);
+            }
+        }
+        $commission_rate = $fixed_commission_rate;
+    }
+
+    if (!empty($booking_value) && is_array($booking_value)) {
+        $fixed_booking_value = [];
+        foreach ($booking_value as $value_item) {
+            if (strpos($value_item, ',') !== false) {
+                // Split comma-separated values
+                $split_values = explode(',', $value_item);
+                foreach ($split_values as $split_value) {
+                    $trimmed = trim($split_value);
+                    if (!empty($trimmed)) {
+                        $fixed_booking_value[] = $trimmed;
+                    }
+                }
+            } else {
+                $fixed_booking_value[] = trim($value_item);
+            }
+        }
+        $booking_value = $fixed_booking_value;
+    }
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [
-        "agent_id" => $user_id,
-        "booking_status" => ["confirmed", "pending"] // DEFAULT STATUS FILTER
+        "agent_id" => $user_id
     ];
 
-    // DATE FILTERS BASED ON filter_type
-    $today = date("Y-m-d");
-
-    if ($filter_type === "today") {
-        // FILTER FOR BOOKINGS MADE TODAY
-        $conditions["booking_date"] = $today;
-
-    } elseif ($filter_type === "this_week") {
-        // FILTER FOR BOOKINGS IN CURRENT WEEK
-        $monday = date("Y-m-d", strtotime("monday this week"));
-        $sunday = date("Y-m-d", strtotime("sunday this week"));
-        $conditions["booking_date[<>]"] = [$monday, $sunday];
-
-    } elseif ($filter_type === "pending_checkin") {
-        // FILTER FOR BOOKINGS THAT HAVE NOT CHECKED IN YET
-        $conditions["checkin[>=]"] = $today;
+    // BOOKING STATUS FILTER
+    if (!empty($status)) {
+        if ($status === 'pending_checkin') {
+            // For pending checkin, filter by confirmed/pending bookings with future checkin
+            $conditions["booking_status"] = ["confirmed", "pending"];
+            $today = date("Y-m-d");
+            $conditions["checkin[>=]"] = $today;
+        } else {
+            // Regular status filter
+            $conditions["booking_status"] = $status;
+        }
+    } else {
+        $conditions["booking_status"] = ["confirmed", "pending"];
     }
 
-    // SEARCH FILTER (IF PROVIDED)
-    if (!empty($search)) {
-        $conditions["OR #search"] = [
-            "hotel_name[~]"  => $search,
-            "location[~]"    => $search,
-            "booking_ref_no[~]" => $search,
-            "guest[~]"       => $search // SEARCH IN RAW GUEST JSON
-        ];
+    // DURATION FILTER (DATE RANGE)
+    if (!empty($duration)) {
+        $today = date("Y-m-d");
+        
+        if ($duration === "today") {
+            // FILTER FOR BOOKINGS MADE TODAY
+            $conditions["booking_date"] = $today;
+        } elseif ($duration === "week") {
+            // FILTER FOR BOOKINGS IN CURRENT WEEK
+            $monday = date("Y-m-d", strtotime("monday this week"));
+            $sunday = date("Y-m-d", strtotime("sunday this week"));
+            $conditions["booking_date[<>]"] = [$monday, $sunday];
+        }
     }
 
-    // PAGINATION SETTINGS
-    $offset = ($page - 1) * $per_page;
+    // Get all records first
     $conditions["ORDER"] = ["booking_date" => "DESC"];
-    $conditions["LIMIT"] = [$offset, $per_page];
+    $all_records = $db->select("hotels_bookings", "*", $conditions);
 
-    // FETCH BOOKINGS FROM DATABASE
-    $all_sales = $db->select("hotels_bookings", "*", $conditions);
+    // APPLY FILTERS IN PHP - OR LOGIC BETWEEN FILTER TYPES
+    $filtered_records = [];
+    
+    foreach ($all_records as $record) {
+        $include_record = false;
+        
+        // If no filters applied, include all records
+        if (empty($booking_value) && empty($commission_rate) && empty($search)) {
+            $include_record = true;
+        } else {
+            // Check each filter type - if ANY match, include the record
+            
+            // BOOKING VALUE FILTER
+            if (!empty($booking_value) && is_array($booking_value)) {
+                $markup = (float)($record['price_markup'] ?? 0);
+                
+                foreach ($booking_value as $bv) {
+                    if (($bv === 'premium' && $markup >= 10000) || 
+                        ($bv === 'standard' && $markup >= 5000 && $markup < 10000)) {
+                        $include_record = true;
+                        break;
+                    }
+                }
+            }
+            
+            // COMMISSION RATE FILTER
+            if (!$include_record && !empty($commission_rate) && is_array($commission_rate)) {
+                $original_price = (float)($record['price_original'] ?? 0);
+                $agent_fee = (float)($record['agent_fee'] ?? 0);
+                
+                if ($original_price > 0 && $agent_fee > 0) {
+                    $commission_percentage = ($agent_fee / $original_price) * 100;
+                    
+                    foreach ($commission_rate as $rate) {
+                        if (($rate === 'high' && $commission_percentage >= 15) ||
+                            ($rate === 'standard' && $commission_percentage >= 10 && $commission_percentage < 15)) {
+                            $include_record = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // SEARCH FILTER WITH JSON GUEST SEARCH
+            if (!$include_record && !empty($search)) {
+                // Check regular fields
+                if (stripos($record['hotel_name'] ?? '', $search) !== false ||
+                    stripos($record['location'] ?? '', $search) !== false ||
+                    stripos($record['booking_ref_no'] ?? '', $search) !== false) {
+                    $include_record = true;
+                }
+                
+                // Check guest JSON if no match yet
+                if (!$include_record && !empty($record['guest'])) {
+                    $guest = json_decode($record['guest']);
+                    if (!empty($guest[0])) {
+                        $guest_obj = $guest[0];
+                        
+                        $title = $guest_obj->title ?? '';
+                        $first_name = $guest_obj->first_name ?? '';
+                        $last_name = $guest_obj->last_name ?? '';
+                        $full_name = trim($title . ' ' . $first_name . ' ' . $last_name);
+                        
+                        if (stripos($title, $search) !== false ||
+                            stripos($first_name, $search) !== false ||
+                            stripos($last_name, $search) !== false ||
+                            stripos($full_name, $search) !== false) {
+                            $include_record = true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if ($include_record) {
+            $filtered_records[] = $record;
+        }
+    }
 
-    // COUNT TOTAL RECORDS FOR PAGINATION
-    $count_conditions = $conditions;
-    unset($count_conditions["LIMIT"], $count_conditions["ORDER"]);
-    $total_count = $db->count("hotels_bookings", $count_conditions);
+    // Calculate pagination after filtering
+    $total_count = count($filtered_records);
     $total_pages = ceil($total_count / $per_page);
+    $offset = ($page - 1) * $per_page;
+    $paginated_records = array_slice($filtered_records, $offset, $per_page);
 
     // PREPARE RESPONSE DATA
-    if (!empty($all_sales)) {
+    if (!empty($paginated_records)) {
         $data = [];
 
-        foreach ($all_sales as $hotel_sale) {
+        foreach ($paginated_records as $hotel_sale) {
 
             // GUEST NAME EXTRACTION
             $guest_name = 'N/A';
             if (!empty($hotel_sale['guest'])) {
                 $guest = json_decode($hotel_sale['guest']);
                 if (!empty($guest[0]->title) && !empty($guest[0]->first_name) && !empty($guest[0]->last_name)) {
-                    $guest_name = $guest[0]->title . ' ' . $guest[0]->first_name . ' ' . $guest[0]->last_name;
+                    $guest_name = $guest[0]->title . ' ' . $guest[0]->first_name . ' ' . $hotel_sale['last_name'];
                 }
             }
 
             // CALCULATE STAY DURATION
-            $duration = 0;
+            $duration_nights = 0;
             if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
                 try {
                     $checkinDate  = new DateTime($hotel_sale['checkin']);
                     $checkoutDate = new DateTime($hotel_sale['checkout']);
-                    $duration = $checkinDate->diff($checkoutDate)->days;
+                    $duration_nights = $checkinDate->diff($checkoutDate)->days;
                 } catch (Exception $e) {
-                    $duration = 0;
+                    $duration_nights = 0;
                 }
             }
             
@@ -302,7 +420,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
                 'city'          => $hotel_sale['location'] ?? 'N/A',
                 'checkin'       => $hotel_sale['checkin'] ?? 'N/A',
                 'checkout'      => $hotel_sale['checkout'] ?? 'N/A',
-                'nights'        => $duration,
+                'nights'        => $duration_nights,
                 'subtotal'      => $hotel_sale['subtotal'] ?? 0,
                 'commission'    => $hotel_sale['agent_fee'] ?? 0,
                 'revenue'       => $revenue
@@ -316,22 +434,58 @@ $router->post('agent/dashboard/reservations/recent', function () {
             "pagination" => [
                 "current_page"  => $page,
                 "total_pages"   => $total_pages,
-                "total_records" => $total_count
+                "total_records" => $total_count,
+                "per_page"      => $per_page
             ],
             "data" => $data
         ];
     } else {
-        // NO RECORD FOUND RESPONSE
+        // NO RECORD FOUND RESPONSE - ZERO OUT PAGINATION
         $response = [
             "status"  => false,
             "message" => "NO RECORD FOUND",
-            "data"    => null
+            "pagination" => [
+                "current_page"  => 1,
+                "total_pages"   => 0,
+                "total_records" => 0,
+                "per_page"      => $per_page
+            ],
+            "data"    => []
         ];
     }
+
+    // CALCULATE FILTER COUNTS (FOR SIDEBAR FILTERS)
+    $filter_counts = [
+        'commission_rate' => ['high' => 0, 'standard' => 0],
+        'booking_value' => ['premium' => 0, 'standard' => 0]
+    ];
+      
+    foreach ($all_records as $record) {
+        // Count commission rates
+        if (!empty($record['price_original']) && $record['price_original'] > 0 &&
+            !empty($record['agent_fee']) && $record['agent_fee'] > 0) {
+            $commission_percentage = ($record['agent_fee'] / $record['price_original']) * 100;
+            if ($commission_percentage >= 15) {
+                $filter_counts['commission_rate']['high']++;
+            } elseif ($commission_percentage >= 10 && $commission_percentage < 15) {
+                $filter_counts['commission_rate']['standard']++;
+            }
+        }
+
+        // Count booking values
+        if (!empty($record['price_markup']) && $record['price_markup'] > 0) {
+            if ($record['price_markup'] >= 10000) {
+                $filter_counts['booking_value']['premium']++;
+            } elseif ($record['price_markup'] >= 5000 && $record['price_markup'] < 10000) {
+                $filter_counts['booking_value']['standard']++;
+            }
+        }
+    }
+
+    // Add filter counts to response
+    $response['filter_counts'] = $filter_counts;
 
     // RETURN RESPONSE AS JSON
     echo json_encode($response);
 });
-
-
 ?>
