@@ -1017,7 +1017,7 @@ $router->post('agent/dashboard/settings', function () {
             return;
         }
 
-        // FORM GENERAL SETTINGS DATA
+        // FORM GENERAL SETTINGS DATA - FIXED PATHS
         $response = [
             "status" => true,
             "message" => "General settings retrieved successfully",
@@ -1026,8 +1026,8 @@ $router->post('agent/dashboard/settings', function () {
                 "domain_name" => $settings['site_url'] ?? '',
                 "website_offline" => $settings['site_offline'] ?? 'No',
                 "offline_message" => $settings['offline_message'] ?? '',
-                "business_logo" => !empty($settings['header_logo_img']) ? 'assets/uploads/' . $settings['header_logo_img'] : null,
-                "favicon" => !empty($settings['favicon_img']) ? 'assets/uploads/' . $settings['favicon_img'] : null
+                "business_logo" => !empty($settings['header_logo_img']) ? '/assets/uploads/' . $settings['header_logo_img'] : null,
+                "favicon" => !empty($settings['favicon_img']) ? '/assets/uploads/' . $settings['favicon_img'] : null
             ]
         ];
         
@@ -1053,12 +1053,12 @@ $router->post('agent/dashboard/settings', function () {
             $country_name = isset($country['name']) ? $country['name'] : '';
         }
         
-        // FORM PERSONAL SETTINGS DATA 
+        // FORM PERSONAL SETTINGS DATA - FIXED PATH
         $response = [
             "status" => true,
             "message" => "Personal settings retrieved successfully",
             "data" => [
-                "profile_photo" => !empty($user['profile_photo']) ? 'assets/uploads/' . $user['profile_photo'] : null,
+                "profile_photo" => !empty($user['profile_photo']) ? '/assets/uploads/' . $user['profile_photo'] : null,
                 "first_name" => $user['first_name'] ?? '',
                 "last_name" => $user['last_name'] ?? '',
                 "email" => $user['email'] ?? '',
@@ -1086,7 +1086,7 @@ $router->post('agent/dashboard/settings', function () {
 });
 
 /*==================
-AGENT SETTINGS API
+AGENT SETTINGS SAVE API 
 ==================*/
 $router->post('agent/dashboard/settings/save', function () {
     
@@ -1101,7 +1101,12 @@ $router->post('agent/dashboard/settings/save', function () {
     $response = ["status" => false, "message" => "Invalid request", "data" => null];
 
     // ---------- HELPERS ----------
-    function uploadBase64File($base64String, $uploadDir = 'assets/uploads/') {
+    function uploadBase64File($base64String, $uploadDir = null) {
+        // FIXED: Use absolute path to root/assets/uploads/
+        if ($uploadDir === null) {
+            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/uploads/';
+        }
+        
         if (empty($base64String)) return null;
 
         // Validate base64 format
@@ -1225,9 +1230,10 @@ $router->post('agent/dashboard/settings/save', function () {
 
                 // Check if database operation was successful
                 if ($result) {
+                    // FIXED: Return correct web-accessible paths
                     $responseData = [
-                        "business_logo" => isset($updateData['header_logo_img']) ? 'assets/uploads/'.$updateData['header_logo_img'] : null,
-                        "favicon" => isset($updateData['favicon_img']) ? 'assets/uploads/'.$updateData['favicon_img'] : null,
+                        "business_logo" => isset($updateData['header_logo_img']) ? '/assets/uploads/'.$updateData['header_logo_img'] : null,
+                        "favicon" => isset($updateData['favicon_img']) ? '/assets/uploads/'.$updateData['favicon_img'] : null,
                         "settings_created" => !$existing
                     ];
                     sendResponse(true, $msg, $responseData);
@@ -1284,8 +1290,9 @@ $router->post('agent/dashboard/settings/save', function () {
                 $result = $db->update("users", $updateData, ["user_id" => $user_id]);
                 
                 if ($result) {
+                    // FIXED: Return correct web-accessible path
                     $responseData = [
-                        "profile_photo" => isset($updateData['profile_photo']) ? 'assets/uploads/'.$updateData['profile_photo'] : null
+                        "profile_photo" => isset($updateData['profile_photo']) ? '/assets/uploads/'.$updateData['profile_photo'] : null
                     ];
                     sendResponse(true, "Personal settings updated successfully", $responseData);
                 } else {
