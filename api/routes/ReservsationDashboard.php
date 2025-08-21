@@ -402,6 +402,14 @@ $router->post('agent/dashboard/reservations/recent', function () {
                 }
             }
 
+            $guest_email = 'N/A';
+            if (!empty($hotel_sale['user_data'])) {
+                $guest = json_decode($hotel_sale['user_data']);
+                if (!empty($guest[0]->email)) {
+                    $guest_email = $guest[0]->email;
+                }
+            }
+
             // CALCULATE STAY DURATION
             $duration_nights = 0;
             if (!empty($hotel_sale['checkin']) && !empty($hotel_sale['checkout'])) {
@@ -433,6 +441,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
                 'id'            => $hotel_sale['booking_id'] ?? null,
                 'booking_id'    => $hotel_sale['booking_ref_no'],
                 'guest'         => $guest_name,
+                'guest_email'   => $guest_email,
                 'hotel'         => $hotel_sale['hotel_name'] ?? 'N/A',
                 'room_data'     => $room_data,
                 'city'          => $hotel_sale['location'] ?? 'N/A',
