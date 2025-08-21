@@ -705,21 +705,153 @@ $router->post('agent/dashboard/notifications', function () {
 AGENT BOOKING DETAILS API
 ==================*/
 $router->post('agent/dashboard/booking/details', function () {
-    // CONFIG FILE
+
+    // INCLUDE CONFIG
     include "./config.php";
 
-    // VALIDATION
     required('booking_ref_no');
+
     $booking_ref_no = $_POST["booking_ref_no"];
 
-    $response = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]); // SELECT THE BOOKING DATA FROM DATABASE ACCORDING TO BOOKING REFERENCE NUMBER
-    if (!empty($response)) {
-        echo json_encode(array('status' => true, 'response' => $response)); // RETURN INVOICE IF BOOKING REFERENCE NUMBER IS CORRECT
-    } else {
-        echo json_encode(array('status' => false, 'response' => 'The booking reference number in invalid')); // RETURN IF BOOKING REFERENCE NUMBER IS CORRECT
-    }
-});
+    // FETCH BOOKING DATA BY REFERENCE NUMBER
+    $hotel_sale = $db->select("hotels_bookings", "*", [
+        "booking_ref_no" => $booking_ref_no
+    ]);
 
+    if (!empty($hotel_sale)) {
+        
+        // GET FIRST RECORD (SHOULD BE ONLY ONE)
+        $booking_data = $hotel_sale[0];
+
+        // CALCULATE NIGHTS BETWEEN CHECKIN AND CHECKOUT
+        $calculated_nights = 0;
+        if (!empty($booking_data['checkin']) && !empty($booking_data['checkout'])) {
+            try {
+                $checkinDate = new DateTime($booking_data['checkin']);
+                $checkoutDate = new DateTime($booking_data['checkout']);
+                $calculated_nights = $checkinDate->diff($checkoutDate)->days;
+            } catch (Exception $e) {
+                $calculated_nights = 0;
+            }
+        }
+
+        // VALIDATE THAT price_markup, price_original AND agent_fee ARE SET AND NUMERIC
+        $price_markup = isset($booking_data['price_markup']) && is_numeric($booking_data['price_markup']) ? $booking_data['price_markup'] : 0;
+        $price_original = isset($booking_data['price_original']) && is_numeric($booking_data['price_original']) ? $booking_data['price_original'] : 0;
+        $agent_fee = isset($booking_data['agent_fee']) && is_numeric($booking_data['agent_fee']) ? $booking_data['agent_fee'] : 0;
+
+        // CALCULATE REVENUE: price_markup - price_original - agent_fee
+        $revenue = round($price_markup - $price_original - $agent_fee, 2);
+
+        // DECODE JSON FIELDS
+        $user_data_decoded = null;
+        $guest_data_decoded = null;
+        $room_data_decoded = null;
+
+        if (!empty($booking_data['user_data'])) {
+            $user_data_decoded = json_decode($booking_data['user_data'], true);
+        }
+
+        if (!empty($booking_data['guest'])) {
+            $guest_data_decoded = json_decode($booking_data['guest'], true);
+        }
+
+        if (!empty($booking_data['room_data'])) {
+            $room_data_decoded = json_decode($booking_data['room_data'], true);
+        }
+
+        // CREATE COMPLETE ARRAY RESPONSE WITH ALL FIELDS
+        $complete_booking_data = [
+            // DATABASE FIELDS - ALL 67 FIELDS
+            'booking_id' => $booking_data['booking_id'] ?? null,
+            'booking_ref_no' => $booking_data['booking_ref_no'] ?? null,
+            'booking_date' => $booking_data['booking_date'] ?? null,
+            'booking_status' => $booking_data['booking_status'] ?? null,
+            'price_original' => $booking_data['price_original'] ?? null,
+            'price_markup' => $booking_data['price_markup'] ?? null,
+            'agent_fee' => $booking_data['agent_fee'] ?? null,
+            'vat' => $booking_data['vat'] ?? null,
+            'tax' => $booking_data['tax'] ?? null,
+            'gst' => $booking_data['gst'] ?? null,
+            'first_name' => $booking_data['first_name'] ?? null,
+            'last_name' => $booking_data['last_name'] ?? null,
+            'email' => $booking_data['email'] ?? null,
+            'address' => $booking_data['address'] ?? null,
+            'phone_country_code' => $booking_data['phone_country_code'] ?? null,
+            'phone' => $booking_data['phone'] ?? null,
+            'country' => $booking_data['country'] ?? null,
+            'stars' => $booking_data['stars'] ?? null,
+            'hotel_id' => $booking_data['hotel_id'] ?? null,
+            'hotel_name' => $booking_data['hotel_name'] ?? null,
+            'hotel_phone' => $booking_data['hotel_phone'] ?? null,
+            'hotel_email' => $booking_data['hotel_email'] ?? null,
+            'hotel_website' => $booking_data['hotel_website'] ?? null,
+            'hotel_address' => $booking_data['hotel_address'] ?? null,
+            'room_data' => $room_data_decoded,
+            'location' => $booking_data['location'] ?? null,
+            'location_cords' => $booking_data['location_cords'] ?? null,
+            'hotel_img' => $booking_data['hotel_img'] ?? null,
+            'checkin' => $booking_data['checkin'] ?? null,
+            'checkout' => $booking_data['checkout'] ?? null,
+            'booking_nights' => $booking_data['booking_nights'] ?? null,
+            'adults' => $booking_data['adults'] ?? null,
+            'childs' => $booking_data['childs'] ?? null,
+            'child_ages' => $booking_data['child_ages'] ?? null,
+            'currency_original' => $booking_data['currency_original'] ?? null,
+            'currency_markup' => $booking_data['currency_markup'] ?? null,
+            'payment_date' => $booking_data['payment_date'] ?? null,
+            'cancellation_request' => $booking_data['cancellation_request'] ?? null,
+            'cancellation_status' => $booking_data['cancellation_status'] ?? null,
+            'booking_data' => $booking_data['booking_data'] ?? null,
+            'payment_status' => $booking_data['payment_status'] ?? null,
+            'supplier' => $booking_data['supplier'] ?? null,
+            'transaction_id' => $booking_data['transaction_id'] ?? null,
+            'user_id' => $booking_data['user_id'] ?? null,
+            'user_data' => $user_data_decoded,
+            'guest' => $guest_data_decoded,
+            'nationality' => $booking_data['nationality'] ?? null,
+            'payment_gateway' => $booking_data['payment_gateway'] ?? null,
+            'module_type' => $booking_data['module_type'] ?? null,
+            'pnr' => $booking_data['pnr'] ?? null,
+            'booking_response' => $booking_data['booking_response'] ?? null,
+            'error_response' => $booking_data['error_response'] ?? null,
+            'agent_id' => $booking_data['agent_id'] ?? null,
+            'net_profit' => $booking_data['net_profit'] ?? null,
+            'booking_note' => $booking_data['booking_note'] ?? null,
+            'supplier_payment_status' => $booking_data['supplier_payment_status'] ?? null,
+            'supplier_due_date' => $booking_data['supplier_due_date'] ?? null,
+            'cancellation_terms' => $booking_data['cancellation_terms'] ?? null,
+            'supplier_cost' => $booking_data['supplier_cost'] ?? null,
+            'supplier_id' => $booking_data['supplier_id'] ?? null,
+            'supplier_payment_type' => $booking_data['supplier_payment_type'] ?? null,
+            'customer_payment_type' => $booking_data['customer_payment_type'] ?? null,
+            'iata' => $booking_data['iata'] ?? null,
+            'agent_commission_status' => $booking_data['agent_commission_status'] ?? null,
+            'subtotal' => $booking_data['subtotal'] ?? null,
+            'agent_payment_type' => $booking_data['agent_payment_type'] ?? null,
+            'agent_payment_status' => $booking_data['agent_payment_status'] ?? null,
+            
+            // CALCULATED FIELDS
+            'revenue' => $revenue,
+            'calculated_nights' => $calculated_nights,
+            ];
+
+        $response = [
+            "status" => true,
+            "message" => "booking detail has been retrieved",
+            "data" => $complete_booking_data
+        ];
+
+    } else {
+        $response = [
+            "status" => false,
+            "message" => "no booking found",
+            "data" => null
+        ];
+    }
+    
+    echo json_encode($response);
+});
 /*==================
 AGENT ALL BOOKING API
 ==================*/
