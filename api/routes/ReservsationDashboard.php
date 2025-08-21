@@ -109,7 +109,7 @@ $router->post('agent/dashboard/reservations', function () {
                             'guest' => $guest_name,
                             'hotel_name' => $last_seven_days_sale['hotel_name'],
                             'location' => $last_seven_days_sale['location'],
-                            'travel_date' => date('M d-m, Y',strtotime($last_seven_days_sale['booking_date']))
+                            'travel_date' => date('M d-m, Y',strtotime($last_seven_days_sale['booking_date'])),
                             'nights' => $duration_nights,
                             'status' => $last_seven_days_sale['booking_status']
                         ];
@@ -459,8 +459,8 @@ $router->post('agent/dashboard/reservations/recent', function () {
                 'hotel'         => $hotel_sale['hotel_name'] ?? 'N/A',
                 'room_data'     => $room_data,
                 'city'          => $hotel_sale['location'] ?? 'N/A',
-                'checkin'       => $hotel_sale['checkin'] ?? 'N/A',
-                'checkout'      => $hotel_sale['checkout'] ?? 'N/A',
+                'checkin'       => date('Y-m-d',strtotime($hotel_sale['checkin'])) ?? 'N/A',
+                'checkout'      => date('Y-m-d',strtotime($hotel_sale['checkout'])) ?? 'N/A',
                 'nights'        => $duration_nights,
                 'subtotal'      => $hotel_sale['subtotal'] ?? 0,
                 'commission'    => $hotel_sale['agent_fee'] ?? 0,
