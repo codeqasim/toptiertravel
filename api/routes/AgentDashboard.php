@@ -885,7 +885,7 @@ $router->post('agent/dashboard/settings', function () {
             return;
         }
 
-        // FORM GENERAL SETTINGS DATA ARRAY
+        // FORM GENERAL SETTINGS DATA
         $response = [
             "status" => true,
             "message" => "General settings retrieved successfully",
@@ -894,8 +894,8 @@ $router->post('agent/dashboard/settings', function () {
                 "domain_name" => $settings['site_url'] ?? '',
                 "website_offline" => $settings['site_offline'] ?? 'No',
                 "offline_message" => $settings['offline_message'] ?? '',
-                "business_logo" => $settings['header_logo_img'] ?? null,
-                "favicon" => $settings['favicon_img'] ?? null
+                "business_logo" => !empty($settings['header_logo_img']) ? 'assets/uploads/' . $settings['header_logo_img'] : null,
+                "favicon" => !empty($settings['favicon_img']) ? 'assets/uploads/' . $settings['favicon_img'] : null
             ]
         ];
         
@@ -920,12 +920,13 @@ $router->post('agent/dashboard/settings', function () {
 
             $country_name = isset($country['name']) ? $country['name'] : '';
         }
-        // FORM PERSONAL SETTINGS DATA ARRAY
+        
+        // FORM PERSONAL SETTINGS DATA 
         $response = [
             "status" => true,
             "message" => "Personal settings retrieved successfully",
             "data" => [
-                "profile_photo" => $user['profile_photo'] ?? null,
+                "profile_photo" => !empty($user['profile_photo']) ? 'assets/uploads/' . $user['profile_photo'] : null,
                 "first_name" => $user['first_name'] ?? '',
                 "last_name" => $user['last_name'] ?? '',
                 "email" => $user['email'] ?? '',
@@ -957,6 +958,7 @@ AGENT SETTINGS API
 ==================*/
 $router->post('agent/dashboard/settings/save', function () {
     
+    CSRF();
     // INCLUDE CONFIG
     include "./config.php";
 
