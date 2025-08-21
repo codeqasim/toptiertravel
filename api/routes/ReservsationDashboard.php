@@ -413,6 +413,14 @@ $router->post('agent/dashboard/reservations/recent', function () {
                     $duration_nights = 0;
                 }
             }
+
+            $room_data = 'N/A';
+            if (!empty($hotel_sale['room_data'])) {
+                $room = json_decode($hotel_sale['room_data']);
+                if (!empty($room[0]->room_name)) {
+                    $room_data = $room[0]->room_name;
+                }
+            }
             
             // CALCULATE REVENUE
             $price_markup   = isset($hotel_sale['price_markup']) ? (float)$hotel_sale['price_markup'] : 0.0;
@@ -426,13 +434,15 @@ $router->post('agent/dashboard/reservations/recent', function () {
                 'booking_id'    => $hotel_sale['booking_ref_no'],
                 'guest'         => $guest_name,
                 'hotel'         => $hotel_sale['hotel_name'] ?? 'N/A',
+                'room_data'     => $room_data,
                 'city'          => $hotel_sale['location'] ?? 'N/A',
                 'checkin'       => $hotel_sale['checkin'] ?? 'N/A',
                 'checkout'      => $hotel_sale['checkout'] ?? 'N/A',
                 'nights'        => $duration_nights,
                 'subtotal'      => $hotel_sale['subtotal'] ?? 0,
                 'commission'    => $hotel_sale['agent_fee'] ?? 0,
-                'revenue'       => $revenue
+                'revenue'       => $revenue,
+                'booking_status'=> $hotel_sale['booking_status']
             ];
         }
 
