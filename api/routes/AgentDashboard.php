@@ -1090,283 +1090,217 @@ AGENT SETTINGS API
 ==================*/
 $router->post('agent/dashboard/settings/save', function () {
     
-    CSRF();
-    // INCLUDE CONFIG
     include "./config.php";
 
     required('user_id');
     required('type'); // 'general' or 'personal'
 
-    $user_id = $_POST["user_id"];
-    $type = $_POST["type"];
-    
-    $response = [
-        "status" => false,
-        "message" => "Invalid request",
-        "data" => null
-    ];
+    $user_id = $_POST["user_id"] ?? null;
+    $type    = $_POST["type"] ?? null;
 
-    // FUNCTION TO HANDLE FILE UPLOADS
-    function uploadFile($fileInputName, $uploadDir = 'assets/uploads/') {
-        if (!isset($_FILES[$fileInputName]) || $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_OK) {
-            return null;
+    $response = ["status" => false, "message" => "Invalid request", "data" => null];
+
+    // ---------- HELPERS ----------
+    function uploadBase64File($base64String, $uploadDir = 'assets/uploads/') {
+        if (empty($base64String)) return null;
+
+        // Validate base64 format
+        if (!preg_match('/^data:image\/(\w+);base64,/', $base64String, $type)) {
+            return ['error' => 'Invalid base64 image format'];
         }
 
-        $file = $_FILES[$fileInputName];
-        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        $maxSize = 2 * 1024 * 1024; // 2MB
-
-        // VALIDATE FILE TYPE
-        if (!in_array($file['type'], $allowedTypes)) {
+        $ext = strtolower($type[1]);
+        $allowedTypes = ['jpg', 'jpeg', 'png', 'gif'];
+        
+        if (!in_array($ext, $allowedTypes)) {
             return ['error' => 'Invalid file type. Only JPG, PNG, and GIF are allowed.'];
         }
 
-        // VALIDATE FILE SIZE
-        if ($file['size'] > $maxSize) {
+        $base64String = substr($base64String, strpos($base64String, ',') + 1);
+        $data = base64_decode($base64String);
+        
+        if ($data === false) {
+            return ['error' => 'Base64 decode failed'];
+        }
+
+        // Validate file size (2MB max)
+        $maxSize = 2 * 1024 * 1024;
+        if (strlen($data) > $maxSize) {
             return ['error' => 'File too large. Maximum size is 2MB.'];
         }
 
-        // CREATE UPLOAD DIRECTORY IF NOT EXISTS
+        // Validate actual image content
+        $imageInfo = getimagesizefromstring($data);
+        if ($imageInfo === false) {
+            return ['error' => 'Invalid image data'];
+        }
+
         if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+            if (!mkdir($uploadDir, 0777, true)) {
+                return ['error' => 'Failed to create upload directory'];
+            }
         }
 
-        // GENERATE UNIQUE FILENAME
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid() . '_' . time() . '.' . $extension;
-        $filepath = $uploadDir . $filename;
+        $filename = uniqid().'_'.time().'.'.$ext;
+        $filepath = $uploadDir.$filename;
 
-        // MOVE UPLOADED FILE
-        if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            return $filename;
-        } else {
-            return ['error' => 'Failed to upload file.'];
+        return file_put_contents($filepath, $data) !== false ? $filename : ['error' => 'Failed to save file'];
+    }
+
+    function ensureUserExists($db, $id) {
+        return $db->get("users", "user_id", ["user_id" => $id]);
+    }
+
+    function handleBase64Field($field, &$data, $dbKey) {
+        if (!empty($_POST[$field])) {
+            $upload = uploadBase64File($_POST[$field]);
+            if (is_array($upload) && isset($upload['error'])) {
+                // Return error instead of using exit
+                return ['error' => "$field error: " . $upload['error']];
+            }
+            if ($upload) {
+                $data[$dbKey] = $upload;
+            }
         }
+        return ['success' => true];
+    }
+
+    function sendResponse($status, $message, $data = null) {
+        echo json_encode(["status" => $status, "message" => $message, "data" => $data]);
+    }
+
+    // ---------- MAIN ----------
+    if (!ensureUserExists($db, $user_id)) {
+        sendResponse(false, "User not found");
+        return;
     }
 
     if ($type === 'general') {
-
-        // VERIFY USER EXISTS IN USERS TABLE
-        $userExists = $db->get("users", "user_id", ["user_id" => $user_id]);
-        
-        if (!$userExists) {
-            $response = [
-                "status" => false,
-                "message" => "User not found",
-                "data" => null
-            ];
-            echo json_encode($response);
-            return;
-        }
-
-        // PREPARE GENERAL SETTINGS DATA FOR UPDATE
         $updateData = [];
-        
-        if (isset($_POST['business_name'])) {
-            $updateData['business_name'] = $_POST['business_name'];
-        }
-        if (isset($_POST['domain_name'])) {
-            $updateData['site_url'] = $_POST['domain_name'];
-        }
-        if (isset($_POST['website_offline'])) {
-            $updateData['site_offline'] = $_POST['website_offline'];
-        }
-        if (isset($_POST['offline_message'])) {
-            $updateData['offline_message'] = $_POST['offline_message'];
-        }
 
-        // HANDLE BUSINESS LOGO UPLOAD
-        if (isset($_FILES['business_logo'])) {
-            $logoUpload = uploadFile('business_logo');
-            if (is_array($logoUpload) && isset($logoUpload['error'])) {
-                $response = [
-                    "status" => false,
-                    "message" => "Business logo upload error: " . $logoUpload['error'],
-                    "data" => null
-                ];
-                echo json_encode($response);
-                return;
-            } elseif ($logoUpload) {
-                $updateData['header_logo_img'] = $logoUpload;
-            }
-        } elseif (isset($_POST['business_logo'])) {
-            $updateData['header_logo_img'] = $_POST['business_logo'];
-        }
-
-        // HANDLE FAVICON UPLOAD
-        if (isset($_FILES['favicon'])) {
-            $faviconUpload = uploadFile('favicon');
-            if (is_array($faviconUpload) && isset($faviconUpload['error'])) {
-                $response = [
-                    "status" => false,
-                    "message" => "Favicon upload error: " . $faviconUpload['error'],
-                    "data" => null
-                ];
-                echo json_encode($response);
-                return;
-            } elseif ($faviconUpload) {
-                $updateData['favicon_img'] = $faviconUpload;
-            }
-        } elseif (isset($_POST['favicon'])) {
-            $updateData['favicon_img'] = $_POST['favicon'];
-        }
-
-        if (!empty($updateData)) {
-            // CHECK IF SETTINGS RECORD EXISTS FOR THIS USER
-            $existingSettings = $db->get("settings", "*", ["user_id" => $user_id]);
-            
-            if ($existingSettings) {
-                // UPDATE EXISTING SETTINGS RECORD
-                $result = $db->update("settings", $updateData, ["user_id" => $user_id]);
-                $message = "General settings updated successfully";
-            } else {
-                // CREATE NEW SETTINGS RECORD FOR THIS USER
-                $updateData['user_id'] = $user_id;
-                $updateData['created_at'] = date('Y-m-d H:i:s');
-                $result = $db->insert("settings", $updateData);
-                $message = "New settings record created and general settings saved successfully";
-            }
-
-            if ($result) {
-                $response = [
-                    "status" => true,
-                    "message" => $message,
-                    "data" => [
-                        "business_logo" => isset($updateData['header_logo_img']) ? 'assets/uploads/' . $updateData['header_logo_img'] : null,
-                        "favicon" => isset($updateData['favicon_img']) ? 'assets/uploads/' . $updateData['favicon_img'] : null,
-                        "settings_created" => !$existingSettings
-                    ]
-                ];
-            } else {
-                $response = [
-                    "status" => false,
-                    "message" => "Failed to save general settings",
-                    "data" => null
-                ];
-            }
-        } else {
-            $response = [
-                "status" => false,
-                "message" => "No data provided to update",
-                "data" => null
-            ];
-        }
-        
-    } elseif ($type === 'personal') {
-        
-        // VERIFY USER EXISTS IN USERS TABLE
-        $userExists = $db->get("users", "user_id", ["user_id" => $user_id]);
-        
-        if (!$userExists) {
-            $response = [
-                "status" => false,
-                "message" => "User not found",
-                "data" => null
-            ];
-            echo json_encode($response);
-            return;
-        }
-        
-        // PREPARE PERSONAL SETTINGS DATA FOR UPDATE
-        $updateData = [];
-        
-        // HANDLE PROFILE PHOTO UPLOAD
-        if (isset($_FILES['profile_photo'])) {
-            $photoUpload = uploadFile('profile_photo');
-            if (is_array($photoUpload) && isset($photoUpload['error'])) {
-                $response = [
-                    "status" => false,
-                    "message" => "Profile photo upload error: " . $photoUpload['error'],
-                    "data" => null
-                ];
-                echo json_encode($response);
-                return;
-            } elseif ($photoUpload) {
-                $updateData['profile_photo'] = $photoUpload;
-            }
-        } elseif (isset($_POST['profile_photo'])) {
-            $updateData['profile_photo'] = $_POST['profile_photo'];
-        }
-
-        if (isset($_POST['first_name'])) {
-            $updateData['first_name'] = $_POST['first_name'];
-        }
-        if (isset($_POST['last_name'])) {
-            $updateData['last_name'] = $_POST['last_name'];
-        }
-        if (isset($_POST['email'])) {
-            $updateData['email'] = $_POST['email'];
-        }
-        if (isset($_POST['phone_number'])) {
-            $updateData['phone'] = $_POST['phone_number'];
-        }
-        if (isset($_POST['country'])) {
-            // CONVERT COUNTRY NAME TO ID IF NEEDED
-            if (!is_numeric($_POST['country'])) {
-                $country = $db->get("countries", "id", ["name" => $_POST['country']]);
-                $updateData['country_code'] = $country ? $country : null;
-            } else {
-                $updateData['country_code'] = $_POST['country'];
-            }
-        }
-        if (isset($_POST['address'])) {
-            $updateData['address1'] = $_POST['address'];
-        }
-        if (isset($_POST['bio'])) {
-            $updateData['note'] = $_POST['bio'];
-        }
-        if (isset($_POST['linkedin_url'])) {
-            $updateData['linkedin_url'] = $_POST['linkedin_url'];
-        }
-        if (isset($_POST['twitter_url'])) {
-            $updateData['twitter_url'] = $_POST['twitter_url'];
-        }
-        if (isset($_POST['website_url'])) {
-            $updateData['website_url'] = $_POST['website_url'];
-        }
-        if (isset($_POST['preferred_payment_method'])) {
-            $updateData['preferred_payment_method'] = $_POST['preferred_payment_method'];
-        }
-        if (isset($_POST['payment_details'])) {
-            $updateData['payment_details'] = $_POST['payment_details'];
-        }
-
-        if (!empty($updateData)) {
-            // UPDATE USER RECORD (USER ALWAYS EXISTS)
-            $result = $db->update("users", $updateData, ["user_id" => $user_id]);
-
-            if ($result) {
-                $response = [
-                    "status" => true,
-                    "message" => "Personal settings updated successfully",
-                    "data" => [
-                        "profile_photo" => isset($updateData['profile_photo']) ? 'assets/uploads/' . $updateData['profile_photo'] : null
-                    ]
-                ];
-            } else {
-                $response = [
-                    "status" => false,
-                    "message" => "Failed to save personal settings",
-                    "data" => null
-                ];
-            }
-        } else {
-            $response = [
-                "status" => false,
-                "message" => "No data provided to update",
-                "data" => null
-            ];
-        }
-        
-    } else {
-        $response = [
-            "status" => false,
-            "message" => "Invalid type. Use 'general' or 'personal'",
-            "data" => null
+        // Map simple fields
+        $simpleFields = [
+            'business_name' => 'business_name',
+            'domain_name' => 'site_url',
+            'website_offline' => 'site_offline',
+            'offline_message' => 'offline_message'
         ];
-    }
 
-    echo json_encode($response);
+        foreach ($simpleFields as $postKey => $dbKey) {
+            if (isset($_POST[$postKey])) {
+                $updateData[$dbKey] = $_POST[$postKey];
+            }
+        }
+
+        // Handle file uploads with error checking
+        $fileFields = [
+            'business_logo' => 'header_logo_img',
+            'favicon' => 'favicon_img'
+        ];
+
+        foreach ($fileFields as $postKey => $dbKey) {
+            $result = handleBase64Field($postKey, $updateData, $dbKey);
+            if (isset($result['error'])) {
+                sendResponse(false, $result['error']);
+                return;
+            }
+        }
+
+        if (!empty($updateData)) {
+            try {
+                $existing = $db->get("settings", "*", ["user_id" => $user_id]);
+                
+                if ($existing) {
+                    $result = $db->update("settings", $updateData, ["user_id" => $user_id]);
+                    $msg = "General settings updated successfully";
+                } else {
+                    $lastId = $db->max("settings", "user_id") ?? 0;
+                    $newId  = $lastId + 1;
+
+                    $updateData['d'] = $newId;
+                    $updateData['user_id'] = $user_id; 
+                    $result = $db->insert("settings", $updateData);
+                    $msg = "Settings created successfully";
+                }
+
+                // Check if database operation was successful
+                if ($result) {
+                    $responseData = [
+                        "business_logo" => isset($updateData['header_logo_img']) ? 'assets/uploads/'.$updateData['header_logo_img'] : null,
+                        "favicon" => isset($updateData['favicon_img']) ? 'assets/uploads/'.$updateData['favicon_img'] : null,
+                        "settings_created" => !$existing
+                    ];
+                    sendResponse(true, $msg, $responseData);
+                } else {
+                    sendResponse(false, "Failed to save general settings");
+                }
+            } catch (Exception $e) {
+                sendResponse(false, "Database error: " . $e->getMessage());
+            }
+        } else {
+            sendResponse(false, "No data provided");
+        }
+
+    } elseif ($type === 'personal') {
+        $updateData = [];
+
+        // Map simple fields
+        $simpleFields = [
+            'first_name' => 'first_name',
+            'last_name' => 'last_name',
+            'email' => 'email',
+            'phone_number' => 'phone',
+            'address' => 'address1',
+            'bio' => 'note',
+            'linkedin_url' => 'linkedin_url',
+            'twitter_url' => 'twitter_url',
+            'website_url' => 'website_url',
+            'preferred_payment_method' => 'preferred_payment_method',
+            'payment_details' => 'payment_details'
+        ];
+
+        foreach ($simpleFields as $postKey => $dbKey) {
+            if (isset($_POST[$postKey])) {
+                $updateData[$dbKey] = $_POST[$postKey];
+            }
+        }
+
+        // Handle country field
+        if (!empty($_POST['country'])) {
+            $updateData['country_code'] = is_numeric($_POST['country'])
+                ? $_POST['country']
+                : ($db->get("countries", "id", ["name" => $_POST['country']]) ?: null);
+        }
+
+        // Handle profile photo
+        $result = handleBase64Field('profile_photo', $updateData, 'profile_photo');
+        if (isset($result['error'])) {
+            sendResponse(false, $result['error']);
+            return;
+        }
+
+        if (!empty($updateData)) {
+            try {
+                $result = $db->update("users", $updateData, ["user_id" => $user_id]);
+                
+                if ($result) {
+                    $responseData = [
+                        "profile_photo" => isset($updateData['profile_photo']) ? 'assets/uploads/'.$updateData['profile_photo'] : null
+                    ];
+                    sendResponse(true, "Personal settings updated successfully", $responseData);
+                } else {
+                    sendResponse(false, "Failed to save personal settings");
+                }
+            } catch (Exception $e) {
+                sendResponse(false, "Database error: " . $e->getMessage());
+            }
+        } else {
+            sendResponse(false, "No data provided");
+        }
+
+    } else {
+        sendResponse(false, "Invalid type (general|personal)");
+    }
 });
 
 ?>
