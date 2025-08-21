@@ -41,3 +41,23 @@
 [26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 460
 [26-Nov-2024 10:49:57 Europe/Berlin] PHP Warning:  Undefined array key "content" in D:\server\htdocs\top\api\routes\App.php on line 461
 [26-Nov-2024 10:49:57 Europe/Berlin] PHP Deprecated:  htmlentities(): Passing null to parameter #1 ($string) of type string is deprecated in D:\server\htdocs\top\api\routes\App.php on line 461
+[21-Aug-2025 07:04:29 UTC] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php:406
+Stack trace:
+#0 [internal function]: {closure}()
+#1 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): call_user_func_array(Object(Closure), Array)
+#2 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): AppRouter\Router->call(Object(Closure), Array)
+#3 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): AppRouter\Router->dispatch('POST', '/agent/dashboar...')
+#4 /Applications/MAMP/htdocs/toptiertravel/api/index.php(73): AppRouter\Router->dispatchGlobal()
+#5 {main}
+  thrown in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php on line 406
+[21-Aug-2025 07:04:43 UTC] PHP Warning:  Attempt to read property "email" on string in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php on line 406
+[21-Aug-2025 07:04:56 UTC] PHP Warning:  Attempt to read property "email" on string in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php on line 406
+[21-Aug-2025 07:05:14 UTC] PHP Fatal error:  Uncaught TypeError: Cannot access offset of type string on string in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php:406
+Stack trace:
+#0 [internal function]: {closure}()
+#1 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): call_user_func_array(Object(Closure), Array)
+#2 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): AppRouter\Router->call(Object(Closure), Array)
+#3 /Applications/MAMP/htdocs/toptiertravel/api/index.php(4): AppRouter\Router->dispatch('POST', '/agent/dashboar...')
+#4 /Applications/MAMP/htdocs/toptiertravel/api/index.php(73): AppRouter\Router->dispatchGlobal()
+#5 {main}
+  thrown in /Applications/MAMP/htdocs/toptiertravel/api/routes/ReservsationDashboard.php on line 406

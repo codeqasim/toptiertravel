@@ -405,8 +405,8 @@ $router->post('agent/dashboard/reservations/recent', function () {
             $guest_email = 'N/A';
             if (!empty($hotel_sale['user_data'])) {
                 $guest = json_decode($hotel_sale['user_data']);
-                if (!empty($guest[0]->email)) {
-                    $guest_email = $guest[0]->email;
+                if (!empty($guest->email)) {
+                    $guest_email = $guest->email;
                 }
             }
 
