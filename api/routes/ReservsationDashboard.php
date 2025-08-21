@@ -92,12 +92,26 @@ $router->post('agent/dashboard/reservations', function () {
                             }
                         }
 
+                        // CALCULATE STAY DURATION
+                        $duration_nights = 0;
+                        if (!empty($last_seven_days_sale['checkin']) && !empty($last_seven_days_sale['checkout'])) {
+                            try {
+                                $checkinDate  = new DateTime($last_seven_days_sale['checkin']);
+                                $checkoutDate = new DateTime($last_seven_days_sale['checkout']);
+                                $duration_nights = $checkinDate->diff($checkoutDate)->days;
+                            } catch (Exception $e) {
+                                $duration_nights = 0;
+                            }
+                        }
+
 
                         $sale_data[] = [
                             'guest' => $guest_name,
                             'hotel_name' => $last_seven_days_sale['hotel_name'],
                             'location' => $last_seven_days_sale['location'],
                             'travel_date' => date('M d-m, Y',strtotime($last_seven_days_sale['booking_date']))
+                            'nights' => $duration_nights,
+                            'status' => $last_seven_days_sale['booking_status']
                         ];
                     }
                 }
