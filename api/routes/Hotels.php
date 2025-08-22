@@ -847,14 +847,6 @@ $router->post('hotel_booking', function () {
 
     $db->insert("hotels_bookings", $param); //INSERTION OF BOOKING DATA INTO DATABASE
 
-    // UPDATE PARTNER COMMISSION IF USER WHO IS MAKING THE BOOKING IS AN AGENT
-    // if($user_type[0] == 'Agent'){
-    //     $partner = $db->select('partners' , '*' , ['child_id' => $_POST["user_id"]]);
-    //     if(isset($partner)){
-    //         $db->update('hotels_bookings',['partner_fee' => 10],['booking_ref_no' => $param['booking_ref_no']]);
-    //     }
-    // }
-
     $data = (json_decode($_POST["user_data"]));
     $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no']));
     // HOOK

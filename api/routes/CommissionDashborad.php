@@ -396,7 +396,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 'commission_rate' => round($commission_percentage, 2),
                 'payment_status'=> $hotel_sale['agent_payment_status'],
                 'payment_type'  => $hotel_sale['agent_payment_type'],
-                'payment_date'  => 'N/A',
+                'payment_date'  => isset($hotel_sale['agent_payment_date']) && $hotel_sale['agent_payment_date'] != null ? date('Y-m-d',strtotime($hotel_sale['agent_payment_date'])) : null,
             ];
         }
 
