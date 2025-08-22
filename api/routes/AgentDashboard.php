@@ -1052,6 +1052,8 @@ $router->post('agent/dashboard/settings', function () {
 
             $country_name = isset($country['name']) ? $country['name'] : '';
         }
+
+        $countries = $country = $db->get("countries", "*", );
         
         // FORM PERSONAL SETTINGS DATA - FIXED PATH
         $response = [
@@ -1069,8 +1071,10 @@ $router->post('agent/dashboard/settings', function () {
                 "linkedin_url" => $user['linkedin_url'] ?? '',
                 "twitter_url" => $user['twitter_url'] ?? '',
                 "website_url" => $user['website_url'] ?? '',
+                "country_code" => $user['country_code'] ?? '',
                 "preferred_payment_method" => $user['preferred_payment_method'] ?? '',
-                "payment_details" => $user['payment_details'] ?? ''
+                "payment_details" => $user['payment_details'] ?? '',
+                "countries" => $countries
             ]
         ];
         
@@ -1262,7 +1266,8 @@ $router->post('agent/dashboard/settings/save', function () {
             'twitter_url' => 'twitter_url',
             'website_url' => 'website_url',
             'preferred_payment_method' => 'preferred_payment_method',
-            'payment_details' => 'payment_details'
+            'payment_details' => 'payment_details',
+            'country_code' => 'country_code'
         ];
 
         foreach ($simpleFields as $postKey => $dbKey) {
@@ -1271,12 +1276,12 @@ $router->post('agent/dashboard/settings/save', function () {
             }
         }
 
-        // Handle country field
-        if (!empty($_POST['country'])) {
-            $updateData['country_code'] = is_numeric($_POST['country'])
-                ? $_POST['country']
-                : ($db->get("countries", "id", ["name" => $_POST['country']]) ?: null);
-        }
+        // // Handle country field
+        // if (!empty($_POST['country'])) {
+        //     $updateData['country_code'] = is_numeric($_POST['country'])
+        //         ? $_POST['country']
+        //         : ($db->get("countries", "id", ["name" => $_POST['country']]) ?: null);
+        // }
 
         // Handle profile photo
         $result = handleBase64Field('profile_photo', $updateData, 'profile_photo');
