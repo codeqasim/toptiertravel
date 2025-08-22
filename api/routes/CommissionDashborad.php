@@ -20,10 +20,23 @@ $router->post('agent/dashboard/commission', function () {
 
     // CHECK USER
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
-
+    $settings = $db->select("settings", "*", [ "user_id" => $user_id]);
+    if (isset($user[0])) {
+        $user[0]['profile_photo'] = !empty($user[0]['profile_photo']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $user[0]['profile_photo']
+            : null; 
+    }
+    if (isset($user[0]) && isset($settings[0])) {
+        $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['header_logo_img']
+            : null; 
+            'favicon' => 'favicon_img'
+        $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['favicon_img']
+            : null; 
+    }
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
             if ($user_data->user_type == 'Agent') {
                 if ($user_data->status == 1) {
 
@@ -280,10 +293,31 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             
             // SEARCH FILTER
             if (!$include_record && !empty($search)) {
-                // Check regular fields
+                // Calculate commission percentage for search
+                $commission_percentage = 0;
+                if (!empty($record['price_original']) && $record['price_original'] > 0 && !empty($record['agent_fee'])) {
+                    $commission_percentage = ($record['agent_fee'] / $record['price_original']) * 100;
+                }
+                
+                // Calculate duration for search
+                $duration = 0;
+                if (!empty($record['checkin']) && !empty($record['checkout'])) {
+                    $checkinDate = new DateTime($record['checkin']);
+                    $checkoutDate = new DateTime($record['checkout']);
+                    $duration = $checkinDate->diff($checkoutDate)->days;
+                }
+                
+                // Check database fields directly
                 if (stripos($record['hotel_name'] ?? '', $search) !== false ||
                     stripos($record['location'] ?? '', $search) !== false ||
-                    stripos($record['booking_ref_no'] ?? '', $search) !== false) {
+                    stripos($record['booking_ref_no'] ?? '', $search) !== false ||
+                    stripos($record['booking_id'] ?? '', $search) !== false ||
+                    stripos($record['subtotal'] ?? '', $search) !== false ||
+                    stripos($record['agent_fee'] ?? '', $search) !== false ||
+                    stripos($record['agent_payment_status'] ?? '', $search) !== false ||
+                    stripos($record['agent_payment_type'] ?? '', $search) !== false ||
+                    stripos((string)$duration, $search) !== false ||
+                    stripos((string)round($commission_percentage, 2), $search) !== false) {
                     $include_record = true;
                 }
                 
@@ -362,7 +396,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 'commission_rate' => round($commission_percentage, 2),
                 'payment_status'=> $hotel_sale['agent_payment_status'],
                 'payment_type'  => $hotel_sale['agent_payment_type'],
-                'payment_date'  => $hotel_sale['payment_date'],
+                'payment_date'  => 'N/A',
             ];
         }
 

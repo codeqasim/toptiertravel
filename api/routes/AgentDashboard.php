@@ -147,6 +147,11 @@ $router->post('agent/dashboard/login', function () {
         };
 
         $user_data = (object)$data[0];
+        if (isset($user_data)) {
+            $user_data->profile_photo = !empty($user_data->profile_photo) 
+                ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo
+                : null; 
+        }
         $response = array ( "status"=> true, "message"=>"user details", "data"=> $user_data );
 
         if(isset($user_data) && $user_data->user_type != 'Agent'){
@@ -329,10 +334,24 @@ $router->post('agent/dashboard', function () {
 
     // CHECK USER
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
-
+    $settings = $db->select("settings", "*", [ "user_id" => $user_id]);
+    if (isset($user[0])) {
+        $user[0]['profile_photo'] = !empty($user[0]['profile_photo']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $user[0]['profile_photo']
+            : null; 
+    }
+    if (isset($user[0]) && isset($settings[0])) {
+        $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['header_logo_img']
+            : null; 
+            'favicon' => 'favicon_img'
+        $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['favicon_img']
+            : null; 
+    }
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
+            
             if ($user_data->user_type == 'Agent') {
                 if ($user_data->status == 1) {
 
@@ -499,105 +518,135 @@ $router->post('agent/dashboard/bookings/recent', function () {
     // CHECK EMAIL
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
 
-        if(isset($user[0])){
+    if(isset($user[0])){
         
-            $user_data = (object)$user[0];
-            
-            if ($user_data->status == 1) {
+        $user_data = (object)$user[0];
+        
+        if ($user_data->status == 1) {
 
-                // Pagination variables
-                $page = isset($_POST['page']) && is_numeric($_POST['page']) ? (int) $_POST['page'] : 1;
-                $limit = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5; // Records per page
-                $offset = ($page - 1) * $limit;
+            // Pagination variables
+            $page = isset($_POST['page']) && is_numeric($_POST['page']) ? (int) $_POST['page'] : 1;
+            $limit = isset($_POST['limit']) && is_numeric($_POST['limit']) ? (int) $_POST['limit'] : 5; // Records per page
+            $offset = ($page - 1) * $limit;
 
-                // Base condition
-                $conditions = [
-                    "agent_id" => $user_id,
-                    "booking_date[>=]" => date("Y-m-d", strtotime("-15 days")),
-                    "LIMIT" => [$offset, $limit]
-                ];
+            // Base condition (without search)
+            $conditions = [
+                "agent_id" => $user_id,
+                "booking_date[>=]" => date("Y-m-d", strtotime("-15 days"))
+            ];
 
-                // Optional booking_status filter
-                if (isset($status) && !empty($status)) {
-                    $conditions["booking_status"] = $status;
-                }
+            // Optional booking_status filter
+            if (isset($status) && !empty($status)) {
+                $conditions["booking_status"] = $status;
+            }
 
-                // Optional search filter
-                if (!empty($search)) {
-                    $conditions["OR"] = [
-                        "hotel_name[~]" => $search,
-                        "location[~]" => $search,
-                        "booking_id[~]" => $search
-                    ];
-                }
+            // Get all records first (without search)
+            $all_records = $db->select("hotels_bookings", "*", $conditions);
 
-                // Fetch paginated results
-                $hotel_sales = $db->select("hotels_bookings", "*", $conditions);
-
-                // Fetch total count (without LIMIT)
-                $total_records = $db->count("hotels_bookings", [
-                    "agent_id" => $user_id,
-                    "booking_date[>=]" => date("Y-m-d", strtotime("-15 days"))
-                ]);
-
-                $data = [];
-
-                if (!empty($hotel_sales)) {
-                    foreach ($hotel_sales as $hotel_sale) {
-                        $guest = json_decode($hotel_sale['guest']);
-                        $user_info = json_decode($hotel_sale['user_data']);
-                        $room = json_decode($hotel_sale['room_data']);
-
-                        $checkinDate = new DateTime($hotel_sale['checkin']);
-                        $checkoutDate = new DateTime($hotel_sale['checkout']);
-                        $duration = $checkinDate->diff($checkoutDate)->days;
-
-                        $data[] = [
-                            'id' => $hotel_sale['booking_id'],
-                            'booking_ref_no' => $hotel_sale['booking_ref_no'],
-                            'guest' => $guest[0]->title .' '. $guest[0]->first_name .' '. $guest[0]->last_name,
-                            'hotel_name' => $hotel_sale['hotel_name'],
-                            'room_name' => $room[0]->room_name,
-                            'city' => $hotel_sale['location'] ?? '',
-                            'date' => date('M d, Y', strtotime($hotel_sale['booking_date'])),
-                            'duration' => $duration,
-                            'phone' => $user_info->phone,
-                            'email' => $user_info->email,
-                            'status' => $hotel_sale['booking_status']
-                        ];
+            // Apply search filter if provided
+            if (!empty($search)) {
+                $searched_records = [];
+                
+                foreach ($all_records as $hotel_sale) {
+                    // Decode JSON data
+                    $guest = json_decode($hotel_sale['guest']);
+                    $user_info = json_decode($hotel_sale['user_data']);
+                    $room = json_decode($hotel_sale['room_data']);
+                    
+                    // Build guest name
+                    $guest_name = '';
+                    if (!empty($guest[0])) {
+                        $guest_name = ($guest[0]->title ?? '') . ' ' . ($guest[0]->first_name ?? '') . ' ' . ($guest[0]->last_name ?? '');
+                        $guest_name = trim($guest_name);
                     }
+                    
+                    // Search in all fields except date and duration
+                    if (stripos($hotel_sale['booking_id'] ?? '', $search) !== false ||
+                        stripos($hotel_sale['booking_ref_no'] ?? '', $search) !== false ||
+                        stripos($guest_name, $search) !== false ||
+                        stripos($hotel_sale['hotel_name'] ?? '', $search) !== false ||
+                        stripos($room[0]->room_name ?? '', $search) !== false ||
+                        stripos($hotel_sale['location'] ?? '', $search) !== false ||
+                        stripos($user_info->phone ?? '', $search) !== false ||
+                        stripos($user_info->email ?? '', $search) !== false ||
+                        stripos($hotel_sale['booking_status'] ?? '', $search) !== false) {
+                        
+                        $searched_records[] = $hotel_sale;
+                    }
+                }
+                $hotel_sales_to_use = $searched_records;
+            } else {
+                $hotel_sales_to_use = $all_records;
+            }
 
-                    // Pagination info
-                    $total_pages = ceil($total_records / $limit);
+            // Apply pagination to filtered results
+            $total_records = count($hotel_sales_to_use);
+            $hotel_sales = array_slice($hotel_sales_to_use, $offset, $limit);
 
-                    $response = [
-                        "status" => true,
-                        "message" => "data has been retrieved",
-                        "data" => $data,
-                        "pagination" => [
-                            "current_page" => $page,
-                            "total_pages" => $total_pages,
-                            "total_records" => $total_records
-                        ]
-                    ];
-                } else {
-                    $response = [
-                        "status" => false,
-                        "message" => "no record found",
-                        "data" => null
+            $data = [];
+
+            if (!empty($hotel_sales)) {
+                foreach ($hotel_sales as $hotel_sale) {
+                    $guest = json_decode($hotel_sale['guest']);
+                    $user_info = json_decode($hotel_sale['user_data']);
+                    $room = json_decode($hotel_sale['room_data']);
+
+                    $checkinDate = new DateTime($hotel_sale['checkin']);
+                    $checkoutDate = new DateTime($hotel_sale['checkout']);
+                    $duration = $checkinDate->diff($checkoutDate)->days;
+
+                    $data[] = [
+                        'id' => $hotel_sale['booking_id'],
+                        'booking_ref_no' => $hotel_sale['booking_ref_no'],
+                        'guest' => $guest[0]->title .' '. $guest[0]->first_name .' '. $guest[0]->last_name,
+                        'hotel_name' => $hotel_sale['hotel_name'],
+                        'room_name' => $room[0]->room_name,
+                        'city' => $hotel_sale['location'] ?? '',
+                        'date' => date('M d, Y', strtotime($hotel_sale['booking_date'])),
+                        'duration' => $duration,
+                        'phone' => $user_info->phone,
+                        'email' => $user_info->email,
+                        'status' => $hotel_sale['booking_status']
                     ];
                 }
 
+                // Pagination info
+                $total_pages = ceil($total_records / $limit);
+
+                $response = [
+                    "status" => true,
+                    "message" => "data has been retrieved",
+                    "data" => $data,
+                    "pagination" => [
+                        "current_page" => $page,
+                        "total_pages" => $total_pages,
+                        "total_records" => $total_records
+                    ]
+                ];
             } else {
                 $response = [
                     "status" => false,
-                    "message" => "not_activated",
-                    "data" => null
+                    "message" => "no record found",
+                    "data" => null,
+                    "pagination" => [
+                        "current_page" => $page,
+                        "total_pages" => 0,
+                        "total_records" => 0
+                    ]
                 ];
             }
+
         } else {
-            $response = array ( "status"=>false, "message"=>"no user found", "data"=> null );
+            $response = [
+                "status" => false,
+                "message" => "not_activated",
+                "data" => null
+            ];
         }
+    } else {
+        $response = array ( "status"=>false, "message"=>"no user found", "data"=> null );
+    }
+    
     echo json_encode($response);
 });
 
@@ -1256,7 +1305,7 @@ $router->post('agent/dashboard/settings/save', function () {
 
     } elseif ($type === 'personal') {
         $updateData = [];
-
+        
         // Map simple fields
         $simpleFields = [
             'first_name' => 'first_name',
@@ -1276,6 +1325,19 @@ $router->post('agent/dashboard/settings/save', function () {
         foreach ($simpleFields as $postKey => $dbKey) {
             if (isset($_POST[$postKey])) {
                 $updateData[$dbKey] = $_POST[$postKey];
+            }
+        }
+        
+        // Check for email duplicate before updating
+        if (isset($updateData['email'])) {
+            $emailExists = $db->get("users", "user_id", [
+                "email" => $updateData['email'],
+                "user_id[!]" => $user_id  // Exclude current user
+            ]);
+            
+            if ($emailExists) {
+                sendResponse(false, "Email address is already in use by another user");
+                return;
             }
         }
 

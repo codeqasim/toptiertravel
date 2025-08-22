@@ -20,10 +20,23 @@ $router->post('agent/dashboard/reservations', function () {
 
     // CHECK USER
     $user = $db->select("users", "*", [ "user_id" => $user_id]);
-
+    $settings = $db->select("settings", "*", [ "user_id" => $user_id]);
+    if (isset($user[0])) {
+        $user[0]['profile_photo'] = !empty($user[0]['profile_photo']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $user[0]['profile_photo']
+            : null; 
+    }
+    if (isset($user[0]) && isset($settings[0])) {
+        $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['header_logo_img']
+            : null; 
+            'favicon' => 'favicon_img'
+        $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['favicon_img']
+            : null; 
+    }
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
             $conditions = ["agent_id" => $user_id];
 
             // FETCH ALL BOOKINGS FOR THIS AGENT WITH CONDITIONS
@@ -361,10 +374,41 @@ $router->post('agent/dashboard/reservations/recent', function () {
             
             // SEARCH FILTER
             if (!$include_record && !empty($search)) {
+                // Calculate revenue for search
+                $price_markup = isset($record['price_markup']) ? (float)$record['price_markup'] : 0.0;
+                $price_original = isset($record['price_original']) ? (float)$record['price_original'] : 0.0;
+                $agent_fee = isset($record['agent_fee']) ? (float)$record['agent_fee'] : 0.0;
+                $revenue = $price_markup - $price_original - $agent_fee;
+                
+                // Get guest email from user_data
+                $guest_email = '';
+                if (!empty($record['user_data'])) {
+                    $user_data = json_decode($record['user_data']);
+                    if (!empty($user_data->email)) {
+                        $guest_email = $user_data->email;
+                    }
+                }
+                
+                // Get room name from room_data
+                $room_name = '';
+                if (!empty($record['room_data'])) {
+                    $room_data = json_decode($record['room_data']);
+                    if (!empty($room_data[0]->room_name)) {
+                        $room_name = $room_data[0]->room_name;
+                    }
+                }
+                
                 // Check regular fields
                 if (stripos($record['hotel_name'] ?? '', $search) !== false ||
                     stripos($record['location'] ?? '', $search) !== false ||
-                    stripos($record['booking_ref_no'] ?? '', $search) !== false) {
+                    stripos($record['booking_ref_no'] ?? '', $search) !== false ||
+                    stripos($record['booking_id'] ?? '', $search) !== false ||
+                    stripos($guest_email, $search) !== false ||
+                    stripos($room_name, $search) !== false ||
+                    stripos($record['subtotal'] ?? '', $search) !== false ||
+                    stripos($record['agent_fee'] ?? '', $search) !== false ||
+                    stripos((string)$revenue, $search) !== false ||
+                    stripos($record['booking_status'] ?? '', $search) !== false) {
                     $include_record = true;
                 }
                 
@@ -387,7 +431,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
                         }
                     }
                 }
-            }
+}
         }
         
         if ($include_record) {
