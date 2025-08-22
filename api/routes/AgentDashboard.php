@@ -344,7 +344,7 @@ $router->post('agent/dashboard', function () {
         $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
             ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['header_logo_img']
             : null; 
-            'favicon' => 'favicon_img'
+            
         $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
             ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['favicon_img']
             : null; 
