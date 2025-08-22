@@ -1106,6 +1106,7 @@ $router->post('agent/dashboard/settings', function () {
         }
 
         $countries = $db->select("countries", "*");
+        $payment_gateways = $db->select("payment_gateways", "name",['status' => '1']);
         
         // FORM PERSONAL SETTINGS DATA - FIXED PATH
         $response = [
@@ -1126,7 +1127,8 @@ $router->post('agent/dashboard/settings', function () {
                 "country_code" => $user['country_code'] ?? '',
                 "preferred_payment_method" => $user['preferred_payment_method'] ?? '',
                 "payment_details" => $user['payment_details'] ?? '',
-                "countries" => $countries
+                "countries" => $countries,
+                'payment_gateways' => $payment_gateways
             ]
         ];
         
