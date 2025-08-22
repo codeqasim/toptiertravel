@@ -64,6 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "agent_payment_type" => $_POST['agent_payment_type'],
       ];
 
+      if ($params['agent_payment_status'] == 'paid') {
+         $params['agent_payment_date'] = date('Y-m-d');
+      }
+
       $user_data = [
          "first_name" => $_POST['adults_data'][0]['firstname'] ?? "Unknown",
          "last_name" => $_POST['adults_data'][0]['lastname'] ?? "Unknown",

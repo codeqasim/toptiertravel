@@ -124,6 +124,10 @@ $title = T::booking .' '. T::edit;
                 ['booking_ref_no' => $_GET['booking_id']]
             );
 
+            if ($$_GET['agent_payment_status'] == 'paid') {
+                $db->update($table_name,['agent_payment_date' => date('Y-m-d')],['booking_ref_no' => $_GET['booking_id']]);
+            }
+
             REDIRECT('./bookings.php');
         }
 
