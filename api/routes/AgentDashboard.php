@@ -1312,7 +1312,6 @@ $router->post('agent/dashboard/settings/save', function () {
         $simpleFields = [
             'first_name' => 'first_name',
             'last_name' => 'last_name',
-            'email' => 'email',
             'phone_number' => 'phone',
             'address' => 'address1',
             'bio' => 'note',
@@ -1342,13 +1341,6 @@ $router->post('agent/dashboard/settings/save', function () {
                 return;
             }
         }
-
-        // // Handle country field
-        // if (!empty($_POST['country'])) {
-        //     $updateData['country_code'] = is_numeric($_POST['country'])
-        //         ? $_POST['country']
-        //         : ($db->get("countries", "id", ["name" => $_POST['country']]) ?: null);
-        // }
 
         // Handle profile photo
         $result = handleBase64Field('profile_photo', $updateData, 'profile_photo');
