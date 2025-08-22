@@ -23,7 +23,7 @@ $router->post('agent/dashboard/commission', function () {
 
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            
+            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
             if ($user_data->user_type == 'Agent') {
                 if ($user_data->status == 1) {
 

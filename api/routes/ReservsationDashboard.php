@@ -23,7 +23,7 @@ $router->post('agent/dashboard/reservations', function () {
 
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            
+            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
             $conditions = ["agent_id" => $user_id];
 
             // FETCH ALL BOOKINGS FOR THIS AGENT WITH CONDITIONS

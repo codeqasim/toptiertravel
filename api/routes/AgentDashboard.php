@@ -332,7 +332,7 @@ $router->post('agent/dashboard', function () {
 
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            
+            $user_data->profile_photo = !empty($user_data->profile_photo) ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo;
             if ($user_data->user_type == 'Agent') {
                 if ($user_data->status == 1) {
 
@@ -370,18 +370,21 @@ $router->post('agent/dashboard', function () {
                     if(isset($partners) && !empty($partners)){
                         foreach ($partners as $partner) {
                             $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id'], "payment_status" => "paid"]);
-                            if(isset($hotel_bookings) && !empty($hotels_bookings)){
-                                foreach ($hotel_bookings as $hotel_booking) {
-                                    $total_partner_commission += (1 * $hotel_sale['subtotal']) / 100;
+                            if(isset($hotels_bookings) && !empty($hotels_bookings)){
+                                foreach ($hotels_bookings as $hotel_booking) {
+                                    // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
+                                    $booking_date = date('Y-m-d', strtotime($hotel_booking['booking_date']));
+                        
+                                    $total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
                                     
                                     // CURRENT MONTH CALCULATION
                                     if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                                        $current_total_partner_commission += (1 * $hotel_sale['subtotal']) / 100;
+                                        $current_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
                                     }
 
                                     // LAST MONTH CALCULATION
                                     if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                                        $last_total_partner_commission += (1 * $hotel_sale['subtotal']) / 100;
+                                        $last_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
                                     }
                                 }
                             }
@@ -1026,8 +1029,8 @@ $router->post('agent/dashboard/settings', function () {
                 "domain_name" => $settings['site_url'] ?? '',
                 "website_offline" => $settings['site_offline'] ?? 'No',
                 "offline_message" => $settings['offline_message'] ?? '',
-                "business_logo" => !empty($settings['header_logo_img']) ? '/assets/uploads/' . $settings['header_logo_img'] : null,
-                "favicon" => !empty($settings['favicon_img']) ? '/assets/uploads/' . $settings['favicon_img'] : null
+                "business_logo" => !empty($settings['header_logo_img']) ? 'https://toptiertravel.site/assets/uploads/' . $settings['header_logo_img'] : null,
+                "favicon" => !empty($settings['favicon_img']) ? 'https://toptiertravel.site/assets/uploads/' . $settings['favicon_img'] : null
             ]
         ];
         
@@ -1053,14 +1056,14 @@ $router->post('agent/dashboard/settings', function () {
             $country_name = isset($country['name']) ? $country['name'] : '';
         }
 
-        $countries = $country = $db->get("countries", "*", );
+        $countries = $db->select("countries", "*");
         
         // FORM PERSONAL SETTINGS DATA - FIXED PATH
         $response = [
             "status" => true,
             "message" => "Personal settings retrieved successfully",
             "data" => [
-                "profile_photo" => !empty($user['profile_photo']) ? '/assets/uploads/' . $user['profile_photo'] : null,
+                "profile_photo" => !empty($user['profile_photo']) ? 'https://toptiertravel.site/assets/uploads/' . $user['profile_photo'] : null,
                 "first_name" => $user['first_name'] ?? '',
                 "last_name" => $user['last_name'] ?? '',
                 "email" => $user['email'] ?? '',
