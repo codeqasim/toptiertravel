@@ -12,6 +12,48 @@ $router->post('agent/dashboard/signup', function () {
     // INCLUDE CONFIG
     include "./config.php";
 
+    // reCAPTCHA VERIFICATION - ADD THIS FIRST
+    if (!isset($_POST['g-recaptcha-response']) || empty($_POST['g-recaptcha-response'])) {
+        echo json_encode([
+            "status"  => false,
+            "message" => "Please complete the reCAPTCHA verification.",
+            "data"    => ""
+        ]);
+        die;
+    }
+
+    // VERIFY reCAPTCHA WITH GOOGLE
+    $recaptchaSecret = '6Lcwl68rAAAAAML_0FadvMSNW71lz30RoO2Mw94L'; // Replace with your actual secret key
+    $recaptchaResponse = $_POST['g-recaptcha-response'];
+    
+    $url = 'https://www.google.com/recaptcha/api/siteverify';
+    $data = [
+        'secret' => $recaptchaSecret,
+        'response' => $recaptchaResponse,
+        'remoteip' => $_SERVER['REMOTE_ADDR']
+    ];
+    
+    $options = [
+        'http' => [
+            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+            'method' => 'POST',
+            'content' => http_build_query($data)
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    $captchaResult = json_decode($result, true);
+    
+    if (!$captchaResult['success']) {
+        echo json_encode([
+            "status"  => false,
+            "message" => "reCAPTCHA verification failed. Please try again.",
+            "data"    => ""
+        ]);
+        die;
+    }
+
     // REQUIRED FIELD VALIDATION
     required('first_name');
     required('last_name');
