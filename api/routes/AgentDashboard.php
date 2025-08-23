@@ -13,7 +13,7 @@ $router->post('agent/dashboard/signup', function () {
     include "./config.php";
 
     // reCAPTCHA VERIFICATION - ADD THIS FIRST
-    if (!isset($_POST['g-recaptcha-response']) || empty($_POST['g-recaptcha-response'])) {
+    if (!isset($_POST['recaptcha_token']) || empty($_POST['recaptcha_token'])) {
         echo json_encode([
             "status"  => false,
             "message" => "Please complete the reCAPTCHA verification.",
@@ -24,7 +24,7 @@ $router->post('agent/dashboard/signup', function () {
 
     // VERIFY reCAPTCHA WITH GOOGLE
     $recaptchaSecret = '6Lcwl68rAAAAAML_0FadvMSNW71lz30RoO2Mw94L'; // Replace with your actual secret key
-    $recaptchaResponse = $_POST['g-recaptcha-response'];
+    $recaptchaResponse = $_POST['recaptcha_token'];
     
     $url = 'https://www.google.com/recaptcha/api/siteverify';
     $data = [
