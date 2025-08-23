@@ -250,7 +250,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 
     // FILTER LOGIC
     $filtered_records = [];
-    
+
     foreach ($all_records as $record) {
         $include_record = false;
         
@@ -274,7 +274,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             }
             
             // COMMISSION RATE FILTER
-            if (!empty($commission_rate) && is_array($commission_rate)) {
+            if (!$include_record && !empty($commission_rate) && is_array($commission_rate)) {
                 $original_price = (float)($record['price_original'] ?? 0);
                 $agent_fee = (float)($record['agent_fee'] ?? 0);
                 
@@ -291,61 +291,80 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 }
             }
             
-            // SEARCH FILTER
-            if (!empty($search)) {
-                // Calculate commission percentage for search
-                $commission_percentage = 0;
-                if (!empty($record['price_original']) && $record['price_original'] > 0 && !empty($record['agent_fee'])) {
-                    $commission_percentage = ($record['agent_fee'] / $record['price_original']) * 100;
-                }
-                
-                // Calculate duration for search
-                $duration = 0;
-                if (!empty($record['checkin']) && !empty($record['checkout'])) {
-                    $checkinDate = new DateTime($record['checkin']);
-                    $checkoutDate = new DateTime($record['checkout']);
-                    $duration = $checkinDate->diff($checkoutDate)->days;
-                }
-                
-                // Check database fields directly
-                if (stripos($record['hotel_name'] ?? '', $search) !== false ||
-                    stripos($record['location'] ?? '', $search) !== false ||
-                    stripos($record['booking_ref_no'] ?? '', $search) !== false ||
-                    stripos($record['booking_id'] ?? '', $search) !== false ||
-                    stripos($record['subtotal'] ?? '', $search) !== false ||
-                    stripos($record['agent_fee'] ?? '', $search) !== false ||
-                    stripos($record['agent_payment_status'] ?? '', $search) !== false ||
-                    stripos($record['agent_payment_type'] ?? '', $search) !== false ||
-                    stripos((string)$duration, $search) !== false ||
-                    stripos((string)round($commission_percentage, 2), $search) !== false) {
-                    $include_record = true;
-                }
-                
-                // Check guest JSON if no match yet
-                if (!empty($record['guest'])) {
-                    $guest = json_decode($record['guest']);
-                    if (!empty($guest[0])) {
-                        $guest_obj = $guest[0];
-                        
-                        $title = $guest_obj->title ?? '';
-                        $first_name = $guest_obj->first_name ?? '';
-                        $last_name = $guest_obj->last_name ?? '';
-                        $full_name = trim($title . ' ' . $first_name . ' ' . $last_name);
-                        
-                        if (stripos($title, $search) !== false ||
-                            stripos($first_name, $search) !== false ||
-                            stripos($last_name, $search) !== false ||
-                            stripos($full_name, $search) !== false) {
-                            $include_record = true;
-                        }
-                    }
-                }
+            // If no other filters applied, include all records for potential search
+            if (empty($booking_value) && empty($commission_rate)) {
+                $include_record = true;
             }
         }
         
         if ($include_record) {
             $filtered_records[] = $record;
         }
+    }
+
+    // STEP 2: APPLY SEARCH FILTER on already filtered records
+    if (!empty($search)) {
+        $search_filtered = [];
+        
+        foreach ($filtered_records as $record) {
+            $search_match = false;
+            
+            // Calculate commission percentage for search
+            $commission_percentage = 0;
+            if (!empty($record['price_original']) && $record['price_original'] > 0 && !empty($record['agent_fee'])) {
+                $commission_percentage = ($record['agent_fee'] / $record['price_original']) * 100;
+            }
+            
+            // Calculate duration for search
+            $duration = 0;
+            if (!empty($record['checkin']) && !empty($record['checkout'])) {
+                $checkinDate = new DateTime($record['checkin']);
+                $checkoutDate = new DateTime($record['checkout']);
+                $duration = $checkinDate->diff($checkoutDate)->days;
+            }
+            
+            // Check database fields directly
+            if (stripos($record['hotel_name'] ?? '', $search) !== false ||
+                stripos($record['location'] ?? '', $search) !== false ||
+                stripos($record['booking_ref_no'] ?? '', $search) !== false ||
+                stripos($record['booking_id'] ?? '', $search) !== false ||
+                stripos($record['subtotal'] ?? '', $search) !== false ||
+                stripos($record['agent_fee'] ?? '', $search) !== false ||
+                stripos($record['agent_payment_status'] ?? '', $search) !== false ||
+                stripos($record['agent_payment_type'] ?? '', $search) !== false ||
+                stripos((string)$duration, $search) !== false ||
+                stripos((string)round($commission_percentage, 2), $search) !== false) {
+                $search_match = true;
+            }
+            
+            // Check guest JSON if no match yet
+            if (!$search_match && !empty($record['guest'])) {
+                $guest = json_decode($record['guest']);
+                if (!empty($guest[0])) {
+                    $guest_obj = $guest[0];
+                    
+                    $title = $guest_obj->title ?? '';
+                    $first_name = $guest_obj->first_name ?? '';
+                    $last_name = $guest_obj->last_name ?? '';
+                    $full_name = trim($title . ' ' . $first_name . ' ' . $last_name);
+                    
+                    if (stripos($title, $search) !== false ||
+                        stripos($first_name, $search) !== false ||
+                        stripos($last_name, $search) !== false ||
+                        stripos($full_name, $search) !== false) {
+                        $search_match = true;
+                    }
+                }
+            }
+            
+            // Only include records that match the search
+            if ($search_match) {
+                $search_filtered[] = $record;
+            }
+        }
+        
+        // Update filtered_records with search results
+        $filtered_records = $search_filtered;
     }
 
     // Calculate pagination
