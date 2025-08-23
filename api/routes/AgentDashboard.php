@@ -12,7 +12,7 @@ $router->post('agent/dashboard/signup', function () {
     // INCLUDE CONFIG
     include "./config.php";
 
-    // reCAPTCHA VERIFICATION - ADD THIS FIRST
+    // reCAPTCHA v3 VERIFICATION - UPDATED FOR v3
     if (!isset($_POST['recaptcha_token']) || empty($_POST['recaptcha_token'])) {
         echo json_encode([
             "status"  => false,
@@ -22,8 +22,8 @@ $router->post('agent/dashboard/signup', function () {
         die;
     }
 
-    // VERIFY reCAPTCHA WITH GOOGLE
-    $recaptchaSecret = '6Lcwl68rAAAAAML_0FadvMSNW71lz30RoO2Mw94L'; // Replace with your actual secret key
+    // VERIFY reCAPTCHA v3 WITH GOOGLE
+    $recaptchaSecret = '6Lcwl68rAAAAAML_0FadvMSNW71lz30RoO2Mw94L';
     $recaptchaResponse = $_POST['recaptcha_token'];
     
     $url = 'https://www.google.com/recaptcha/api/siteverify';
@@ -49,6 +49,16 @@ $router->post('agent/dashboard/signup', function () {
         echo json_encode([
             "status"  => false,
             "message" => "reCAPTCHA verification failed. Please try again.",
+            "data"    => ""
+        ]);
+        die;
+    }
+
+    // reCAPTCHA v3 SCORE CHECK (0.0 = likely bot, 1.0 = likely human)
+    if (isset($captchaResult['score']) && $captchaResult['score'] < 0.5) {
+        echo json_encode([
+            "status"  => false,
+            "message" => "Suspicious activity detected. Please try again.",
             "data"    => ""
         ]);
         die;
