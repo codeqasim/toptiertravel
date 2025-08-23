@@ -274,7 +274,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             }
             
             // COMMISSION RATE FILTER
-            if (!$include_record && !empty($commission_rate) && is_array($commission_rate)) {
+            if (!empty($commission_rate) && is_array($commission_rate)) {
                 $original_price = (float)($record['price_original'] ?? 0);
                 $agent_fee = (float)($record['agent_fee'] ?? 0);
                 
@@ -292,7 +292,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
             }
             
             // SEARCH FILTER
-            if (!$include_record && !empty($search)) {
+            if (!empty($search)) {
                 // Calculate commission percentage for search
                 $commission_percentage = 0;
                 if (!empty($record['price_original']) && $record['price_original'] > 0 && !empty($record['agent_fee'])) {
@@ -322,7 +322,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 }
                 
                 // Check guest JSON if no match yet
-                if (!$include_record && !empty($record['guest'])) {
+                if (!empty($record['guest'])) {
                     $guest = json_decode($record['guest']);
                     if (!empty($guest[0])) {
                         $guest_obj = $guest[0];

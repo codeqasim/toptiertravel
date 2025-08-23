@@ -355,7 +355,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
             }
             
             // COMMISSION RATE FILTER
-            if (!$include_record && !empty($commission_rate) && is_array($commission_rate)) {
+            if (!empty($commission_rate) && is_array($commission_rate)) {
                 $original_price = (float)($record['price_original'] ?? 0);
                 $agent_fee = (float)($record['agent_fee'] ?? 0);
                 
@@ -373,7 +373,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
             }
             
             // SEARCH FILTER
-            if (!$include_record && !empty($search)) {
+            if (!empty($search)) {
                 // Calculate revenue for search
                 $price_markup = isset($record['price_markup']) ? (float)$record['price_markup'] : 0.0;
                 $price_original = isset($record['price_original']) ? (float)$record['price_original'] : 0.0;
@@ -431,7 +431,7 @@ $router->post('agent/dashboard/reservations/recent', function () {
                         }
                     }
                 }
-}
+            }
         }
         
         if ($include_record) {
