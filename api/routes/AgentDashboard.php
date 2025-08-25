@@ -455,17 +455,18 @@ $router->post('agent/dashboard', function () {
                                 foreach ($hotels_bookings as $hotel_booking) {
                                     // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
                                     $booking_date = date('Y-m-d', strtotime($hotel_booking['booking_date']));
-                        
-                                    $total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
-                                    
-                                    // CURRENT MONTH CALCULATION
-                                    if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                                        $current_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
-                                    }
-
-                                    // LAST MONTH CALCULATION
-                                    if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                                        $last_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
+                                    if($hotel_booking['subtotal'] != '' && $hotel_booking['subtotal'] != null){
+                                        $total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
+                                        
+                                        // CURRENT MONTH CALCULATION
+                                        if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
+                                            $current_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
+                                        }
+    
+                                        // LAST MONTH CALCULATION
+                                        if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
+                                            $last_total_partner_commission += (1 * $hotel_booking['subtotal']) / 100;
+                                        }
                                     }
                                 }
                             }
