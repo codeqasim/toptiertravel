@@ -184,63 +184,73 @@ $router->post('agent/dashboard/login', function () {
     required('email');
     required('password');
 
-    $data = $db->select("users","*", [
-        "email" => $_POST['email'],
-        "password" => md5($_POST['password']),
+    // First, check if user exists by email only
+    $user_data = $db->select("users","*", [
+        "email" => $_POST['email']
     ]);
 
+    if(!isset($user_data[0])) {
+        // No user found with this email
+        $response = array ( "status"=>false, "message"=>"no user found with this email", "data"=> null );
+        echo json_encode($response);
+        die;
+    }
 
-    if(isset($data[0])) {
+    // User exists, now check password
+    $user = $user_data[0];
+    if($user['password'] !== md5($_POST['password'])) {
+        // Wrong password
+        $response = array ( "status"=>false, "message"=>"wrong password", "data"=> null );
+        echo json_encode($response);
+        die;
+    }
 
-        if ($data[0]['status'] == 0) {
-            $response = array ( "status"=> false, "message"=>"user account not verified", "data"=> $data[0] );
-            echo json_encode($response);
-            die;
-        };
+    // Email and password are correct, proceed with other checks
+    if ($user['status'] == 0) {
+        $response = array ( "status"=> false, "message"=>"user account not verified", "data"=> $user );
+        echo json_encode($response);
+        die;
+    }
 
-        $user_data = (object)$data[0];
-        if (isset($user_data)) {
-            $user_data->profile_photo = !empty($user_data->profile_photo) 
-                ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo
-                : null; 
-        }
-        $response = array ( "status"=> true, "message"=>"user details", "data"=> $user_data );
+    $user_data = (object)$user;
+    if (isset($user_data)) {
+        $user_data->profile_photo = !empty($user_data->profile_photo) 
+            ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo
+            : null; 
+    }
 
-        if(isset($user_data) && $user_data->user_type != 'Agent'){
-            $response = array ( "status"=>false, "message"=>"this user is not an agent", "data"=> null );    
-        }else{
-            if (isset($user_data)){
-                if ($user_data->status == 1){
+    $response = array ( "status"=> true, "message"=>"user details", "data"=> $user_data );
 
+    if(isset($user_data) && $user_data->user_type != 'Agent'){
+        $response = array ( "status"=>false, "message"=>"this user is not an agent", "data"=> null );    
+    } else {
+        if (isset($user_data)){
+            if ($user_data->status == 1){
                 // HOOK
                 $hook="login";
                 include "./hooks.php";
-
-            }}
-
-            $SESSION_ARRAY = array(
-                "backend_user_login" => true,
-                "backend_user_id" => $user_data->user_id,
-                "backend_user_email" => $user_data->email,
-                "backend_user_type" => $user_data->user_type,
-                "backend_user_status" => $user_data->status,
-                "backend_user_name" => $user_data->first_name. ' ' .$user_data->last_name,
-            );
-            
-            $_SESSION['phptravels_backend_user'] = json_encode($SESSION_ARRAY);
-
-            // INSERT TO LOGS
-            $user_id = $user_data->user_id;
-            $log_type = "login";
-            $datetime = date("Y-m-d h:i:sa");
-            $desc = "user logged into account" .get_client_ip();
-            logs($user_id,$log_type,$datetime,$desc);
-
-            include "./logs.php";
+            }
         }
 
-    } else {
-        $response = array ( "status"=>false, "message"=>"no user found", "data"=> null );
+        $SESSION_ARRAY = array(
+            "backend_user_login" => true,
+            "backend_user_id" => $user_data->user_id,
+            "backend_user_email" => $user_data->email,
+            "backend_user_type" => $user_data->user_type,
+            "backend_user_status" => $user_data->status,
+            "backend_user_name" => $user_data->first_name. ' ' .$user_data->last_name,
+        );
+        
+        $_SESSION['phptravels_backend_user'] = json_encode($SESSION_ARRAY);
+
+        // INSERT TO LOGS
+        $user_id = $user_data->user_id;
+        $log_type = "login";
+        $datetime = date("Y-m-d h:i:sa");
+        $desc = "user logged into account" .get_client_ip();
+        logs($user_id,$log_type,$datetime,$desc);
+
+        include "./logs.php";
     }
 
     echo json_encode($response);
