@@ -233,8 +233,8 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 
     // MONTH FILTER
     if (!empty($month)) {
-        $start_date = $month . "-01";
-        $end_date = date("Y-m-t", strtotime($start_date));
+        $start_date = date("Y-m-01"); // Current month start (e.g., "2025-08-01")
+        $end_date = date("Y-m-t");    // Current month end (e.g., "2025-08-31")
         $conditions["booking_date[<>]"] = [$start_date, $end_date];
     }
 
