@@ -593,8 +593,8 @@ $router->post('agent/dashboard/bookings/recent', function () {
 
             // Base condition (without search)
             $conditions = [
-                "agent_id" => $user_id,
-                "booking_date[>=]" => date("Y-m-d", strtotime("-15 days"))
+                "agent_id" => $user_id
+                // "booking_date[>=]" => date("Y-m-d", strtotime("-15 days"))
             ];
 
             // Optional booking_status filter
@@ -1006,7 +1006,7 @@ $router->post('agent/dashboard/bookings', function () {
                 }
 
                 // Limit to last 15 days
-                $conditions["booking_date[>=]"] = date("Y-m-d", strtotime("-15 days"));
+                // $conditions["booking_date[>=]"] = date("Y-m-d", strtotime("-15 days"));
 
                 // Search filter
                 if (!empty($search)) {
