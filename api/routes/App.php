@@ -224,7 +224,7 @@ $router->post('app', function() {
            "infants"=>0,
            "supplier"=>$value['module'],
            "name"=>$value['name'],
-           "img"=>$value['img'],
+           "img"=>"https://toptiertravel.vip/uploads/".$value['img'],
            "location"=>$value['location'],
            "stars"=>$value['stars'],
            "status"=>$value['status'],
@@ -333,17 +333,35 @@ $router->post('app', function() {
     $con_rate = $db->select("currencies", "*", ["name" => $currency]);
     $con_price = $price * $con_rate[0]['rate'];
 
+    // Fetch hotel amenities
+    $hotel_amenities = $db->select('hotels_amenties_fk', [
+        "[>]hotels_settings" => ["amenity_id" => "id"]
+    ], [
+        'hotels_settings.name'
+    ], [
+        'hotels_amenties_fk.hotel_id' => $value['id']
+    ]);
+
+    // Create amenities array
+    $amenities = array();
+    if (!empty($hotel_amenities)) {
+        foreach ($hotel_amenities as $amenity) {
+            $amenities[] = $amenity['name'];
+        }
+    }
+
     if ($price != 0){
         $hotels[] = (object)[
             "id"=>$value['id'],
             "city"=>$value['city'],
             "country"=>$value['country'],
             "name"=>$value['name'],
-            "img"=>$value['img'],
+            "img"=>"https://toptiertravel.vip/uploads/".$value['img'],
             "location"=>$value['location'],
             "stars"=>$value['stars'],
             "status"=>$value['status'],
             "price"=>number_format((float) $con_price, 2),
+            'amenities' => $amenities
             ];
         }
     }
