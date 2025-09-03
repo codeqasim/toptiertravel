@@ -180,21 +180,27 @@ $router->post('app', function() {
     $payment_gateways = $db->select("payment_gateways","*", [ "status" => 1, ]);
 
     // FEATURE TOURS
-    $featured_tours = $db->select("tours",
-   [
-       "tours.id",
-       "tours.tour_basic_price",
-       "tours.module",
-       "tours.name",
-       "tours.img",
-       "tours.location",
-       "tours.stars",
-       "tours.status",
-   ],[
-    "tours.status" => 1,
-    "tours.featured" => 1,
-    "ORDER" => [ "id" => "ASC" ]
-   ]);
+    $featured_tours = $db->select("tours", [
+            "[>]locations" => ["location" => "city"] // join with locations
+        ],
+        [
+            "tours.id",
+            "tours.tour_basic_price",
+            "tours.module",
+            "tours.name",
+            "tours.img",
+            "tours.location",
+            "tours.stars",
+            "tours.status",
+            "locations.city",
+            "locations.country"
+        ],[
+            "tours.status" => 1,
+            "tours.featured" => 1,
+            "ORDER" => [ "tours.id" => "ASC" ]
+        ]
+    );
+
    $tours = array();
    foreach ($featured_tours as $value){
 
@@ -226,6 +232,8 @@ $router->post('app', function() {
            "name"=>$value['name'],
            "img"=>"https://toptiertravel.vip/uploads/".$value['img'],
            "location"=>$value['location'],
+           "city" => $value['city'],
+           "country" => $value['country'],
            "stars"=>$value['stars'],
            "status"=>$value['status'],
            "price"=>number_format((float) $con_price, 2),
