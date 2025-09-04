@@ -767,6 +767,36 @@ if (isset($user_permissions->newsletter->page_access)) {
 <?php } ?>
 <!-- End Newsletter -->
 
+<!-- OUR SERVICES -->
+<?php
+if (isset($user_permissions->our_services->page_access)) {
+?>
+<li class="slide">
+<a href="./our_services.php" class="side-menu__item <?php if ($url_name == 'our_services') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-briefcase side-menu__icon"></i> <!-- Services Icon -->
+<span class="side-menu__label"><?= T::our_services ?></span>
+</a>
+</li>
+<?php } ?>
+<!-- End OUR SERVICES -->
+
+<!-- TESTIMONIALS -->
+<?php
+if (isset($user_permissions->testimonials->page_access)) {
+?>
+<li class="slide">
+<a href="./testimonials.php" class="side-menu__item <?php if ($url_name == 'testimonials') { echo "active"; } ?>">
+<span class="shape1"></span>
+<span class="shape2"></span>
+<i class="ti-comments side-menu__icon"></i> <!-- Testimonials Icon -->
+<span class="side-menu__label"><?= T::testimonials ?></span>
+</a>
+</li>
+<?php } ?>
+<!-- End TESTIMONIALS -->
+
 <!-- Transactions -->
 <?php
 if (isset($user_permissions->transactions->page_access)) {
