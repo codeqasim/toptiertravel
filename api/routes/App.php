@@ -435,6 +435,25 @@ $router->post('app', function() {
     // BLOG
     // $blog = $db->select("blogs","*",[ "LIMIT"=>3,"status" =>1 ,"ORDER"=>['id'=>"DESC"]]);
 
+    $our_services = $db->select("our_services", "*", [
+        "LIMIT" => 3,
+        "ORDER" => ["created_at" => "DESC"]
+    ]);
+
+    foreach ($our_services as &$our_service) {
+        $our_service['background_image'] = "https://toptiertravel.vip/uploads/" . $our_service['background_image'];
+    }
+
+    $testimonials = $db->select("testimonials", "*", [
+        "status" => "1",
+        "ORDER"  => ["created_at" => "DESC"]
+    ]);
+
+    foreach ($testimonials as &$testimonial) {
+        $testimonial['profile_photo'] = "https://toptiertravel.vip/uploads/" . $testimonial['profile_photo'];
+        $testimonial['photo'] = "https://toptiertravel.vip/uploads/" . $testimonial['photo'];
+    }
+
     $respose = array ( "status"=> true, "message"=>"app main response",
     "data"=>array(
         "app"=> $data[0],
@@ -452,6 +471,8 @@ $router->post('app', function() {
         "payment_gateways"=> $payment_gateways,
         "cms"=> $cms,
         "featured_blog"=> $blog,
+        "our_services" => $our_services,
+        "testimonials" => $testimonials,
     ),
     );
 
