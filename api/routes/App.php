@@ -309,6 +309,7 @@ $router->post('app', function() {
         "hotels.location",
         "hotels.stars",
         "hotels.status",
+        "hotels.left_rooms",
     ],[
         "hotels.status" => 1,
         "hotels.featured" => 1,
@@ -368,6 +369,7 @@ $router->post('app', function() {
             "location"=>$value['location'],
             "stars"=>$value['stars'],
             "status"=>$value['status'],
+            "left_rooms"=>$value['left_rooms'],
             "price"=>number_format((float) $con_price, 2),
             'amenities' => $amenities
             ];
