@@ -255,6 +255,23 @@ $router->post('hotel_search', function () {
                 }
 
                 (isset($value['img']))?$img = $root."/uploads/".$value['img']:$img = $root."/assets/img/hotel.jpg";
+
+                $hotel_amenities = $db->select('hotels_amenties_fk', [
+                    "[>]hotels_settings" => ["amenity_id" => "id"]
+                ], [
+                    'hotels_settings.name'
+                ], [
+                    'hotels_amenties_fk.hotel_id' => $value['id']
+                ]);
+
+                // Create amenities array
+                $amenities = array();
+                if (!empty($hotel_amenities)) {
+                    foreach ($hotel_amenities as $amenity) {
+                        $amenities[] = $amenity['name'];
+                    }
+                }
+
                 //THIS RESPONSE IS FROM LOCAL DATABSE NAMED AS MANUAL RESPONSE
                 $m_response[] = (object)[
                     "hotel_id" => $value['id'],
@@ -278,6 +295,7 @@ $router->post('hotel_search', function () {
                     "redirect" => "",
                     "booking_data" => (object)[],
                     "color" => $module[0]['module_color'],
+                    "amenities" => $amenities
                 ];
             }
         } else {
@@ -354,6 +372,7 @@ $router->post('hotel_search', function () {
                 //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
                 $markup_cprice = markup_price($module_id, $actual_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id);
 
+                $amenities = array();
 
                 // MAKING FINAL RESPONSE OF HOTEL SEARCH OF CURL REQUEST FOR MERGING INTO MANUAL HOTEL SEARCH
                 $curl_response[] = [
@@ -378,6 +397,7 @@ $router->post('hotel_search', function () {
                     "redirect" => $values['redirect'],
                     "booking_data" => $values['booking_data'],
                     "color" => $getvalue[0]['module_color'],
+                    "amenities" => $amenities
                 ];
             }
             //}
