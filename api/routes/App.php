@@ -383,6 +383,7 @@ $router->post('app', function() {
         "cms_menu.name",
         "cms.page_name",
         "cms.slug_url",
+        "cms.category",
         "cms.id",
 
     ],[ "status" => 1, ]);
@@ -401,13 +402,13 @@ $router->post('app', function() {
             $post_title = (!empty($translation) && !empty($translation[0]['post_title'])) ? $translation[0]['post_title'] : str_replace('-', ' ', $value['slug_url']);
 
             // Append to $cms array
-            $cms[] = (object) ['name' => $value['name'], 'page_name' => $post_title, 'slug_url' => $value['slug_url']];
+            $cms[] = (object) ['name' => $value['name'], 'page_name' => $post_title, 'slug_url' => $value['slug_url'], 'category' => $value['category']];
         } else {
             // Handle the case where $defaultlanguagerow is empty or does not have an 'id'
             error_log('Default language ID is missing for page ID: ' . $value['id']);
             // Optionally, set a default title or take other corrective measures
             $post_title = str_replace('-', ' ', $value['slug_url']);
-            $cms[] = (object) ['name' => $value['name'], 'page_name' => $post_title, 'slug_url' => $value['slug_url']];
+            $cms[] = (object) ['name' => $value['name'], 'page_name' => $post_title, 'slug_url' => $value['slug_url'], 'category' => $value['category']];
         }
     }
 
