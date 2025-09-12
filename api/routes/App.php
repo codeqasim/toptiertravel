@@ -443,7 +443,7 @@ $router->post('app', function() {
     ]);
 
     foreach ($our_services as &$our_service) {
-        $our_service['background_image'] = "https://toptiertravel.vip/uploads/" . $our_service['background_image'];
+        $our_service['background_image'] = upload_path . $our_service['background_image'];
     }
 
     $testimonials = $db->select("testimonials", "*", [
@@ -452,8 +452,8 @@ $router->post('app', function() {
     ]);
 
     foreach ($testimonials as &$testimonial) {
-        $testimonial['profile_photo'] = "https://toptiertravel.vip/uploads/" . $testimonial['profile_photo'];
-        $testimonial['photo'] = "https://toptiertravel.vip/uploads/" . $testimonial['photo'];
+        $testimonial['profile_photo'] = upload_path . $testimonial['profile_photo'];
+        $testimonial['photo'] = upload_path . $testimonial['photo'];
     }
 
     $respose = array ( "status"=> true, "message"=>"app main response",

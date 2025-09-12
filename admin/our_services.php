@@ -33,7 +33,7 @@ $xcrud->columns('title,description,button_text,slug,background_image,created_at'
 /* Image upload setup */
 $xcrud->change_type('background_image', 'image', false, array(
     'width' => 200,
-    'path'  => '../../uploads/'   // 👈 adjust if needed
+    'path'  => upload_path   // 👈 adjust if needed
 ));
 
 /* UI cleanup */

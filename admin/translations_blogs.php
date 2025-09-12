@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-
 <div class="page_head">
     <div class="panel-heading">
         <div class="float-start">

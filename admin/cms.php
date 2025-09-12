@@ -18,6 +18,7 @@ if (isset($_POST['add_new'])){
             "slug_url" => $_POST['slug_url'],
             "content" => $_POST['content'],
             "menu_id" => $_POST['menu_id'],
+            "category" => $_POST['category'],
             );
 
             $data = INSERT('cms',$params);
@@ -38,6 +39,7 @@ if (isset($_POST['update'])){
             "slug_url" => $_POST['slug_url'],
             "content" => $_POST['content'],
             "menu_id" => $_POST['menu_id'],
+            "category" => $_POST['category'],
             );
 
             $id = $_POST['page_id'];
@@ -163,7 +165,7 @@ include('./xcrud/xcrud.php');
 $xcrud = Xcrud::get_instance();
 $xcrud->table('cms');
 $xcrud->order_by('id','desc');
-$xcrud->columns('status,page_name,slug_url,menu_id');
+$xcrud->columns('status,page_name,slug_url,menu_id,category');
 
 $xcrud->button('./translations.php?cms={id}','cms','<i> Translation <svg  style="margin-left:10px" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></i>');
 
@@ -178,7 +180,15 @@ if (isset($permission_edit)){
 }
 
 $xcrud->relation('menu_id','cms_menu','id','name');
-$xcrud->label(array('status' =>  T::status, 'page_name' => T::page_name, 'menu_id' => T::menu, 'slug_url' => T::slug_url  ));
+
+// Added category to labels
+$xcrud->label(array(
+    'status' => T::status, 
+    'page_name' => T::page_name, 
+    'menu_id' => T::menu, 
+    'slug_url' => T::slug_url,
+    'category' => T::category
+));
 
 $xcrud->unset_title();
 $xcrud->unset_view();
@@ -186,6 +196,8 @@ $xcrud->unset_csv();
 $xcrud->unset_edit();
 $xcrud->unset_add();
 $xcrud->column_width('status','5%');
+$xcrud->column_width('category','10%');
+
 echo $xcrud->render();
 
 ?>

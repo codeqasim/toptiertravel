@@ -52,8 +52,53 @@
 </div>
 </div>
 
+<!-- CATEGORY FIELD SECTION - Shows when specific menus are selected -->
+<div class="row" id="category-section" style="display: none;">
+<div class="col-md-6">
+<div class="form-floating mb-3">
+<select class="form-select" name="category" id="category">
+    <option value="explore" <?php if (isset($_GET['page']) && isset($cms['category']) && $cms['category'] == 'explore'){ echo 'selected';} ?>>Explore</option>
+    <option value="support" <?php if (isset($_GET['page']) && isset($cms['category']) && $cms['category'] == 'support'){ echo 'selected';} ?>>Support</option>
+    <option value="company" <?php if (isset($_GET['page']) && isset($cms['category']) && $cms['category'] == 'company'){ echo 'selected';} ?>>Company</option>
+    <option value="downloads" <?php if (isset($_GET['page']) && isset($cms['category']) && $cms['category'] == 'downloads'){ echo 'selected';} ?>>Downloads</option>
+</select>
+<label for="category">Category</label>
+</div>
+</div>
+</div>
+
 <script>
 $("[name='menu_id']").val(<?php if (isset($_GET['page'])){echo $cms['menu_id'];}?>)
+
+// Show/hide category section based on menu selection
+$(document).ready(function() {
+    // Check initial state when editing existing page
+    checkMenuSelection();
+    
+    // Listen for menu dropdown changes
+    $("[name='menu_id']").change(function() {
+        checkMenuSelection();
+    });
+    
+    function checkMenuSelection() {
+        var selectedMenuId = $("[name='menu_id']").val();
+        var selectedMenuText = $("[name='menu_id'] option:selected").text().toLowerCase().trim();
+        
+        console.log("Selected menu text: '" + selectedMenuText + "'"); // Debug line
+        console.log("Selected menu ID: " + selectedMenuId); // Debug line
+        
+        // Show category section ONLY when footer menu is selected
+        if (selectedMenuText === 'footer') {
+            $('#category-section').show();
+            $('#category').prop('required', true);
+            // Don't auto-select any category - let user choose
+        } else {
+            $('#category-section').hide();
+            $('#category').prop('required', false);
+            $('#category').val(''); // Clear category value when hidden
+        }
+    }
+});
 </script>
 
 <textarea name="content" class="editor" cols="30" rows="10" class=""><?php if (isset($_GET['page'])){echo  $cms['content'];}?></textarea>

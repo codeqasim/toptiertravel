@@ -25,7 +25,7 @@ $xcrud->table('testimonials');
 $xcrud->order_by('id','desc');
 
 /* Show fields in form */
-$xcrud->fields('name,email,ratings,title,description,profile_photo,photo,status');
+$xcrud->fields('name,ratings,title,description,profile_photo,photo,status');
 
 /* Columns in grid */
 $xcrud->columns('name,profile_photo,ratings,title,description,photo,status,created_at');
@@ -33,11 +33,11 @@ $xcrud->columns('name,profile_photo,ratings,title,description,photo,status,creat
 /* Images */
 $xcrud->change_type('profile_photo', 'image', false, array(
     'width' => 200,
-    'path'  => '../../uploads/'   // 👈 Make sure this folder exists & is writable
+    'path'  => upload_path
 ));
 $xcrud->change_type('photo', 'image', false, array(
     'width' => 600,
-    'path'  => '../../uploads/'   // 👈 same here
+    'path'  => upload_path
 ));
 
 /* Remove title */
