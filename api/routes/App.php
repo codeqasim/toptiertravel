@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 // ======================== APP
 $router->post('app', function() {
 
@@ -221,6 +221,20 @@ $router->post('app', function() {
    $con_rate = $db->select("currencies", "*", ["name" => $currency]);
    $con_price = $price * $con_rate[0]['rate'];
 
+   // Check if hotel is in user's favorites
+    $is_favorite = 0; // Default to not favorite
+    if (isset($_SESSION['phptravels_client']->user_id)) { 
+        $favorite_check = $db->select("user_favourites", "*", [
+            "user_id" => $_SESSION['phptravels_client']->user_id,
+            "hotel_id" => $value['id'],
+            "module" => "tours"
+        ]);
+        
+        if (!empty($favorite_check)) {
+            $is_favorite = 1;
+        }
+    }
+
    if ($con_price != 0){
        $tours[] = (object)[
            "id"=>$value['id'],
@@ -237,6 +251,7 @@ $router->post('app', function() {
            "stars"=>$value['stars'],
            "status"=>$value['status'],
            "price"=>number_format((float) $con_price, 2),
+           "favorite" => $is_favorite
            ];
        }
    }
@@ -359,6 +374,20 @@ $router->post('app', function() {
         }
     }
 
+    // Check if hotel is in user's favorites
+    $is_favorite = 0; // Default to not favorite
+    if (isset($_SESSION['phptravels_client']->user_id)) { 
+        $favorite_check = $db->select("user_favourites", "*", [
+            "user_id" => $user_id,
+            "hotel_id" => $value['id'],
+            "module" => "hotels"
+        ]);
+        
+        if (!empty($favorite_check)) {
+            $is_favorite = 1;
+        }
+    }
+
     if ($price != 0){
         $hotels[] = (object)[
             "id"=>$value['id'],
@@ -371,7 +400,8 @@ $router->post('app', function() {
             "status"=>$value['status'],
             "left_rooms"=>$value['left_rooms'],
             "price"=>number_format((float) $con_price, 2),
-            'amenities' => $amenities
+            'amenities' => $amenities,
+            "favorite" => $is_favorite
             ];
         }
     }
@@ -705,4 +735,51 @@ $router->post('newsletter-subscribe', function() {
 });
 // ======================== NEWSLETTER
 
+// ======================== FAVOURITES
+$router->post('favourites', function() {
+
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    required('item_id');
+    required('module');
+    required('user_id');
+
+    $user_id = $_POST['user_id'];
+    $item_id = $_POST['item_id'];
+    $module = $_POST['module'];
+
+    // CHECK IF FAVOURITE ALREADY EXISTS
+    $existing_favourite = $db->select('user_favourites', ['id'], [
+        'user_id' => $user_id,
+        'item_id' => $item_id,
+        'module' => $module
+    ]);
+
+    $action = '';
+    if (!empty($existing_favourite) && isset($existing_favourite[0]['id'])) {
+        // REMOVE FROM FAVOURITES
+        $data = $db->delete("user_favourites", [
+            "user_id" => $user_id,
+            "item_id" => $item_id,
+            "module"    => $module
+        ]);
+        $action = "removed";
+    } else {
+        // ADD TO FAVOURITES
+        $params = [
+            "user_id" => $user_id,
+            "item_id" => $item_id,
+            "module"    => $module
+        ];
+        $data = $db->insert("user_favourites", $params);
+        $action = "added";
+    }
+
+    $respose = array("status" => true, "message" => "item $action to favourites", "data" => $data);
+
+    echo json_encode($respose);
+
+});
+// ======================== FAVOURITES
 ?>

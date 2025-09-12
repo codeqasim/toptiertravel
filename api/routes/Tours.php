@@ -244,6 +244,18 @@ if($_POST['module_name'] == "tours"){
                         }
                     }
 
+                    $is_favorite = 0; // Default to not favorite
+                    if (isset($_SESSION['phptravels_client']->user_id)) { 
+                        $favorite_check = $db->select("user_favourites", "*", [
+                            "user_id" => $_SESSION['phptravels_client']->user_id,
+                            "hotel_id" => $value['id'],
+                            "module" => "tours"
+                        ]);
+                        
+                        if (!empty($favorite_check)) {
+                            $is_favorite = 1;
+                        }
+                    }
 
                     $manual_response[] = (object)[
                         'tour_id' => $value['id'],
@@ -263,7 +275,8 @@ if($_POST['module_name'] == "tours"){
                         'latitude' => $value['tour_latitude'],
                         'longitude' => $value['tour_longitude'],
                         'currency_code' => $params['currency'],
-                        'color' => $module_id[0]['module_color']
+                        'color' => $module_id[0]['module_color'],
+                        "favorite" => $is_favorite
                     ];
                 }
             }
@@ -327,6 +340,19 @@ if($_POST['module_name'] == "tours"){
                     $markup = toursmarkup($module_id, $con_price, $_POST['date'], $loc_code[0]['id']);
                     $markup_price = ($markup['b2c'] != 0) ? $markup['b2c'] : $markup['b2c'];
 
+                    $is_favorite = 0; // Default to not favorite
+                    if (isset($_SESSION['phptravels_client']->user_id)) { 
+                        $favorite_check = $db->select("user_favourites", "*", [
+                            "user_id" => $_SESSION['phptravels_client']->user_id,
+                            "hotel_id" => $value['id'],
+                            "module" => "tours"
+                        ]);
+                        
+                        if (!empty($favorite_check)) {
+                            $is_favorite = 1;
+                        }
+                    }
+
                     $data_tours[] = (object)[
                         'tour_id' => $val->tour_id,
                         'name' => $val->name,
@@ -346,6 +372,7 @@ if($_POST['module_name'] == "tours"){
                         'longitude' => $val->longitude,
                         'currency_code' => $_POST['currency'],
                         'color' => $module_color,
+                        "favorite" => $is_favorite,
                     ];
                 }
             }

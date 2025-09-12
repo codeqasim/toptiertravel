@@ -272,6 +272,19 @@ $router->post('hotel_search', function () {
                     }
                 }
 
+                $is_favorite = 0; // Default to not favorite
+                if (isset($_SESSION['phptravels_client']->user_id)) { 
+                    $favorite_check = $db->select("user_favourites", "*", [
+                        "user_id" => $user_id,
+                        "hotel_id" => $value['id'],
+                        "module" => "hotels"
+                    ]);
+                    
+                    if (!empty($favorite_check)) {
+                        $is_favorite = 1;
+                    }
+                }
+
                 //THIS RESPONSE IS FROM LOCAL DATABSE NAMED AS MANUAL RESPONSE
                 $m_response[] = (object)[
                     "hotel_id" => $value['id'],
@@ -295,6 +308,7 @@ $router->post('hotel_search', function () {
                     "redirect" => "",
                     "booking_data" => (object)[],
                     "color" => $module[0]['module_color'],
+                    "favorite" => $is_favorite,
                     "amenities" => $amenities
                 ];
             }
@@ -374,6 +388,19 @@ $router->post('hotel_search', function () {
 
                 $amenities = array();
 
+                $is_favorite = 0; // Default to not favorite
+                if (isset($_SESSION['phptravels_client']->user_id)) { 
+                    $favorite_check = $db->select("user_favourites", "*", [
+                        "user_id" => $user_id,
+                        "hotel_id" => $value['id'],
+                        "module" => "hotels"
+                    ]);
+                    
+                    if (!empty($favorite_check)) {
+                        $is_favorite = 1;
+                    }
+                }
+
                 // MAKING FINAL RESPONSE OF HOTEL SEARCH OF CURL REQUEST FOR MERGING INTO MANUAL HOTEL SEARCH
                 $curl_response[] = [
                     "hotel_id" => $values['hotel_id'],
@@ -397,6 +424,7 @@ $router->post('hotel_search', function () {
                     "redirect" => $values['redirect'],
                     "booking_data" => $values['booking_data'],
                     "color" => $getvalue[0]['module_color'],
+                    "favorite" => $is_favorite,
                     "amenities" => $amenities
                 ];
             }
