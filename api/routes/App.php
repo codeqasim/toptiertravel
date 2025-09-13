@@ -420,7 +420,7 @@ $router->post('app', function() {
 
     $default_languages = $db->select("languages", "*", ["status" => 1,"default"=>1]);
     $lang = (!empty($_POST["language"])) ? $_POST["language"] : $default_languages[0]['name'];
-    $defaultlanguagerow = $db->select("languages", "*", array('name' => $lang));
+    $defaultlanguagerow = $db->select("languages", "*", array('language_code' => $lang));
     $cms = [];
 
     foreach ($cms_pages as $value) {
@@ -473,18 +473,70 @@ $router->post('app', function() {
         "ORDER" => ["created_at" => "DESC"]
     ]);
 
-    foreach ($our_services as &$our_service) {
-        $our_service['background_image'] = upload_path . $our_service['background_image'];
+    $services = [];
+    foreach ($our_services as $value) {
+        // Get translation for the current default language
+        $translation = $db->select("our_services_translations", "*", array(
+            "service_id" => $value['id'],
+            'language_id' => $defaultlanguagerow[0]['id']
+        ));
+        
+        // Use translation if available, otherwise fallback to original
+        
+        if (!empty($translation) && !empty($translation[0]['title'])) {
+            $title = $translation[0]['title'];
+            $description = $translation[0]['description'];
+            $button_text = $translation[0]['button_text'];
+        } else {
+            $title = $value['title'];
+            $description = $value['description']; 
+            $button_text = $value['button_text'];
+        }
+       
+        $services[] = (object) [
+            'title' => $title,
+            'description' => $description,
+            'button_text' => $button_text,
+            'slug' => $value['slug'],
+            'background_image' => upload_path . $value['background_image']
+        ];
+        
     }
-
-    $testimonials = $db->select("testimonials", "*", [
+    
+    $get_testimonials = $db->select("testimonials", "*", [
         "status" => "1",
         "ORDER"  => ["created_at" => "DESC"]
     ]);
 
-    foreach ($testimonials as &$testimonial) {
-        $testimonial['profile_photo'] = upload_path . $testimonial['profile_photo'];
-        $testimonial['photo'] = upload_path . $testimonial['photo'];
+    $testimonials = [];
+    foreach ($get_testimonials as $value) {
+        // Get translation for the current default language
+        $translation = $db->select("testimonials_translations", "*", array(
+            "testimonial_id" => $value['id'],
+            'language_id' => $defaultlanguagerow[0]['id']
+        ));
+        
+        // Use translation if available, otherwise fallback to original
+        if (!empty($translation) && !empty($translation[0]['name'])) {
+            $name = $translation[0]['name'];
+            $title = $translation[0]['title'];
+            $description = $translation[0]['description'];
+        } else {
+            $name = $value['name'];
+            $title = $value['title'];
+            $description = $value['description'];
+        }
+        
+        $testimonials[] = (object) [
+            'id' => $value['id'],
+            'name' => $name,
+            'title' => $title,
+            'description' => $description,
+            'ratings' => $value['ratings'],
+            'profile_photo' => upload_path . $value['profile_photo'],
+            'photo' => upload_path . $value['photo'],
+            'created_at' => $value['created_at'],
+        ];
     }
 
     $respose = array ( "status"=> true, "message"=>"app main response",
@@ -504,7 +556,7 @@ $router->post('app', function() {
         "payment_gateways"=> $payment_gateways,
         "cms"=> $cms,
         "featured_blog"=> $blog,
-        "our_services" => $our_services,
+        "our_services" => $services,
         "testimonials" => $testimonials,
     ),
     );

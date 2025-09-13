@@ -31,6 +31,16 @@ if(isset($_GET['cms'])) {
     include "translations_cms.php";
     include "_footer.php";
 }
+
+if(isset($_GET['service'])) {
+    include "translations_our_services.php";
+    include "_footer.php";
+}
+
+if(isset($_GET['testimonial'])) {
+    include "translations_testimonials.php";
+    include "_footer.php";
+}
 exit;
 
 ?>

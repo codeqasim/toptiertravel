@@ -621,6 +621,7 @@ const commissions = 'Commissions';
 const personal = 'Personal';
 const our_services = 'Our Services';
 const testimonials = 'Testimonials';
+const button_text = 'Button Text';
 public static function __callStatic($string, $args) {
     return vsprintf(constant("self::" . $string), $args);
 }
