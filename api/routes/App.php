@@ -244,7 +244,7 @@ $router->post('app', function() {
            "infants"=>0,
            "supplier"=>$value['module'],
            "name"=>$value['name'],
-           "img"=>"https://toptiertravel.vip/uploads/".$value['img'],
+           "img"=>upload_path.$value['img'],
            "location"=>$value['location'],
            "city" => $value['city'],
            "country" => $value['country'],
@@ -394,7 +394,7 @@ $router->post('app', function() {
             "city"=>$value['city'],
             "country"=>$value['country'],
             "name"=>$value['name'],
-            "img"=>"https://toptiertravel.vip/uploads/".$value['img'],
+            "img"=>upload_path.$value['img'],
             "location"=>$value['location'],
             "stars"=>$value['stars'],
             "status"=>$value['status'],
@@ -476,10 +476,14 @@ $router->post('app', function() {
     $services = [];
     foreach ($our_services as $value) {
         // Get translation for the current default language
+        if(isset($defaultlanguagerow[0])){
         $translation = $db->select("our_services_translations", "*", array(
             "service_id" => $value['id'],
             'language_id' => $defaultlanguagerow[0]['id']
         ));
+        }else{
+            $translation = '';
+        }
         
         // Use translation if available, otherwise fallback to original
         
@@ -511,10 +515,15 @@ $router->post('app', function() {
     $testimonials = [];
     foreach ($get_testimonials as $value) {
         // Get translation for the current default language
+        
+        if(isset($defaultlanguagerow[0])){
         $translation = $db->select("testimonials_translations", "*", array(
             "testimonial_id" => $value['id'],
             'language_id' => $defaultlanguagerow[0]['id']
         ));
+        }else{
+            $translation = '';
+        }
         
         // Use translation if available, otherwise fallback to original
         if (!empty($translation) && !empty($translation[0]['name'])) {
