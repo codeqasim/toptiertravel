@@ -113,11 +113,22 @@ $router->post('login', function() {
     required('email');
     required('password');
 
+    // Check if email exists first
+    $email_check = $db->select("users","*", [
+        "email" => $_POST['email']
+    ]);
+
+    if(!isset($email_check[0])) {
+        $respose = array ( "status"=>false, "message"=>"email not found", "data"=> null );
+        echo json_encode($respose);
+        die;
+    }
+
+    // Now check email and password together
     $data = $db->select("users","*", [
         "email" => $_POST['email'],
         "password" => md5($_POST['password']),
     ]);
-
 
     if(isset($data[0])) {
 
@@ -148,12 +159,13 @@ $router->post('login', function() {
 
         include "./logs.php";
 
+        echo json_encode($respose);
+
     } else {
-    $respose = array ( "status"=>false, "message"=>"no user found", "data"=> null );
-}
-
-echo json_encode($respose);
-
+        // Email exists but password is wrong
+        $respose = array ( "status"=>false, "message"=>"incorrect password", "data"=> null );
+        echo json_encode($respose);
+    }
 });
 
 // ======================== FORGET PASSWORD
