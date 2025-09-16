@@ -820,7 +820,7 @@ $router->post('favourites', function() {
     $action = '';
     if (!empty($existing_favourite) && isset($existing_favourite[0]['id'])) {
         // REMOVE FROM FAVOURITES
-        $data = $db->delete("user_favourites", [
+        $db->delete("user_favourites", [
             "user_id" => $user_id,
             "item_id" => $item_id,
             "module"    => $module
@@ -833,13 +833,19 @@ $router->post('favourites', function() {
             "item_id" => $item_id,
             "module"    => $module
         ];
-        $data = $db->insert("user_favourites", $params);
+        $db->insert("user_favourites", $params);
         $action = "added";
     }
 
-    $respose = array("status" => true, "message" => "item $action to favourites", "data" => $data);
+    $response = array(
+        "status" => true, 
+        "message" => "item $action to favourites", 
+        "data" => array(
+            "message" => "Item successfully $action to favourites"
+        )
+    );
 
-    echo json_encode($respose);
+    echo json_encode($response);
 
 });
 // ======================== FAVOURITES
