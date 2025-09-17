@@ -533,10 +533,12 @@ $router->post('app', function() {
         // Use translation if available, otherwise fallback to original
         if (!empty($translation) && !empty($translation[0]['name'])) {
             $name = $translation[0]['name'];
+            $country = $translation[0]['country'];
             $title = $translation[0]['title'];
             $description = $translation[0]['description'];
         } else {
             $name = $value['name'];
+            $country = $value['country'];
             $title = $value['title'];
             $description = $value['description'];
         }
@@ -544,6 +546,7 @@ $router->post('app', function() {
         $testimonials[] = (object) [
             'id' => $value['id'],
             'name' => $name,
+            'country' => $country,
             'title' => $title,
             'description' => $description,
             'ratings' => $value['ratings'],
