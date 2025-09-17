@@ -247,7 +247,7 @@ $router->post('app', function() {
            "infants"=>0,
            "supplier"=>$value['module'],
            "name"=>$value['name'],
-           "img"=>upload_path.$value['img'],
+           "img"=>upload_url.$value['img'],
            "location"=>$value['location'],
            "city" => $value['city'],
            "country" => $value['country'],
@@ -399,7 +399,7 @@ $router->post('app', function() {
             "city"=>$value['city'],
             "country"=>$value['country'],
             "name"=>$value['name'],
-            "img"=>upload_path.$value['img'],
+            "img"=>upload_url.$value['img'],
             "location"=>$value['location'],
             "stars"=>$value['stars'],
             "status"=>$value['status'],
@@ -507,7 +507,7 @@ $router->post('app', function() {
             'description' => $description,
             'button_text' => $button_text,
             'slug' => $value['slug'],
-            'background_image' => upload_path . $value['background_image']
+            'background_image' => upload_url . $value['background_image']
         ];
         
     }
@@ -547,8 +547,8 @@ $router->post('app', function() {
             'title' => $title,
             'description' => $description,
             'ratings' => $value['ratings'],
-            'profile_photo' => upload_path . $value['profile_photo'],
-            'photo' => upload_path . $value['photo'],
+            'profile_photo' => upload_url . $value['profile_photo'],
+            'photo' => upload_url . $value['photo'],
             'created_at' => $value['created_at'],
         ];
     }

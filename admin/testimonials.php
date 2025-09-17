@@ -33,11 +33,14 @@ $xcrud->columns('name,profile_photo,ratings,title,description,photo,status,creat
 /* Images */
 $xcrud->change_type('profile_photo', 'image', false, array(
     'width' => 200,
-    'path'  => upload_path
+    'path'  => upload_path,
+    'url'   => upload_url
 ));
+
 $xcrud->change_type('photo', 'image', false, array(
     'width' => 600,
-    'path'  => upload_path
+    'path'  => upload_path,
+    'url'   => upload_url
 ));
 
 /* Translation button */ 
