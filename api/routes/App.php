@@ -381,7 +381,7 @@ $router->post('app', function() {
     $is_favorite = 0; // Default to not favorite
     if (isset($_SESSION['phptravels_client']->user_id)) { 
         $favorite_check = $db->select("user_favourites", "*", [
-            "user_id" => $user_id,
+            "user_id" => $_SESSION['phptravels_client']->user_id,
             "item_id" => $value['id'],
             "module" => "hotels"
         ]);
