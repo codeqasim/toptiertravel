@@ -8,27 +8,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         foreach ($filteredArray as $key => $value) {
             if (is_array($value)) {
-                
                 // Check if record exists first
                 $existing = GET('testimonials_translations', [
                     "testimonial_id" => $filteredArray['testimonial_id'], 
-                    "language_id" => $key
+                    "language_id"    => $key
                 ]);
-                
+
                 $params = array(
-                    "name" => $value[0],
-                    "title" => $value[1],
-                    "description" => $value[2],
+                    "name"        => $value[0],
+                    "country"     => $value[1],
+                    "title"       => $value[2],
+                    "description" => $value[3],
                 );
-                
+
                 if (!empty($existing)) {
                     // Update existing record
-                    $data = $db->update('testimonials_translations',$params, [ "testimonial_id" => $filteredArray['testimonial_id'] , "language_id"=> $key]);
+                    $db->update('testimonials_translations', $params, [
+                        "testimonial_id" => $filteredArray['testimonial_id'],
+                        "language_id"    => $key
+                    ]);
                 } else {
                     // Insert new record
                     $params['testimonial_id'] = $filteredArray['testimonial_id'];
-                    $params['language_id'] = $key;
-                    $data = $db->insert('testimonials_translations', $params);
+                    $params['language_id']    = $key;
+                    $db->insert('testimonials_translations', $params);
                 }
             }
         }
@@ -83,6 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="form-floating mb-2">
                                 <input class="form-control"  name="<?=strtolower($i->id)?>[]" value="<?=$trans->name ?? ""?>" />
                                 <label for=""><?=T::name?></label>
+                            </div>
+
+                            <div class="form-floating mb-2">
+                                <input class="form-control"  name="<?=strtolower($i->id)?>[]" value="<?=$trans->country ?? ""?>" />
+                                <label for=""><?=T::country?></label>
                             </div>
 
                             <div class="form-floating mb-2">

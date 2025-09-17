@@ -25,10 +25,10 @@ $xcrud->table('testimonials');
 $xcrud->order_by('id','desc');
 
 /* Show fields in form */
-$xcrud->fields('name,ratings,title,description,profile_photo,photo,status');
+$xcrud->fields('name,country,ratings,title,description,profile_photo,photo,status');
 
 /* Columns in grid */
-$xcrud->columns('name,profile_photo,ratings,title,description,photo,status,created_at');
+$xcrud->columns('name,profile_photo,country,ratings,title,description,photo,status,created_at');
 
 /* Images */
 $xcrud->change_type('profile_photo', 'image', false, array(
@@ -44,7 +44,7 @@ $xcrud->change_type('photo', 'image', false, array(
 ));
 
 /* Translation button */ 
-$xcrud->button('./translations.php?service={id}','our_services','<i> Translation <svg  style="margin-left:10px" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></i>');
+$xcrud->button('./translations.php?testimonial={id}','testimonials','<i> Translation <svg  style="margin-left:10px" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></i>');
 
 /* Remove title */
 $xcrud->unset_title();
