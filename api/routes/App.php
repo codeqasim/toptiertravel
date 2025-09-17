@@ -223,6 +223,7 @@ $router->post('app', function() {
 
    // Check if hotel is in user's favorites
     $is_favorite = 0; // Default to not favorite
+    
     if (isset($_SESSION['phptravels_client']->user_id)) { 
         $favorite_check = $db->select("user_favourites", "*", [
             "user_id" => $_SESSION['phptravels_client']->user_id,

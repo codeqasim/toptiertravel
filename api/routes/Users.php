@@ -157,6 +157,9 @@ $router->post('login', function() {
         $desc = "user logged into account" .get_client_ip();
         logs($user_id,$log_type,$datetime,$desc);
 
+        session_regenerate_id(true);
+        $_SESSION['phptravels_client'] = $user_data;
+
         include "./logs.php";
 
         echo json_encode($respose);
@@ -355,6 +358,59 @@ $router->post('user_delete', function() {
 
     echo json_encode($respose);
 
+});
+
+//LOGOUT API
+$router->post('logout', function() {
+
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    // Check if user is logged in
+    if (!isset($_SESSION['phptravels_client'])) {
+        $response = array(
+            "status" => false, 
+            "message" => "user not logged in", 
+            "data" => null
+        );
+        echo json_encode($response);
+        die;
+    }
+
+    // Get user data before destroying session
+    $user_data = $_SESSION['phptravels_client'];
+    $user_id = $user_data->user_id;
+
+    // INSERT TO LOGS
+    $log_type = "logout";
+    $datetime = date("Y-m-d H:i:s");
+    $client_ip = get_client_ip();
+    $desc = "user logged out from account from IP: " . $client_ip;
+    logs($user_id, $log_type, $datetime, $desc);
+
+    // HOOK - before logout
+    $hook = "logout";
+    include "./hooks.php";
+
+    // Clear specific session variable
+    unset($_SESSION['phptravels_client']);
+
+    // Optionally destroy entire session
+    // session_destroy();
+
+    // Regenerate session ID for security
+    session_regenerate_id(true);
+
+    // Success response
+    $response = array(
+        "status" => true, 
+        "message" => "logout successful", 
+        "data" => null
+    );
+
+    include "./logs.php";
+
+    echo json_encode($response);
 });
 
 ?>
