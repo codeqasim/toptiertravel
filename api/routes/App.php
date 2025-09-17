@@ -11,6 +11,10 @@ $router->post('app', function() {
 
     // APP SETTINGS
     $data = $db->select("settings","*", []);
+    if(isset($data[0])){
+        $data[0]['favicon_img'] = upload_url."global/".$data[0]['favicon_img'];
+        $data[0]['header_logo_img'] = upload_url."global/".$data[0]['header_logo_img'];
+    }
     $modules = $db->select("modules","*", [ "status" => 1, ]);
 
     // HOTELS SUGGESTIONS
