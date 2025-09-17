@@ -7,6 +7,8 @@ $router->post('app', function() {
     include "./config.php";
     AUTH_CHECK();
 
+    $user_id = $_POST['user_id'] ?? "";
+
     // APP SETTINGS
     $data = $db->select("settings","*", []);
     $modules = $db->select("modules","*", [ "status" => 1, ]);
@@ -224,9 +226,9 @@ $router->post('app', function() {
    // Check if hotel is in user's favorites
     $is_favorite = 0; // Default to not favorite
     
-    if (isset($_SESSION['phptravels_client']->user_id)) { 
+    if ($user_id != "") { 
         $favorite_check = $db->select("user_favourites", "*", [
-            "user_id" => $_SESSION['phptravels_client']->user_id,
+            "user_id" => $user_id,
             "item_id" => $value['id'],
             "module" => "tours"
         ]);
@@ -379,9 +381,9 @@ $router->post('app', function() {
 
     // Check if hotel is in user's favorites
     $is_favorite = 0; // Default to not favorite
-    if (isset($_SESSION['phptravels_client']->user_id)) { 
+    if ($user_id != "") { 
         $favorite_check = $db->select("user_favourites", "*", [
-            "user_id" => $_SESSION['phptravels_client']->user_id,
+            "user_id" => $user_id,
             "item_id" => $value['id'],
             "module" => "hotels"
         ]);
