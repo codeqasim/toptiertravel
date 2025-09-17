@@ -255,7 +255,7 @@ $router->post('app', function() {
            ];
        }
    }
-//    FEATURE CARS
+    //    FEATURE CARS
    $featured_cars = $db->select("cars",
      [
          "cars.id",
@@ -548,19 +548,26 @@ $router->post('app', function() {
         ];
     }
 
+    $display_modules = $db->select('modules','*',['status' => 1]);
+    $availableModules = [];
+    foreach ($display_modules as $display_module) {
+        $moduleName = is_object($display_module) ? $display_module->name : $display_module['name'];
+        $availableModules[] = $moduleName;
+    }
+
     $respose = array ( "status"=> true, "message"=>"app main response",
     "data"=>array(
         "app"=> $data[0],
         "modules"=> $modules,
         "currencies"=> $currencies,
         "languages"=> $languages,
-        "featured_hotels"=> $hotels,
-        "featured_tours"=> $tours,
-        "featured_cars"=> $cars,
+        "featured_hotels" => in_array('hotels', $availableModules) ? $hotels : [],
+        "featured_tours" => in_array('tours', $availableModules) ? $tours : [],
+        "featured_cars" => in_array('cars', $availableModules) ? $cars : [],
+        "featured_flights" => in_array('flights', $availableModules) ? $featured_flight : [],
         "hotels_suggestions"=> $hotels_suggestions,
         "cars_suggestions"=> $cars_suggestions,
         "tours_suggestions"=> $tours_suggestions,
-        "featured_flights"=> $featured_flight,
         "flights_suggestions"=> $flights_suggestions,
         "payment_gateways"=> $payment_gateways,
         "cms"=> $cms,
