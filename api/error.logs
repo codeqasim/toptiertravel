@@ -114,3 +114,19 @@ Stack trace:
 [04-Sep-2025 16:13:37 UTC] Default language ID is missing for page ID: 13
 [04-Sep-2025 16:13:37 UTC] Default language ID is missing for page ID: 14
 [04-Sep-2025 16:13:37 UTC] Default language ID is missing for page ID: 17
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:02:38 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384
+[17-Sep-2025 09:03:40 UTC] PHP Warning:  Undefined variable $user_id in /Applications/MAMP/htdocs/toptiertravel/api/routes/App.php on line 384

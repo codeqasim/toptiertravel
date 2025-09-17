@@ -227,7 +227,7 @@ $router->post('app', function() {
     if (isset($_SESSION['phptravels_client']->user_id)) { 
         $favorite_check = $db->select("user_favourites", "*", [
             "user_id" => $_SESSION['phptravels_client']->user_id,
-            "hotel_id" => $value['id'],
+            "item_id" => $value['id'],
             "module" => "tours"
         ]);
         
@@ -235,7 +235,7 @@ $router->post('app', function() {
             $is_favorite = 1;
         }
     }
-
+    
    if ($con_price != 0){
        $tours[] = (object)[
            "id"=>$value['id'],
@@ -256,6 +256,7 @@ $router->post('app', function() {
            ];
        }
    }
+   
     //    FEATURE CARS
    $featured_cars = $db->select("cars",
      [
@@ -313,6 +314,7 @@ $router->post('app', function() {
      }
 
     // FEATURED HOTELS
+    
     $featured_hotels = $db->select("hotels", [
          "[>]locations" => ["location" => "city"]
     ],
@@ -380,7 +382,7 @@ $router->post('app', function() {
     if (isset($_SESSION['phptravels_client']->user_id)) { 
         $favorite_check = $db->select("user_favourites", "*", [
             "user_id" => $user_id,
-            "hotel_id" => $value['id'],
+            "item_id" => $value['id'],
             "module" => "hotels"
         ]);
         
@@ -548,7 +550,7 @@ $router->post('app', function() {
             'created_at' => $value['created_at'],
         ];
     }
-
+    
     $display_modules = $db->select('modules','*',['status' => 1]);
     $availableModules = [];
     foreach ($display_modules as $display_module) {
