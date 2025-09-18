@@ -34,7 +34,8 @@ $xcrud->columns('title,description,button_text,slug,background_image,created_at'
 $xcrud->change_type('background_image', 'image', false, array(
     'width' => 200,
     'path'  => upload_path,
-    'url'   => upload_url
+    'url'   => upload_url,
+    'resize' => array(200,200)
 ));
 
 /* Translation button */ 
