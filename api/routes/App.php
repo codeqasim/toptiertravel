@@ -14,6 +14,8 @@ $router->post('app', function() {
     if(isset($data[0])){
         $data[0]['favicon_img'] = upload_url."global/".$data[0]['favicon_img'];
         $data[0]['header_logo_img'] = upload_url."global/".$data[0]['header_logo_img'];
+        $data[0]['cover_img'] = upload_url."global/bg.png";
+        $data[0]['newsletter_image'] = upload_url."global/".$data[0]['newsletter_image'];
     }
     $modules = $db->select("modules","*", [ "status" => 1, ]);
 

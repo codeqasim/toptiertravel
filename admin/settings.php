@@ -42,6 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if(move_uploaded_file($temp_name, $uploaded));
     }
 
+    if (!empty($_FILES["newsletter_image"]["name"])) {
+    $file_name = $_FILES["newsletter_image"]["name"];
+    $temp_name = $_FILES["newsletter_image"]["tmp_name"];
+    $path      = $_FILES['newsletter_image']['name'];
+    $ext       = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $uploaded  = '../uploads/global/newsletter.png';
+    if ($ext=="png") {}else{ echo "Invalid image cover image format allowed only PNG images"; die; }
+    if(move_uploaded_file($temp_name, $uploaded));
+    }
+
+
     $params = array(
     'user_id' => $USER_SESSION->backend_user_id,
     'business_name' => $_POST['business_name'],
@@ -74,6 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'android_store' => $_POST['android_store'],
     'ios_store' => $_POST['ios_store'],
     'show_apps' => $_POST['show_apps'],
+    'homepage_text' => $_POST['homepage_text'],
+    'newsletter_title' => $_POST['title'],
+    'newsletter_description' => $_POST['description'],
     );
 
     $id = 1;
@@ -409,7 +423,37 @@ $settings = GET('settings',$params)[0];
       </div>
     </div>
 
+    <div class="card card-raised mb-3">
+      <div class="card-body p-4">
+        <div class="card-title"><strong><?=T::newsletter?></strong></div>
+
+        <div class="card p-3 mb-3">
+          <label><strong><?=T::newsletter?> <?=T::image?></strong></label>
+          <div class="caption fst-italic text-muted mb-4"><?=T::newsletter?> <?=T::image?></div>
+          <img src="../uploads/global/newsletter.png?v<?=rand(0,99999999999)?>" class="newsletter_preview_img img-fluid" style="max-width:40%">
+          <hr>
+          <input type="file" class="btn btn-light" id="newsletter_image" name="newsletter_image">
+        </div>
+
+        <div class="form-floating mb-3">
+        <input type="text" placeholder="" name="title" value="<?=$settings->newsletter_title?>" class="form-control">
+        <label for=""><?=T::title?></label>
+        </div>
+
+        <div class="form-floating mb-3">
+        <input type="text" placeholder="" name="description" value="<?=$settings->newsletter_description?>" class="form-control">
+        <label for=""><?=T::description?></label>
+        </div>
+
+        <div class="text-end">
+        <?php if (isset($permission_edit)){ ?>
+          <button class="btn-block btn btn-primary" type="submit"> <?=T::updating_settings?></button>
+          <?php } ?>        </div>
+      </div>
+    </div>
+
   </div>
+  
   <div class="col-lg-4">
     <div class="card card-raised mb-3" style="min-height:760px;">
       <div class="card-body p-4">
@@ -450,6 +494,10 @@ $settings = GET('settings',$params)[0];
           <img src="../uploads/global/bg.png?v<?=rand(0,99999999999)?>" class="coverimage_preview_img img-fluid" style="max-width:100%">
           <hr>
           <input type="file" class="btn btn-light" id="coverimage" name="coverimage">
+        </div>
+        <div class="card p-3 mb-3">
+          <label><strong><?=T::homepage_text?></strong></label>
+          <input type="text" placeholder="" name="homepage_text" value="<?=$settings->homepage_text?>" class="form-control">
         </div>
         <div class="text-end">
         <?php if (isset($permission_edit)){ ?>
@@ -617,6 +665,20 @@ $settings = GET('settings',$params)[0];
 
   var oFReader = new FileReader();
   oFReader.readAsDataURL(document.getElementById("coverimage").files[0]);
+
+  oFReader.onload = function (oFREvent) {
+  preview.attr('src', oFREvent.target.result).fadeIn();
+  };
+
+  });
+  $("#newsletter_image").change(function(){
+  var abc = $(this).attr('name');
+
+  var preview = $('.newsletter_preview_img');
+  preview.fadeOut();
+
+  var oFReader = new FileReader();
+  oFReader.readAsDataURL(document.getElementById("newsletter_image").files[0]);
 
   oFReader.onload = function (oFREvent) {
   preview.attr('src', oFREvent.target.result).fadeIn();
