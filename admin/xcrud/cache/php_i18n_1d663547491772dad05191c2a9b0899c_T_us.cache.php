@@ -622,6 +622,12 @@ const personal = 'Personal';
 const our_services = 'Our Services';
 const testimonials = 'Testimonials';
 const button_text = 'Button Text';
+const homepage_text = 'Home Page Text';
+const image = 'Image';
+const info_hub = 'Info Hub';
+const brand_story = 'Brand Story';
+const hotel_faqs = 'Hotel Faqs';
+const faqs = 'FAQS';
 public static function __callStatic($string, $args) {
     return vsprintf(constant("self::" . $string), $args);
 }

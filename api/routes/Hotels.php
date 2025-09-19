@@ -453,7 +453,7 @@ $router->post('hotel_search', function () {
 HOTELS_DETAILS API
 =======================*/
 $router->post('hotel_details', function () {
-
+    
     // INCLUDE CONFIG
     include "./config.php";
 
@@ -665,7 +665,7 @@ $router->post('hotel_details', function () {
             }
         }
         $lang = $_POST['language'];
-        $language_id = $db->select("languages", "*", array('name' => strtolower($lang)));
+        $language_id = $db->select("languages", "*", array('language_code' => strtolower($lang)));
         $hotel_translation = $db->select("hotels_translations", "*", array("hotel_id" => $details[0]['id'],'language_id'=>$language_id[0]['id']));
 
         //SHOWING FINAL RESULTS AS AN OBJECT OF HOTEL ROOMS
@@ -832,8 +832,26 @@ $router->post('hotel_details', function () {
         } else {
             $response = "SOMETHING WENT WRONG PLEASE CONTACT SUPPORT FOR FURTHER ASSISSTENCE";
         }
-
     }
+
+    //INBFO HUB
+    if (is_object($response)) {
+        $brand_stories = $db->select('brand_stories', '*', ['status' => 1]);
+
+        foreach ($brand_stories as &$story) {
+            if (!empty($story['image'])) {
+                $story['image'] = upload_url . 'brand_stories/' . $story['image'];
+            }
+        }
+
+        // Get only active hotel FAQs (optional: filter by category if needed)
+        $faqs = $db->select('faqs', '*');
+
+        // Append to response object
+        $response->brand_stories = $brand_stories;
+        $response->faqs = $faqs;
+    }
+
     echo json_encode($response);
 });
 

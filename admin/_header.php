@@ -752,50 +752,100 @@ if (isset($user_permissions->blogs->add) || isset($user_permissions->blogs->add)
 ?>
 <!-- End::Blog Slide -->
 
-<!-- Newsletter -->
-<?php
-if (isset($user_permissions->newsletter->page_access)) {
+<!-- Start::Info & Services Slide -->
+ <?php
+if (
+    isset($user_permissions->newsletter->page_access) ||
+    isset($user_permissions->our_services->page_access) ||
+    isset($user_permissions->testimonials->page_access) ||
+    isset($user_permissions->brand_story->page_access) ||
+    isset($user_permissions->hotel_faqs->page_access) ||
+    isset($user_permissions->faqs->page_access)
+) {
 ?>
-<li class="slide">
-<a href="./newsletter.php" class="side-menu__item <?php if ($url_name == 'newsletter') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-email side-menu__icon"></i>
-<span class="side-menu__label"><?= T::newsletter ?></span>
-</a>
-</li>
-<?php } ?>
-<!-- End Newsletter -->
+<li class="slide has-sub">
+    <a href="javascript:void(0);" class="side-menu__item">
+        <span class="shape1"></span>
+        <span class="shape2"></span>
+        <i class="fa fa-info-circle side-menu__icon"></i>
+        <span class="side-menu__label"><?=T::info_hub?></span>
+        <i class="fe fe-chevron-right side-menu__angle"></i>
+    </a>
 
-<!-- OUR SERVICES -->
-<?php
-if (isset($user_permissions->our_services->page_access)) {
-?>
-<li class="slide">
-<a href="./our_services.php" class="side-menu__item <?php if ($url_name == 'our_services') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-briefcase side-menu__icon"></i> <!-- Services Icon -->
-<span class="side-menu__label"><?= T::our_services ?></span>
-</a>
-</li>
-<?php } ?>
-<!-- End OUR SERVICES -->
+    <ul class="slide-menu child1">
+        <li class="slide side-menu__label1">
+            <a href="javascript:void(0)">Info Hub</a>
+        </li>
 
-<!-- TESTIMONIALS -->
-<?php
-if (isset($user_permissions->testimonials->page_access)) {
-?>
-<li class="slide">
-<a href="./testimonials.php" class="side-menu__item <?php if ($url_name == 'testimonials') { echo "active"; } ?>">
-<span class="shape1"></span>
-<span class="shape2"></span>
-<i class="ti-comments side-menu__icon"></i> <!-- Testimonials Icon -->
-<span class="side-menu__label"><?= T::testimonials ?></span>
-</a>
+        <!-- Newsletter -->
+        <?php if (isset($user_permissions->newsletter->page_access)) { ?>
+        <li class="slide">
+            <a href="./newsletter.php"
+               class="side-menu__item <?php if ($url_name == 'newsletter') { echo 'active'; } ?>">
+                <i class="ti-email side-menu__icon"></i>
+                <?= T::newsletter ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Our Services -->
+        <?php if (isset($user_permissions->our_services->page_access)) { ?>
+        <li class="slide">
+            <a href="./our_services.php"
+               class="side-menu__item <?php if ($url_name == 'our_services') { echo 'active'; } ?>">
+                <i class="ti-briefcase side-menu__icon"></i>
+                <?= T::our_services ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Testimonials -->
+        <?php if (isset($user_permissions->testimonials->page_access)) { ?>
+        <li class="slide">
+            <a href="./testimonials.php"
+               class="side-menu__item <?php if ($url_name == 'testimonials') { echo 'active'; } ?>">
+                <i class="ti-comments side-menu__icon"></i>
+                <?= T::testimonials ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Brand Story -->
+        <?php if (isset($user_permissions->brand_story->page_access)) { ?>
+        <li class="slide">
+            <a href="./brand_story.php"
+               class="side-menu__item <?php if ($url_name == 'brand_story') { echo 'active'; } ?>">
+                <i class="ti-book side-menu__icon"></i>
+                <?= T::brand_story ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- Hotel FAQs -->
+        <?php if (isset($user_permissions->hotel_faqs->page_access)) { ?>
+        <li class="slide">
+            <a href="./hotel_faqs.php"
+               class="side-menu__item <?php if ($url_name == 'hotel_faqs') { echo 'active'; } ?>">
+                <i class="ti-help-alt side-menu__icon"></i>
+                <?= T::hotel_faqs ?>
+            </a>
+        </li>
+        <?php } ?>
+
+        <!-- General FAQs -->
+        <?php if (isset($user_permissions->faqs->page_access)) { ?>
+        <li class="slide">
+            <a href="./faqs.php"
+               class="side-menu__item <?php if ($url_name == 'faqs') { echo 'active'; } ?>">
+                <i class="ti-info-alt side-menu__icon"></i>
+                <?= T::faqs ?>
+            </a>
+        </li>
+        <?php } ?>
+    </ul>
 </li>
 <?php } ?>
-<!-- End TESTIMONIALS -->
+<!-- End::Info & Services Slide -->
 
 <!-- Transactions -->
 <?php
