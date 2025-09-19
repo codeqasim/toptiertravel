@@ -36,37 +36,29 @@ $xcrud->columns('desc_text,picture,status,created_at');
 $xcrud->fields('desc_text,picture,status');
 
 // IMAGE field
-$xcrud->change_type('picture', 'image', '', array(
-    'width'  => 400,
-    'path'   => '../uploads/brand_stories',
-    'thumbs' => array(
-        array('width' => 100, 'folder' => 'thumb')
-    )
+$xcrud->change_type('picture', 'image', false, array(
+    'width' => 200,
+    'path'  => upload_path,
+    'url'   => upload_url
 ));
 
-// STATUS field (1=Enabled, 0=Disabled)
-$xcrud->change_type('status', 'select', '', array(
-    '1' => 'Enabled',
-    '0' => 'Disabled'
-));
-
-// Column labels
-$xcrud->label('desc_text','Text');
-$xcrud->label('picture','Image');
-$xcrud->label('status','Status');
-$xcrud->label('created_at','Created At');
-
+/* Remove title */
 $xcrud->unset_title();
 $xcrud->unset_view();
 
-// USER PERMISSIONS
+/* Permissions */
 if (!isset($permission_delete)){ 
     $xcrud->unset_remove(); 
 }
 if (!isset($permission_edit)){ 
     $xcrud->unset_edit(); 
-} 
+} else {
+    $xcrud->column_callback('status', 'create_status_icon');
+    $xcrud->field_callback('status','Enable_Disable');
+    $xcrud->column_callback('default', 'MakeDefault');
+}
 
+// USER PERMISSIONS
 $xcrud->column_width('id','80px');
 $xcrud->column_width('text','400px');
 $xcrud->column_width('image','200px');

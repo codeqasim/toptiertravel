@@ -840,7 +840,7 @@ $router->post('hotel_details', function () {
 
         foreach ($brand_stories as &$story) {
             if (!empty($story['image'])) {
-                $story['image'] = upload_url . 'brand_stories/' . $story['image'];
+                $story['image'] = upload_url . '' . $story['image'];
             }
         }
 
