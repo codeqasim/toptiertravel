@@ -394,7 +394,7 @@ $router->post('hotel_search', function () {
                 if ($user_id != "") { 
                     $favorite_check = $db->select("user_favourites", "*", [
                         "user_id" => $user_id,
-                        "item_id" => $value['id'],
+                        "item_id" => $values['id'],
                         "module" => "tours"
                     ]);
                     
