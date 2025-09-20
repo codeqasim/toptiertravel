@@ -158,6 +158,8 @@ $router->post('hotel_search', function () {
     required('rooms');
     required('currency');
 
+    $user_id = $_POST['user_id'] ?? "";
+
     //SAVING DATA FOR AUTHENTICATION PURPOSE
     $location_id = str_replace("-"," ",$_POST["city"]);;
     $currency_id = $_POST["currency"];
@@ -273,11 +275,11 @@ $router->post('hotel_search', function () {
                 }
 
                 $is_favorite = 0; // Default to not favorite
-                if (isset($_SESSION['phptravels_client']->user_id)) { 
+                if ($user_id != "") { 
                     $favorite_check = $db->select("user_favourites", "*", [
                         "user_id" => $user_id,
-                        "hotel_id" => $value['id'],
-                        "module" => "hotels"
+                        "item_id" => $value['id'],
+                        "module" => "tours"
                     ]);
                     
                     if (!empty($favorite_check)) {
@@ -389,11 +391,11 @@ $router->post('hotel_search', function () {
                 $amenities = array();
 
                 $is_favorite = 0; // Default to not favorite
-                if (isset($_SESSION['phptravels_client']->user_id)) { 
+                if ($user_id != "") { 
                     $favorite_check = $db->select("user_favourites", "*", [
                         "user_id" => $user_id,
-                        "hotel_id" => $value['id'],
-                        "module" => "hotels"
+                        "item_id" => $value['id'],
+                        "module" => "tours"
                     ]);
                     
                     if (!empty($favorite_check)) {
