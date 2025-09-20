@@ -169,6 +169,11 @@ function create_status_icon($value, $fieldname, $primary_key, $row, $xcrud)
 
 }
 
+function status_grid_text($value, $row)
+{
+    return $value == 1 ? 'Enabled' : 'Disabled';
+}
+
 function create_status_blog_icon($value, $fieldname, $primary_key, $row, $xcrud)
 {
     if($value == 1){
