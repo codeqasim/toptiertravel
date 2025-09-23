@@ -517,7 +517,7 @@ $router->post('hotel_details', function () {
             }
         }
 
-        $room_imgs_array = explode(" ", trim($room_imgs1));
+        $room_imgs_array = explode(" ", trim(upload_url.''.$room_imgs1));
 
         //GET HOTEL AMENITIES FROM hotels TABLE AND hotels_SETINGS TABLE
         $hotel_amenities = $db->select("hotels_amenties_fk", ['amenity_id'], ["hotel_id" => $hotel_id]);
@@ -660,7 +660,7 @@ $router->post('hotel_details', function () {
                     "currency" => $currency,
                     "refundable" => $refundable,
                     "refundable_date" => "",
-                    "img" => [$index['thumb_img']],
+                    "img" => upload_url.''.[$index['thumb_img']],
                     "amenities" => $room_amenitie,
                     "options" => $options
                 ];
