@@ -660,7 +660,7 @@ $router->post('hotel_details', function () {
                     "currency" => $currency,
                     "refundable" => $refundable,
                     "refundable_date" => "",
-                    "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : upload_url . "hotel.jpg",
+                    "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : "https://toptiertravel.vip/assets/img/hotel.jpg",
                     "amenities" => $room_amenitie,
                     "options" => $options
                 ];
