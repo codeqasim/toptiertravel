@@ -669,7 +669,7 @@ $router->post('hotel_details', function () {
         $lang = $_POST['language'];
         $language_id = $db->select("languages", "*", array('language_code' => strtolower($lang)));
         $hotel_translation = $db->select("hotels_translations", "*", array("hotel_id" => $details[0]['id'],'language_id'=>$language_id[0]['id']));
-
+        
         //SHOWING FINAL RESULTS AS AN OBJECT OF HOTEL ROOMS
         $response = (object) [
             "id" => $details[0]['id'],
@@ -681,7 +681,7 @@ $router->post('hotel_details', function () {
             "ratings" => $details[0]['rating'],
             "longitude" => $details[0]['location_cords'],
             "latitude" => $details[0]['location_cords'],
-            "desc" => !empty($hotel_translation[0]['desc']) ? htmlentities(strip_tags($hotel_translation[0]['desc'])) : htmlentities($details[0]['desc']),
+            "desc" => !empty($hotel_translation[0]['desc']) ? htmlentities(strip_tags($hotel_translation[0]['desc'])) : html_entity_decode($details[0]['desc']),
             "img" => $room_imgs_array,
             "amenities" => $amenities,
             "supplier_name" => "hotels",
@@ -689,7 +689,7 @@ $router->post('hotel_details', function () {
             "rooms" => $room_details,
             "checkin" => $details[0]['checkin'],
             "checkout" => $details[0]['checkout'],
-            "policy" => !empty($hotel_translation[0]['policy']) ? htmlentities(strip_tags($hotel_translation[0]['policy'])) : htmlentities($details[0]['policy']),
+            "policy" => !empty($hotel_translation[0]['policy']) ? htmlentities(strip_tags($hotel_translation[0]['policy'])) : html_entity_decode($details[0]['policy']),
             "booking_age_requirement" => $details[0]['booking_age_requirement'],
             "cancellation" => $details[0]['cancellation'],
             "tax_percentage" => "2",
