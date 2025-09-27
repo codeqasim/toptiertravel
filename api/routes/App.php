@@ -58,9 +58,6 @@ $router->post('app', function() {
     [ "cars_suggestions.status" => 1 ,"ORDER" => ["cars_suggestions.order" => "ASC"]]
     );
 
-
-
-
     $tours_suggestions = $db->select("tours_suggestions",[
         "[>]locations" => ["city"=>"city"]
     ],[

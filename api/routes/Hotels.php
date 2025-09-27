@@ -35,7 +35,7 @@ function gethotelmoduledata($modulename)
 {
     $conn = openconn(); // Open a connection to the database.
     // Use the database connection to select data from the 'modules' table where the name matches the input.
-    $response = $conn->select("modules", "*", ["name" => $modulename]);
+    $response = $conn->select("modules", "*", ["name" => $modulename,"active" => "1"]);
     // Return the results.
     return $response;
 }
@@ -339,6 +339,11 @@ $router->post('hotel_search', function () {
         //foreach ($Multithreadinghotel as $value) {
 
         $getvalue = gethotelmoduledata($_POST['module_name']); // Get module data for each active module
+        if(empty($getvalue)){
+            $response = array("status" => false, "message" => "No Hotels data", "response" => (object)[],'total'=>'');
+            echo json_encode($response);
+            exit;
+        }
         $module_name = $getvalue[0]['name'];
         $module_id = $getvalue[0]['id'];
         // Determine whether the module is in development or production mode
@@ -967,7 +972,7 @@ $router->post('hotels/booking_update', function () {
             'c3' => $gethotels[0]['c3'],
             'c4' => $gethotels[0]['c4'],
             'c5' => $gethotels[0]['c5'],
-            'evn' => $evn_hotel,
+            'env' => $evn_hotel,
             "booking_ref_no" => $data_hotel[0]['booking_ref_no'],
             "booking_data" => $data_hotel[0]['booking_data'],
             "guest" => $data_hotel[0]['guest'],
@@ -982,8 +987,8 @@ $router->post('hotels/booking_update', function () {
         if(empty($getvalue[0]['c1'])) {
             include "creds.php";
         }
-            $url = api_modules ."/hotels/".strtolower($gethotels[0]['name'])."/api/v1/booking";
-
+            $url = "http://localhost:8888/modules" ."/hotels/".strtolower($gethotels[0]['name'])."/api/v1/booking";
+            
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($param)); // Encode the data in the proper format
