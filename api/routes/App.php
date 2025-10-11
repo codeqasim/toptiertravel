@@ -616,8 +616,14 @@ $router->post('cms_page', function() {
         $translation = null; // or set to a default translation
     }
 
-    $data[0]['page_name']= !empty($translation[0]['post_title']) ? htmlentities($translation[0]['post_title']) : htmlentities($data[0]['page_name']);
-    $data[0]['content'] = !empty($translation[0]['post_desc']) ? htmlentities($translation[0]['post_desc']) : htmlentities($data[0]['content']);
+    $data[0]['page_name'] = !empty($translation[0]['post_title']) 
+        ? html_entity_decode($translation[0]['post_title'], ENT_QUOTES) 
+        : html_entity_decode($data[0]['page_name'], ENT_QUOTES);
+
+    $data[0]['content'] = !empty($translation[0]['post_desc']) 
+        ? html_entity_decode($translation[0]['post_desc'], ENT_QUOTES) 
+        : html_entity_decode($data[0]['content'], ENT_QUOTES);
+
     $respose = array ( "status"=>true, "message"=>"CMS page data", "data"=> $data );
 
 echo json_encode($respose);
