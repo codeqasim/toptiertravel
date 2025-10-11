@@ -599,7 +599,7 @@ $router->post('cms_page', function() {
     // INCLUDE CONFIG
     include "./config.php";
     $lang = isset($_POST['lang']) ? $_POST['lang'] : "english";
-    $language_id = $db->select("languages", "*", array('name' => strtolower($lang)));
+    $language_id = $db->select("languages", "*", array('language_code' => strtolower($lang)));
 
     // PARAMS
     $params = array(
