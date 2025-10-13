@@ -306,41 +306,189 @@ $router->post('wallet_booking', function() {
 });
 
 // ======================== PROFILE UPDATE
-$router->post('user_bookings', function() {
-
-    // INCLUDE CONFIG
+$router->post('user_bookings', function () {
+    // Enable error reporting for debugging
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    
     include "./config.php";
-    required('user_id');
 
-    // $params = array(
-    //     "user_id" => $_POST['user_id'],
-    //     "ORDER" => [ "id" => "DESC", ],
-    //     "LIMIT" => 500
-    // );
+    // Basic input validation
+    $user_id = isset($_POST['user_id']) ? trim($_POST['user_id']) : null;
+    if ($user_id === null || $user_id === '') {
+        header('Content-Type: application/json', true, 400);
+        echo json_encode([
+            "status" => "false",
+            "message" => "user_id is required"
+        ]);
+        return;
+    }
 
+    $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+    $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
+    $search = isset($_POST['search']) ? trim($_POST['search']) : '';
+    $payment_status = isset($_POST['payment_status']) ? trim($_POST['payment_status']) : '';
 
-    // PARAMS
-    $params = array(
-        "user_id" => $_POST['user_id'],
-        "ORDER" => [ "booking_id" => "DESC", ],
-        "LIMIT" => 250
-    );
+    if ($page <= 0) {
+        header('Content-Type: application/json', true, 400);
+        echo json_encode([
+            "status" => "false",
+            "message" => "page must be a positive integer"
+        ]);
+        return;
+    }
 
-    // LOCATIONS
-    $data['flights'] = $db->select("flights_bookings","*", $params );
+    if ($limit <= 0 || $limit > 500) {
+        header('Content-Type: application/json', true, 400);
+        echo json_encode([
+            "status" => "false",
+            "message" => "limit must be a positive integer (max 500)"
+        ]);
+        return;
+    }
 
+    $offset = ($page - 1) * $limit;
 
-    // USER UPDATE
-    $data['hotels'] = $db->select("hotels_bookings","*",[ "user_id"=>$_POST['user_id'] ]);
-    $data['tours'] = $db->select("tours_bookings","*",[ "user_id"=>$_POST['user_id'] ]);
-    $data['cars'] = $db->select("cars_bookings","*",[ "user_id"=>$_POST['user_id'] ]);
-    $data['visa'] = $db->select("visa_bookings","*",[ "user_id"=>$_POST['user_id'] ]);
+    // Tables to merge
+    $tables = [
+        'flights_bookings' => 'flight',
+        'hotels_bookings'  => 'hotel',
+        'tours_bookings'   => 'tour',
+        'cars_bookings'    => 'car',
+        'visa_bookings'    => 'visa'
+    ];
+   
+    // Columns present in your DB
+    $cols = [
+        "booking_ref_no",
+        "first_name",
+        "last_name",
+        "pnr",
+        "price_markup",
+        "payment_status",
+        "booking_date",
+        "module_type"
+    ];
 
-    // $params = array( "status" => 1, "ORDER" => [ "order" => "DESC", ], "LIMIT"=>[0,50] );
+    $allBookings = [];
 
-    $respose = array ( "status"=>"true", "message"=>"available user bookings", "data"=> $data );
-    echo json_encode($respose);
+    try {
+        foreach ($tables as $table => $serviceType) {
+            try {
+                // Simple WHERE clause - just user_id first
+                $where = ["user_id" => $user_id];
+                
+                // If search is provided, modify the query
+                if ($search !== '' && $payment_status !== '') {
+                    // Both search and payment_status
+                    $where = [
+                        "user_id" => $user_id,
+                        "payment_status" => $payment_status,
+                        "OR" => [
+                            "booking_ref_no[~]"  => $search,
+                            "first_name[~]"      => $search,
+                            "last_name[~]"       => $search,
+                            "pnr[~]"             => $search,
+                            "price_markup[~]"    => $search,
+                            "booking_date[~]"    => $search
+                        ]
+                    ];
+                } elseif ($search !== '') {
+                    // Only search
+                    $where = [
+                        "user_id" => $user_id,
+                        "OR" => [
+                            "booking_ref_no[~]"  => $search,
+                            "first_name[~]"      => $search,
+                            "last_name[~]"       => $search,
+                            "pnr[~]"             => $search,
+                            "price_markup[~]"    => $search,
+                            "booking_date[~]"    => $search
+                        ]
+                    ];
+                } elseif ($payment_status !== '') {
+                    // Only payment_status
+                    $where = [
+                        "user_id" => $user_id,
+                        "payment_status" => $payment_status
+                    ];
+                }
+                
+                $rows = $db->select($table, $cols, $where);
+                
+                if (!is_array($rows)) {
+                    $rows = [];
+                }
+                
+                // Normalize and push
+                foreach ($rows as $r) {
+                    // build customer name
+                    $first = isset($r['first_name']) ? trim($r['first_name']) : '';
+                    $last  = isset($r['last_name'])  ? trim($r['last_name'])  : '';
+                    $customer = trim($first . ' ' . $last);
+                    if ($customer === '') $customer = null;
 
+                    $allBookings[] = [
+                        "reference"   => isset($r['booking_ref_no']) ? (string)$r['booking_ref_no'] : null,
+                        "service"     => isset($r['module_type']) ? (string)$r['module_type'] : $serviceType,
+                        "customer"    => $customer,
+                        "pnr"         => isset($r['pnr']) ? (string)$r['pnr'] : null,
+                        "total_price" => isset($r['price_markup']) ? (string)$r['price_markup'] : null,
+                        "payment"     => isset($r['payment_status']) ? (string)$r['payment_status'] : null,
+                        "date"        => isset($r['booking_date']) ? (string)$r['booking_date'] : null
+                    ];
+                }
+                
+            } catch (Exception $tableError) {
+                // Skip this table but log the error for debugging
+                error_log("Error querying table $table: " . $tableError->getMessage());
+                continue;
+            }
+        }
+        
+        // Sort by booking_date DESC (newest first)
+        usort($allBookings, function ($a, $b) {
+            $ad = $a['date'];
+            $bd = $b['date'];
+            $at = $ad ? strtotime($ad) : 0;
+            $bt = $bd ? strtotime($bd) : 0;
+            if ($at === $bt) return 0;
+            return ($at > $bt) ? -1 : 1;
+        });
+
+        $total_records = count($allBookings);
+
+        // Pagination: slice array
+        $paged = array_slice($allBookings, $offset, $limit);
+
+        // Response
+        $response = [
+            "status" => "true",
+            "message" => "User bookings loaded",
+            "total_records" => $total_records,
+            "page" => $page,
+            "limit" => $limit,
+            "data" => $paged
+        ];
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        return;
+
+    } catch (Exception $e) {
+        // Log the full error
+        error_log("Fatal error in user_bookings: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        
+        // Generic DB / unexpected error
+        header('Content-Type: application/json', true, 500);
+        echo json_encode([
+            "status" => "false",
+            "message" => "Server error: " . $e->getMessage(),
+            "trace" => $e->getTraceAsString() // Remove this in production
+        ]);
+        return;
+    }
 });
 
 // ======================== User Delete
