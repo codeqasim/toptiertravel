@@ -223,12 +223,55 @@ $router->post('profile', function() {
     required('user_id');
 
     // USERS
-    $data = $db->select("users", "*", ["user_id" => $_POST['user_id'],]);
-    if (!empty($data)) {
-        $respose = array("status" => "true", "message" => "profile details", "data" => $data);
+    $data = $db->select("users", "*", ["user_id" => $_POST['user_id']]);
+    
+    if(!empty($data)){
+        $user_id = $_POST['user_id'];
+        
+        // Initialize counters
+        $total_bookings = 0;
+        $pending_bookings = 0;
+        
+        // Define all booking tables
+        $booking_tables = [
+            'hotels_bookings',
+            'flights_bookings',
+            'tours_bookings',
+            'visa_bookings',
+            'cars_bookings'
+        ];
+        
+        // Count bookings from each table
+        foreach($booking_tables as $table) {
+            // Total bookings count
+            $total_count = $db->count($table, ["user_id" => $user_id]);
+            $total_bookings += $total_count;
+            
+            // Pending bookings count (assuming status field exists)
+            $pending_count = $db->count($table, [
+                "user_id" => $user_id,
+                "booking_status" => "pending"
+            ]);
+            $pending_bookings += $pending_count;
+        }
+        
+        // Add booking counts to user data
+        $data[0]['total_bookings'] = $total_bookings;
+        $data[0]['pending_bookings'] = $pending_bookings;
+        
+        $respose = array(
+            "status" => "true", 
+            "message" => "profile details", 
+            "data" => $data
+        );
     } else {
-        $respose = array("status" => "false", "message" => "no profile found", "data" => "");
+        $respose = array(
+            "status" => "false", 
+            "message" => "no profile found", 
+            "data" => ""
+        );
     }
+    
     echo json_encode($respose);
 
 });
