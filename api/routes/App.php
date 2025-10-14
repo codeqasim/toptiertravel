@@ -872,5 +872,302 @@ $router->post('favourites', function() {
     echo json_encode($response);
 
 });
+
 // ======================== FAVOURITES
+
+// Invoice Payment API Endpoint
+$router->post('invoice/pay', function () {
+    include "./config.php";
+    header('Content-Type: application/json');
+
+    try {
+        // Check if booking reference number is provided
+        if (empty($_POST['booking_ref_no'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'booking_ref_no is required',
+                'error_code' => 'MISSING_BOOKING_REF'
+            ]);
+            exit;
+        }
+
+        $booking_ref_no = trim($_POST['booking_ref_no']);
+        $payment_gateway = isset($_POST['payment_gateway']) ? strtolower(trim($_POST['payment_gateway'])) : '';
+
+        // Get booking details from database
+        $invoice_data = $db->select('hotels_bookings', '*', ['booking_ref_no' => $booking_ref_no]);
+
+        if (empty($invoice_data)) {
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invoice not found',
+                'error_code' => 'INVOICE_NOT_FOUND'
+            ]);
+            exit;
+        }
+
+        $data = $invoice_data[0];
+
+        // Make sure we have a payment gateway specified
+        if (empty($payment_gateway) && empty($data['payment_gateway'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'payment_gateway is required',
+                'error_code' => 'MISSING_GATEWAY'
+            ]);
+            exit;
+        }
+
+        // Use POST gateway if provided, otherwise use the one from database
+        $payment_gateway = !empty($payment_gateway) ? $payment_gateway : strtolower($data['payment_gateway']);
+        
+        // Don't allow payment if invoice is already paid
+        if ($data['payment_status'] === 'paid') {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invoice is already paid',
+                'error_code' => 'ALREADY_PAID',
+                'data' => [
+                    'booking_ref_no' => $data['booking_ref_no'],
+                    'payment_status' => $data['payment_status'],
+                    'booking_status' => $data['booking_status']
+                ]
+            ]);
+            exit;
+        }
+
+        // Block payment if there's a pending cancellation request
+        if (!empty($data['cancellation_request']) && $data['cancellation_request'] == 1) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Cancellation request pending',
+                'error_code' => 'CANCELLATION_PENDING'
+            ]);
+            exit;
+        }
+
+        // Get list of active payment gateways from database
+        $available_gateways = $db->select("payment_gateways", "name", ["status" => 1]);
+
+        // Convert gateway names to lowercase and replace spaces with underscores
+        $available_gateways = array_map(function($name) {
+            return strtolower(str_replace(' ', '_', $name));
+        }, $available_gateways);
+
+        $gateway_match = in_array($payment_gateway, $available_gateways);
+        
+        // Return error if requested gateway is not available
+        if (!$gateway_match) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid payment gateway',
+                'error_code' => 'INVALID_GATEWAY',
+                'available_gateways' => array_map(fn($gw) => strtolower(str_replace(' ', '_', $gw)), $available_gateways)
+            ]);
+            exit;
+        }
+
+        // Extract user information from booking data
+        $user_data = json_decode($data['user_data'], true);
+        if (empty($user_data['email'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid user data in booking',
+                'error_code' => 'INVALID_USER_DATA'
+            ]);
+            exit;
+        }
+        
+        // Build payment data payload
+        $payload = [
+            'booking_ref_no' => $data['booking_ref_no'],
+            'currency' => $data['currency_markup'],
+            'price' => $data['price_markup'],
+            'client_email' => $user_data['email'],
+            'invoice_url' => $_POST['invoice_url'] ?? root . 'invoice/' . $data['booking_ref_no'],
+            'type' => 'invoice',
+            'user_id' => $user_data['user_id'] ?? '',
+            'module_type' => $data['module_type'],
+        ];
+
+        $encoded_payload = base64_encode(json_encode($payload));
+        $payment_url = root . 'payment/' . $payment_gateway;
+
+        // Return payment information to client
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payment details retrieved successfully',
+            'data' => [
+                'booking_ref_no' => $data['booking_ref_no'],
+                'payment_status' => $data['payment_status'],
+                'booking_status' => $data['booking_status'],
+                'currency' => $data['currency_markup'],
+                'amount' => $data['price_markup'],
+                'payment_gateway' => $payment_gateway,
+                'payment_url' => $payment_url,
+                'payload' => $encoded_payload,
+                'client_email' => $user_data['email']
+            ]
+        ]);
+
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Internal server error',
+            'error_code' => 'INTERNAL_ERROR',
+            'error' => $e->getMessage()
+        ]);
+    }
+});
+
+// Alternative endpoint for direct payment processing
+$router->post('invoice/process-payment', function () {
+    include "./config.php";
+    header('Content-Type: application/json');
+    
+    try {
+        // Verify that payload is present in request
+        if (!isset($_POST['payload']) || empty($_POST['payload'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'payload is required',
+                'error_code' => 'MISSING_PAYLOAD'
+            ]);
+            exit;
+        }
+        
+        // Verify that payment gateway is specified
+        if (!isset($_POST['payment_gateway']) || empty($_POST['payment_gateway'])) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'payment_gateway is required',
+                'error_code' => 'MISSING_GATEWAY'
+            ]);
+            exit;
+        }
+        
+        // Decode the payment payload
+        $payload = json_decode(base64_decode($_POST['payload']));
+        $payment_gateway = strtolower(trim($_POST['payment_gateway']));
+    
+        if (!$payload) {
+            http_response_code(400);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Invalid payload format',
+                'error_code' => 'INVALID_PAYLOAD'
+            ]);
+            exit;
+        }
+        
+        // Handle different payment gateways
+        switch ($payment_gateway) {
+            case 'stripe':
+                // Format gateway name for database lookup
+                $gatewayName = str_replace('_', ' ', ucwords(strtolower($payment_gateway)));
+
+                // Retrieve Stripe gateway configuration from database
+                $gateway = $db->get("payment_gateways", "*", [
+                    "name" => $gatewayName,
+                    "status" => 1
+                ]);
+
+                if (!$gateway) {
+                    http_response_code(400);
+                    echo json_encode(["success" => false, "message" => "Stripe gateway not found in DB"]);
+                    exit;
+                }
+
+                // Make sure we have the Stripe secret key configured
+                if (empty($gateway['c2'])) {
+                    http_response_code(500);
+                    echo json_encode(["success" => false, "message" => "Stripe secret key missing in DB"]);
+                    exit;
+                }
+
+                // Initialize Stripe with secret key
+                \Stripe\Stripe::setApiKey($gateway['c2']);
+
+                // Generate unique booking session key
+                $rand = date('Ymdhis') . rand();
+                $_SESSION['bookingkey'] = $rand;
+
+                // Prepare success callback URL
+                $token = urlencode($_POST['payload']);
+                $success_url = root . "payment/success/?token={$token}&gateway=stripe&key=&type=0";
+
+                $success_url = str_replace('/api','',$success_url);
+
+                // Convert amount to cents for Stripe
+                $amount = intval($payload->price * 100);
+
+                // Create Stripe checkout session
+                $session = \Stripe\Checkout\Session::create([
+                    'customer_email'      => $payload->client_email,
+                    'payment_method_types'=> ['card'],
+                    'mode'                => 'payment',
+                    'metadata'            => [
+                        'booking_ref_no'  => $payload->booking_ref_no,
+                        'client_email'    => $payload->client_email,
+                        'gateway'         => 'stripe'
+                    ],
+                    'line_items' => [[
+                        'price_data' => [
+                            'currency'     => strtolower($payload->currency),
+                            'unit_amount'  => $amount,
+                            'product_data' => [
+                                'name'        => 'Travel Booking',
+                                'description' => "Booking for Invoice {$payload->booking_ref_no}",
+                            ],
+                        ],
+                        'quantity' => 1,
+                    ]],
+                    'success_url' => $success_url . "&session_id={CHECKOUT_SESSION_ID}",
+                    'cancel_url'  => $payload->invoice_url
+                ]);
+
+                // Return Stripe session details
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Stripe session created',
+                    'data' => [
+                        'session_id' => $session->id,
+                        'checkout_url' => $session->url,
+                        'publishable_key' => $gateway['c1']
+                    ]
+                ]);
+                break;
+                
+            // Add other payment gateways here
+            default:
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Payment gateway not supported in API',
+                    'error_code' => 'GATEWAY_NOT_SUPPORTED'
+                ]);
+        }
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Payment processing failed',
+            'error_code' => 'PROCESSING_ERROR',
+            'error' => $e->getMessage()
+        ]);
+    }
+});
+
 ?>
