@@ -743,7 +743,7 @@ $router->post('hotel_details', function () {
         $curl = sendhotelRequest('POST', 'hotel_details', $param); //SENDS A CURL REQUEST TO FETCH THE HOTEL DETAIL RESPONSE ACCORDING TO GIVEN SUPPLIER NAME
 
         $hotel_details = json_decode($curl); //DECODE THE FETCHED RESPONSE
-
+        
         if ($hotel_details != null) {
             //DEFINING THE REQUIRED VARIABLES
             $rooms = [];
@@ -784,7 +784,8 @@ $router->post('hotel_details', function () {
                             "cancellation" => $values->cancellation,
                             "breakfast" => $values->breakfast,
                             "room_booked" => $values->room_booked,
-                            "child_ages" => $child_age
+                            "child_ages" => $child_age,
+                            "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
                         ];
                 }
 
