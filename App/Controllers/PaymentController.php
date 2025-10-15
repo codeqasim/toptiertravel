@@ -1,18 +1,24 @@
 <?php
 $router->get('(payment)/success', function() {
 
-    if(!empty($_SESSION['bookingkey'])){
+    if(isset($_SESSION['bookingkey']) && !empty($_SESSION['bookingkey'])){
         $bookingkey = $_SESSION['bookingkey'];
-    }else{
+    }else if(isset($_GET['bookingref'])){
         $bookingkey = $_GET['bookingref'];
+    }else{
+        $bookingkey="";
     }
 
     if($_GET['key'] == !empty($bookingkey)) {
 
     unset($_SESSION['bookingkey']);
       // GET TOKEN PAYLOAD
-      $token = json_decode(base64_decode($_GET['token']));
-
+      if(isset($_GET['gateway']) == "paypal"){
+        $token = json_decode(base64_decode($_GET['payload']));
+      }else{
+        $token = json_decode(base64_decode($_GET['token']));
+      }
+      
       // TRX ID || GATEWAY
       !empty($_GET['trx_id']) ? $trx_id = ($_GET['trx_id']) : $trx_id = "";
       !empty($_GET['type']) ? $type = ($_GET['type']) : $type = "";

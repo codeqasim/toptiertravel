@@ -1149,7 +1149,79 @@ $router->post('invoice/process-payment', function () {
                 ]);
                 break;
                 
-            // Add other payment gateways here
+            case 'paypal':
+                // Load PayPal keys from DB
+                $gatewayName = str_replace('_', ' ', ucwords(strtolower($payment_gateway)));
+                $gateway = $db->get("payment_gateways", "*", ["name" => $gatewayName, "status" => 1]);
+
+                if (!$gateway) {
+                    http_response_code(400);
+                    echo json_encode(["success" => false, "message" => "PayPal gateway not found in DB"]);
+                    exit;
+                }
+
+                $clientId = $gateway['c1']; // PayPal Client ID
+                $clientSecret = $gateway['c2']; // PayPal Secret Key
+                $env = $gateway['dev_mode'] == 1 ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com";
+
+                // Get access token
+                $curl = curl_init();
+                curl_setopt_array($curl, [
+                    CURLOPT_URL => "$env/v1/oauth2/token",
+                    CURLOPT_HTTPHEADER => ["Accept: application/json", "Accept-Language: en_US"],
+                    CURLOPT_USERPWD => "$clientId:$clientSecret",
+                    CURLOPT_POSTFIELDS => "grant_type=client_credentials",
+                    CURLOPT_RETURNTRANSFER => true
+                ]);
+                $response = json_decode(curl_exec($curl), true);
+                curl_close($curl);
+                $accessToken = $response['access_token'];
+                
+                $token = urlencode($_POST['payload']);
+                $success_url = root . "payment/success/?payload={$token}&gateway=paypal&key=&type=0";
+                $success_url = str_replace('/api','',$success_url);
+
+                // Create Order
+                $curl = curl_init();
+                curl_setopt_array($curl, [
+                    CURLOPT_URL => "$env/v2/checkout/orders",
+                    CURLOPT_HTTPHEADER => [
+                        "Content-Type: application/json",
+                        "Authorization: Bearer $accessToken"
+                    ],
+                    CURLOPT_POST => 1,
+                    CURLOPT_POSTFIELDS => json_encode([
+                        "intent" => "CAPTURE",
+                        "purchase_units" => [[
+                            "amount" => [
+                                "currency_code" => strtoupper($payload->currency),
+                                "value" => $payload->price
+                            ]
+                        ]],
+                        "application_context" => [
+                            "return_url" => $success_url,
+                            "cancel_url" => $payload->invoice_url
+                        ]
+                    ]),
+                    CURLOPT_RETURNTRANSFER => true
+                ]);
+                $order = json_decode(curl_exec($curl), true);
+                curl_close($curl);
+                
+                $approvalUrl = "";
+                foreach ($order['links'] as $link) {
+                    if ($link['rel'] === 'approve') {
+                        $approvalUrl = $link['href'];
+                        break;
+                    }
+                }
+
+                echo json_encode([
+                    "success" => true,
+                    "message" => "PayPal order created",
+                    "checkout_url" => $approvalUrl
+                ]);
+                break;
             default:
                 http_response_code(400);
                 echo json_encode([
