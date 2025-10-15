@@ -13,7 +13,7 @@ $router->get('(payment)/success', function() {
 
     unset($_SESSION['bookingkey']);
       // GET TOKEN PAYLOAD
-      if(isset($_GET['gateway']) == "paypal"){
+      if(isset($_GET['gateway']) && $_GET['gateway'] == "paypal"){
         $token = json_decode(base64_decode($_GET['payload']));
       }else{
         $token = json_decode(base64_decode($_GET['token']));
