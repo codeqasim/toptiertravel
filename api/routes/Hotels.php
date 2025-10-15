@@ -633,6 +633,7 @@ $router->post('hotel_details', function () {
                             "extrabed_price" => $rooms[0]['extra_bed_charges'],
                             "cancellation" => $value['cancellation'],
                             "breakfast" => $value['breakfast'],
+                            "dinner" => "",
                             "room_booked" => false
                         ];
                     } else {
@@ -783,6 +784,7 @@ $router->post('hotel_details', function () {
                             "extrabed_price" => $values->extrabed_price,
                             "cancellation" => $values->cancellation,
                             "breakfast" => $values->breakfast,
+                            "dinner" => isset($values->dinner) ? $values->breakfast : "0",
                             "room_booked" => $values->room_booked,
                             "child_ages" => $child_age,
                             "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
