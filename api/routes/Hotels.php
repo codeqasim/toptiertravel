@@ -634,6 +634,7 @@ $router->post('hotel_details', function () {
                             "cancellation" => $value['cancellation'],
                             "breakfast" => $value['breakfast'],
                             "dinner" => "",
+                            "board" => "",
                             "room_booked" => false
                         ];
                     } else {
@@ -785,6 +786,7 @@ $router->post('hotel_details', function () {
                             "cancellation" => $values->cancellation,
                             "breakfast" => $values->breakfast,
                             "dinner" => isset($values->dinner) ? $values->breakfast : "0",
+                            "board" => $values->board,
                             "room_booked" => $values->room_booked,
                             "child_ages" => $child_age,
                             "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
