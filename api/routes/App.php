@@ -894,17 +894,6 @@ $router->post('invoice/pay', function () {
 
         $booking_ref_no = trim($_POST['booking_ref_no']);
         $payment_gateway = isset($_POST['payment_gateway']) ? strtolower(trim($_POST['payment_gateway'])) : '';
-        $payment_details = isset($_POST['payment_details']) ? $_POST['payment_details'] : '';
-
-        if (empty($payment_details) && empty($data['payment_details'])) {
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'payment_details is required',
-                'error_code' => 'MISSING_PAYMENT_DETAILS'
-            ]);
-            exit;
-        }
 
         // Get booking details from database
         $invoice_data = $db->select('hotels_bookings', '*', ['booking_ref_no' => $booking_ref_no]);
@@ -1006,7 +995,6 @@ $router->post('invoice/pay', function () {
             'type' => 'invoice',
             'user_id' => $user_data['user_id'] ?? '',
             'module_type' => $data['module_type'],
-            'payment_detail' => $payment_details,
         ];
 
         $encoded_payload = base64_encode(json_encode($payload));
@@ -1110,214 +1098,55 @@ $router->post('invoice/process-payment', function () {
                 // Initialize Stripe with secret key
                 \Stripe\Stripe::setApiKey($gateway['c2']);
 
-                // Check if payment_details is provided for direct payment
-                if (isset($_POST['payment_details']) && !empty($_POST['payment_details'])) {
-                    // DIRECT PAYMENT MODE - Process payment immediately
-                    $payment_details = $payload->payment_details;
-                    
-                    // Validate required payment details
-                    if (empty($payment_details['card_number']) || 
-                        empty($payment_details['exp_month']) || 
-                        empty($payment_details['exp_year']) || 
-                        empty($payment_details['cvc'])) {
-                        http_response_code(400);
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Missing required payment details (card_number, exp_month, exp_year, cvc)',
-                            'error_code' => 'INCOMPLETE_PAYMENT_DETAILS'
-                        ]);
-                        exit;
-                    }
+                // Generate unique booking session key
+                $rand = date('Ymdhis') . rand();
+                $_SESSION['bookingkey'] = $rand;
 
-                    try {
-                        // Convert amount to cents for Stripe
-                        $amount = intval($payload->price * 100);
+                // Prepare success callback URL
+                $token = urlencode($_POST['payload']);
+                $success_url = root . "payment/success/?token={$token}&gateway=stripe&key=&type=0";
 
-                        // Step 1: Create or retrieve customer
-                        $customer = null;
-                        try {
-                            // Search for existing customer by email
-                            $customers = \Stripe\Customer::all([
-                                'email' => $payload->client_email,
-                                'limit' => 1
-                            ]);
-                            
-                            if (!empty($customers->data)) {
-                                $customer = $customers->data[0];
-                            }
-                        } catch (Exception $e) {
-                            // Continue if search fails
-                        }
+                $success_url = str_replace('/api','',$success_url);
 
-                        // Create new customer if not found
-                        if (!$customer) {
-                            $customer = \Stripe\Customer::create([
-                                'email' => $payload->client_email,
-                                'description' => 'Customer for booking ' . $payload->booking_ref_no
-                            ]);
-                        }
+                // Convert amount to cents for Stripe
+                $amount = intval($payload->price * 100);
 
-                        // Step 2: Create PaymentMethod from card details
-                        $paymentMethod = \Stripe\PaymentMethod::create([
-                            'type' => 'card',
-                            'card' => [
-                                'number' => str_replace(' ', '', $payment_details['card_number']),
-                                'exp_month' => intval($payment_details['exp_month']),
-                                'exp_year' => intval($payment_details['exp_year']),
-                                'cvc' => $payment_details['cvc']
+                // Create Stripe checkout session
+                $session = \Stripe\Checkout\Session::create([
+                    'customer_email'      => $payload->client_email,
+                    'payment_method_types'=> ['card'],
+                    'mode'                => 'payment',
+                    'metadata'            => [
+                        'booking_ref_no'  => $payload->booking_ref_no,
+                        'client_email'    => $payload->client_email,
+                        'gateway'         => 'stripe'
+                    ],
+                    'line_items' => [[
+                        'price_data' => [
+                            'currency'     => strtolower($payload->currency),
+                            'unit_amount'  => $amount,
+                            'product_data' => [
+                                'name'        => 'Travel Booking',
+                                'description' => "Booking for Invoice {$payload->booking_ref_no}",
                             ],
-                            'billing_details' => [
-                                'email' => $payload->client_email,
-                                'name' => $payment_details['card_holder_name'] ?? 'Customer'
-                            ]
-                        ]);
-
-                        // Step 3: Attach PaymentMethod to Customer
-                        $paymentMethod->attach(['customer' => $customer->id]);
-
-                        // Step 4: Create PaymentIntent
-                        $paymentIntent = \Stripe\PaymentIntent::create([
-                            'amount' => $amount,
-                            'currency' => strtolower($payload->currency),
-                            'customer' => $customer->id,
-                            'payment_method' => $paymentMethod->id,
-                            'description' => "Booking for Invoice {$payload->booking_ref_no}",
-                            'metadata' => [
-                                'booking_ref_no' => $payload->booking_ref_no,
-                                'client_email' => $payload->client_email,
-                                'gateway' => 'stripe'
-                            ],
-                            'confirm' => true, // Automatically confirm the payment
-                            'off_session' => true, // Allow off-session payment
-                            'return_url' => $payload->invoice_url // Required for some payment methods
-                        ]);
-
-                        // Check payment status
-                        if ($paymentIntent->status === 'succeeded') {
-                            // Payment successful - trigger success URL logic
-                            $token = urlencode($_POST['payload']);
-                            $success_url = root . "payment/success/?token={$token}&gateway=stripe&key=&type=0";
-                            $success_url = str_replace('/api', '', $success_url);
-
-                            // You can either redirect or call the success handler internally
-                            // For API response, return success with payment details
-                            http_response_code(200);
-                            echo json_encode([
-                                'success' => true,
-                                'message' => 'Payment processed successfully',
-                                'data' => [
-                                    'payment_intent_id' => $paymentIntent->id,
-                                    'booking_ref_no' => $payload->booking_ref_no,
-                                    'amount' => $payload->price,
-                                    'currency' => $payload->currency,
-                                    'status' => 'paid',
-                                    'payment_method' => 'card',
-                                    'last4' => $paymentMethod->card->last4,
-                                    'success_url' => $success_url
-                                ]
-                            ]);
-                            
-                            // Optional: Trigger success URL internally to update booking
-                            // This simulates the redirect behavior
-                            // file_get_contents($success_url);
-                            
-                        } else if ($paymentIntent->status === 'requires_action') {
-                            // 3D Secure or additional authentication required
-                            http_response_code(200);
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Additional authentication required',
-                                'error_code' => 'REQUIRES_ACTION',
-                                'data' => [
-                                    'payment_intent_id' => $paymentIntent->id,
-                                    'client_secret' => $paymentIntent->client_secret,
-                                    'next_action' => $paymentIntent->next_action
-                                ]
-                            ]);
-                        } else {
-                            // Payment failed
-                            http_response_code(400);
-                            echo json_encode([
-                                'success' => false,
-                                'message' => 'Payment failed: ' . ($paymentIntent->last_payment_error->message ?? 'Unknown error'),
-                                'error_code' => 'PAYMENT_FAILED',
-                                'data' => [
-                                    'payment_intent_id' => $paymentIntent->id,
-                                    'status' => $paymentIntent->status
-                                ]
-                            ]);
-                        }
-
-                    } catch (\Stripe\Exception\CardException $e) {
-                        // Card was declined
-                        http_response_code(400);
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Card declined: ' . $e->getError()->message,
-                            'error_code' => 'CARD_DECLINED',
-                            'decline_code' => $e->getError()->decline_code
-                        ]);
-                    } catch (\Stripe\Exception\InvalidRequestException $e) {
-                        // Invalid parameters
-                        http_response_code(400);
-                        echo json_encode([
-                            'success' => false,
-                            'message' => 'Invalid request: ' . $e->getMessage(),
-                            'error_code' => 'INVALID_REQUEST'
-                        ]);
-                    }
-                    
-                } else {
-                    // CHECKOUT MODE - Original flow with redirect URL
-                    // Generate unique booking session key
-                    $rand = date('Ymdhis') . rand();
-                    $_SESSION['bookingkey'] = $rand;
-
-                    // Prepare success callback URL
-                    $token = urlencode($_POST['payload']);
-                    $success_url = root . "payment/success/?token={$token}&gateway=stripe&key=&type=0";
-                    $success_url = str_replace('/api', '', $success_url);
-
-                    // Convert amount to cents for Stripe
-                    $amount = intval($payload->price * 100);
-
-                    // Create Stripe checkout session
-                    $session = \Stripe\Checkout\Session::create([
-                        'customer_email' => $payload->client_email,
-                        'payment_method_types' => ['card'],
-                        'mode' => 'payment',
-                        'metadata' => [
-                            'booking_ref_no' => $payload->booking_ref_no,
-                            'client_email' => $payload->client_email,
-                            'gateway' => 'stripe'
                         ],
-                        'line_items' => [[
-                            'price_data' => [
-                                'currency' => strtolower($payload->currency),
-                                'unit_amount' => $amount,
-                                'product_data' => [
-                                    'name' => 'Travel Booking',
-                                    'description' => "Booking for Invoice {$payload->booking_ref_no}",
-                                ],
-                            ],
-                            'quantity' => 1,
-                        ]],
-                        'success_url' => $success_url . "&session_id={CHECKOUT_SESSION_ID}",
-                        'cancel_url' => $payload->invoice_url
-                    ]);
+                        'quantity' => 1,
+                    ]],
+                    'success_url' => $success_url . "&session_id={CHECKOUT_SESSION_ID}",
+                    'cancel_url'  => $payload->invoice_url
+                ]);
 
-                    // Return Stripe session details
-                    http_response_code(200);
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Stripe session created',
-                        'data' => [
-                            'session_id' => $session->id,
-                            'checkout_url' => $session->url,
-                            'publishable_key' => $gateway['c1']
-                        ]
-                    ]);
-                }
+                // Return Stripe session details
+                http_response_code(200);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Stripe session created',
+                    'data' => [
+                        'session_id' => $session->id,
+                        'checkout_url' => $session->url,
+                        'publishable_key' => $gateway['c1']
+                    ]
+                ]);
                 break;
                 
             case 'paypal':
@@ -1350,7 +1179,7 @@ $router->post('invoice/process-payment', function () {
                 
                 $token = urlencode($_POST['payload']);
                 $success_url = root . "payment/success/?payload={$token}&gateway=paypal&key=&type=0";
-                $success_url = str_replace('/api', '', $success_url);
+                $success_url = str_replace('/api','',$success_url);
 
                 // Create Order
                 $curl = curl_init();
