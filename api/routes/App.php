@@ -910,7 +910,7 @@ $router->get('get_gateway', function () {
         echo json_encode([
             'success' => true,
             'gateway' => 'stripe',
-            'secret_key' => $gateway['c1'],
+            'secret_key' => $gateway['c2'],
             'publishable_key' => $gateway['c1'],
             'version' => $apiVersion
         ]);
