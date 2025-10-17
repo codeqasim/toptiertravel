@@ -875,7 +875,7 @@ $router->post('favourites', function() {
 
 // ======================== FAVOURITES
 
-$router->post('get_gateway', function () use ($db) {
+$router->post('get_gateway', function () {
     include "./config.php";
     header('Content-Type: application/json');
 
