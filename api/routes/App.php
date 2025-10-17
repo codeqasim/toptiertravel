@@ -893,7 +893,7 @@ $router->post('get_gateway', function () {
             ]);
             exit;
         }
-        
+
         if (empty($gateway['c1'])) {
             echo json_encode([
                 'success' => false,
@@ -902,10 +902,17 @@ $router->post('get_gateway', function () {
             exit;
         }
 
+        \Stripe\Stripe::setApiKey($gateway['c2']);
+
+        $response = \Stripe\Account::retrieve();
+        $apiVersion = $response->getLastResponse()->headers['Stripe-Version'];
+
         echo json_encode([
             'success' => true,
             'gateway' => 'stripe',
-            'publishable_key' => $gateway['c1']
+            'secret_key' => $gateway['c1'],
+            'publishable_key' => $gateway['c1'],
+            'version' => $apiVersion
         ]);
         exit;
 
@@ -1059,7 +1066,7 @@ $router->post('invoice/process-payment', function () {
                 "price" => $amountDecimal,
                 "currency" => $currency,
                 "client_email" => $user_data['email'],
-                "invoice_url" => $booking['invoice_url'],
+                "invoice_url" => "https://toptiertravel.vercel.app/hotel/invoice/".$booking_ref_no,
                 "module_type" => $booking['module_type'],
                 "user_id" => $booking['user_id']
             ]));
