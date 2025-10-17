@@ -930,7 +930,7 @@ $router->post('hotel_booking', function () {
     // HOOK
     $hook = "hotels_booking";
     include "./hooks.php";
-    echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no']));
+    echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
 });
 
 /*=======================

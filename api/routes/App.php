@@ -1001,33 +1001,46 @@ $router->post('invoice/process-payment', function () {
         }
 
         // Prepare amount & currency from booking
-        $amountDecimal = $booking['price_markup']; // e.g. 123.45
-        $currency = $booking['currency_markup'] ?? 'USD'; // fallback to USD if missing
-        
-        // Convert to cents (integer)
-        $amount = intval(round(floatval($amountDecimal) * 100));
-        // Init Stripe
+        $amountDecimal = $booking['price_markup']; // ex: 123.45
+        $currency = $booking['currency_markup'] ?? 'USD';
+        $email = $booking['email'];
+
+        $amount = intval(round(floatval($amountDecimal) * 100)); // convert to cents
+
+        // Initialize Stripe
         \Stripe\Stripe::setApiKey($gateway['c2']);
 
-        // Create or find customer
+        // Create / Get Stripe Customer
         $customer = null;
         try {
-            $customers = \Stripe\Customer::all(['email' => $user_data['email'], 'limit' => 1]);
+            $customers = \Stripe\Customer::all(['email' => $email, 'limit' => 1]);
             if (!empty($customers->data)) {
                 $customer = $customers->data[0];
             }
-        } catch (Exception $e) {
-            // ignore search error and create new customer
-        }
+        } catch (Exception $e) {}
 
         if (!$customer) {
             $customer = \Stripe\Customer::create([
-                'email' => $user_data['email'],
+                'email' => $email,
                 'description' => 'Customer for booking ' . $booking_ref_no
             ]);
         }
 
-        // Create and confirm PaymentIntent
+        // ✅ Attach payment method to customer (Fix error)
+        try {
+            \Stripe\PaymentMethod::attach(
+                $payment_method_id,
+                ['customer' => $customer->id]
+            );
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            if (strpos($e->getMessage(), 'already attached') === false) {
+                http_response_code(400);
+                echo json_encode(['success'=>false, 'message'=>'Stripe error: '.$e->getMessage(), 'error_code'=>'ATTACH_PAYMENT_METHOD_FAILED']);
+                exit;
+            }
+        }
+
+        // ✅ Create + Confirm PaymentIntent
         try {
             $paymentIntent = \Stripe\PaymentIntent::create([
                 'amount' => $amount,
@@ -1047,63 +1060,46 @@ $router->post('invoice/process-payment', function () {
             exit;
         }
 
-        // Handle statuses
-        if ($paymentIntent->status === 'requires_action' || $paymentIntent->status === 'requires_source_action') {
-            // 3DS required — send client_secret to frontend to handle via Stripe.js
-            http_response_code(200);
+        // ✅ Handle 3D Secure (SCA)
+        if ($paymentIntent->status === 'requires_action') {
             echo json_encode([
                 'success' => false,
-                'message' => 'Authentication required',
                 'requires_action' => true,
                 'payment_intent_client_secret' => $paymentIntent->client_secret
             ]);
             exit;
-        } elseif ($paymentIntent->status === 'succeeded') {
+        }
 
-            // Generate success URL to trigger booking update
+        // ✅ Payment Success
+        if ($paymentIntent->status === 'succeeded') {
             $token = base64_encode(json_encode([
                 "booking_ref_no" => $booking_ref_no,
                 "price" => $amountDecimal,
                 "currency" => $currency,
-                "client_email" => $user_data['email'],
                 "invoice_url" => "https://toptiertravel.vercel.app/hotel/invoice/".$booking_ref_no,
                 "module_type" => $booking['module_type'],
                 "user_id" => $booking['user_id']
             ]));
-            
-            // No bookingkey/session needed in Direct API method so key stays empty
-            $success_url = root . "payment/success/?token={$token}&gateway=stripe&key=&type=0&trx_id=" . $paymentIntent->id;
+
+            $success_url = root . "payment/success/?token={$token}&gateway=stripe&type=0&trx_id=" . $paymentIntent->id;
             $success_url = str_replace('/api','',$success_url);
-            // Send success response
-            http_response_code(200);
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Payment successful',
                 'payment_intent_id' => $paymentIntent->id,
                 'booking_ref_no' => $booking_ref_no,
-                'amount' => $amountDecimal,
-                'currency' => strtoupper($currency),
                 'success_url' => $success_url
-            ]);
-            exit;
-        } else {
-            // Other status — treat as failure
-            http_response_code(400);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Payment could not be processed',
-                'status' => $paymentIntent->status
             ]);
             exit;
         }
 
+        echo json_encode(['success'=>false,'message'=>'Payment failed']);
+        exit;
+
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Internal server error',
-            'error' => $e->getMessage()
-        ]);
+        echo json_encode(['success'=>false,'message'=>$e->getMessage()]);
         exit;
     }
 });
