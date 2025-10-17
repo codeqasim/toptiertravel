@@ -1,37 +1,60 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
+    
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     include "_config.php";
-    if (isset($_POST['update_cms'])){
 
+    if (isset($_POST['update_cms'])) {
+
+        // Filter out empty values and remove update button
         $filteredArray = array_filter($_REQUEST, function($value) {
-            return $value !== 'update_cms'  && !empty($value);
+            return $value !== 'update_cms' && !empty($value);
         });
+
         foreach ($filteredArray as $key => $value) {
             if (is_array($value)) {
-                foreach ($value as $index => $item) {
+                
+                // $key = language_id, $filteredArray['page_id'] = page_id
+                $page_id = $filteredArray['page_id'];
+                $language_id = $key;
 
-                    if (!empty($item)) {
-                        $params = array(
-                            "post_title" => $value[0],
-                            "post_desc" => $value[1],
-                        );
-                        $data = $db->update('cms_translations',$params, [ "page_id" => $filteredArray['page_id'] , "language_id"=> $key]);
-                    }else{
-                        $params = array(
-                            "post_title" => $value[0],
-                            "post_desc" => $value[1],
-                        );
-                        $data = $db->update('cms_translations',$params, [ "page_id" => $filteredArray['page_id'] , "language_id"=> $key]);
-                    }
+                // Extract title and description
+                $post_title = $value[0] ?? '';
+                $post_desc  = $value[1] ?? '';
+
+                // Prepare params
+                $params = [
+                    "page_id"     => $page_id,
+                    "language_id" => $language_id,
+                    "post_title"  => $post_title,
+                    "post_desc"   => $post_desc,
+                ];
+                
+                // Check if row exists already
+                $exists = $db->get('cms_translations', '*', [
+                    "page_id"     => $page_id,
+                    "language_id" => $language_id
+                ]);
+
+                if ($exists) {
+                    // Update if exists
+                    $db->update('cms_translations', $params, [
+                        "page_id"     => $page_id,
+                        "language_id" => $language_id
+                    ]);
+                } else {
+                    // Insert if not exists
+                    $db->insert('cms_translations', $params);
                 }
             }
         }
+
         ALERT_MSG('updated');
         REDIRECT('cms.php');
         exit;
     }
-
 }
 ?>
 
