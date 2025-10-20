@@ -10,8 +10,31 @@ exit;
 
 CSRF();
 
+// Secret key for JWT
+$jwt_secret_key = "testingthelogicofjwt129873456"; // 🔒 keep this secret
+
+// Helper functions for JWT
+function base64UrlEncode($data){
+    return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
+}
+
+function generateJWT($payload, $secret){
+    $header = json_encode(['alg'=>'HS256','typ'=>'JWT']);
+    $base64Header = base64UrlEncode($header);
+    $base64Payload = base64UrlEncode(json_encode($payload));
+    $signature = hash_hmac('sha256', "$base64Header.$base64Payload", $secret, true);
+    $base64Signature = base64UrlEncode($signature);
+    return "$base64Header.$base64Payload.$base64Signature";
+}
+
 // LOGIN POST REQUEST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ $license_key = $_POST['license_key']; $db->update("settings", [ "license_key" => $license_key ], [ "id" => 1 ]); REDIRECT("login.php"); die; }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') { 
+    if (isset($_POST['license_key'])){
+        $license_key = $_POST['license_key'];
+        $db->update("settings", [ "license_key" => $license_key ], [ "id" => 1 ]);
+        REDIRECT("login.php"); 
+        die; 
+    }
 
     // EMAIL SANITIZATION
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
@@ -36,13 +59,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ 
 
             $_SESSION['phptravels_backend_user'] = ENCODE($SESSION_ARRAY);
 
-            // SEND EMAIL
-            // $title = "User Login";
-            // $template = "login";
-            // $content = $_SERVER['REMOTE_ADDR'];
-            // $receiver_email = $user[0]['email'];
-            // $receiver_name = $user[0]['first_name'];
-            // AJAXMAIL($template,$title,$content,$receiver_email,$receiver_name);
+            // ---------------- JWT LOGIC START ----------------
+            $jwt_payload = [
+                "user_id" => $user[0]['user_id'],
+                "email" => $user[0]['email'],
+                "user_type" => $user[0]['user_type'],
+                "exp" => time() + (60*60*24) // token expires in 24 hours
+            ];
+
+            $jwt_token = generateJWT($jwt_payload, $jwt_secret_key);
+
+            // Set JWT as a cookie (cross-domain safe)
+            $domain = ($_SERVER['HTTP_HOST'] === 'localhost:8888') ? 'localhost' : '.toptiertravel.vip';
+            $secure = ($_SERVER['HTTP_HOST'] === 'localhost:8888') ? false : true;
+
+            setcookie(
+                "admin_jwt",
+                $jwt_token,
+                [
+                    'expires' => time() + 60*60*24,
+                    'path' => '/',
+                    'domain' => $domain,
+                    'secure' => $secure,
+                    'httponly' => true,
+                    'samesite' => ($secure ? 'None' : 'Lax')
+                ]
+            );
+
+            // ---------------- JWT LOGIC END ----------------
 
             // INSERT TO LOGS
             $user_id = $user[0]['user_id'];
@@ -57,35 +101,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') { if (isset($_POST['license_key'])){ 
                 REDIRECT('dashboard.php');
             }
 
-        // REDIRECT TO USER VERIFICATION PAGE
         } else {
+            // INSERT TO LOGS
+            $user_id = "";
+            $log_type = "login";
+            $datetime = date("Y-m-d h:i:sa");
+            $desc = "user tried to loggin but account is not active";
+            logs($user_id,$log_type,$datetime,$desc);
 
-         // INSERT TO LOGS
-         $user_id = "";
-         $log_type = "login";
-         $datetime = date("Y-m-d h:i:sa");
-         $desc = "user tried to loggin but account is not active";
-         logs($user_id,$log_type,$datetime,$desc);
-
-         ALERT_MSG('not_active');
-         REDIRECT('login.php');
-
-      }
+            ALERT_MSG('not_active');
+            REDIRECT('login.php');
+        }
 
     } else {
+        // INSERT TO LOGS
+        $user_id = "";
+        $log_type = "login";
+        $datetime = date("Y-m-d h:i:sa");
+        $desc = "invalid user login credentials";
+        logs($user_id,$log_type,$datetime,$desc);
 
-    // INSERT TO LOGS
-    $user_id = "";
-    $log_type = "login";
-    $datetime = date("Y-m-d h:i:sa");
-    $desc = "invalid user login credentials";
-    logs($user_id,$log_type,$datetime,$desc);
-
-    ALERT_MSG('invalid_login');
-    REDIRECT("login.php");
-
+        ALERT_MSG('invalid_login');
+        REDIRECT("login.php");
     }
-
 }
 
 // GET DATA
