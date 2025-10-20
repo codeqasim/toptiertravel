@@ -907,12 +907,18 @@ $router->get('get_gateway', function () {
         $response = \Stripe\Account::retrieve();
         $apiVersion = $response->getLastResponse()->headers['Stripe-Version'];
 
-        echo json_encode([
-            'success' => true,
-            'gateway' => 'stripe',
+        $data = [
             'secret_key' => $gateway['c2'],
             'publishable_key' => $gateway['c1'],
             'version' => $apiVersion
+        ];
+
+        $data = base64_encode(json_encode($data));
+
+        echo json_encode([
+            'success' => true,
+            'gateway' => 'stripe',
+            'data' => $data
         ]);
         exit;
 

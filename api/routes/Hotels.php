@@ -926,7 +926,7 @@ $router->post('hotel_booking', function () {
     $db->insert("hotels_bookings", $param); //INSERTION OF BOOKING DATA INTO DATABASE
 
     $data = (json_decode($_POST["user_data"]));
-    $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no']));
+    $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
     // HOOK
     $hook = "hotels_booking";
     include "./hooks.php";
@@ -961,6 +961,7 @@ $router->post('hotels/booking_update', function () {
 
     $booking_ref_no = $_POST['booking_ref_no'];
     $data_hotel = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]); // SELECT THE BOOKING DATA FROM DATABASE ACCORDING TO BOOKING REFERENCE NUMBER
+    
     if (!empty($data_hotel)) {
         $gethotels = gethotelmoduledata($data_hotel[0]['supplier']);
 
@@ -992,7 +993,7 @@ $router->post('hotels/booking_update', function () {
         if(empty($getvalue[0]['c1'])) {
             include "creds.php";
         }
-            $url = "http://localhost:8888/modules" ."/hotels/".strtolower($gethotels[0]['name'])."/api/v1/booking";
+            $url = api_modules ."/hotels/".strtolower($gethotels[0]['name'])."/api/v1/booking";
             
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_POST, 1);

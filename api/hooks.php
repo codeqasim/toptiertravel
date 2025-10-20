@@ -153,8 +153,10 @@ if (isset($hook)) {
         MAILER($template, $title, $content, $receiver_email, $receiver_name);
 
         // PUSH NOTIFICATION
-        $push_data['message1'] = 'Hotel';
+        $push_data['message1'] = 'Hotel_hotel_booking';
         $push_data['message2'] = 'booking invoice ' . $data->booking_ref_no;
+        $push_data['message3'] = ($data->first_name) . ' ' . ($data->last_name) . 'just booked';
+        $push_data['message4'] = $data->hotel_name;
         $pusher->trigger($channel, 'event', $push_data);
 
     }
