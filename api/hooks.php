@@ -19,6 +19,7 @@ if (isset($hook)) {
     $options = array('cluster' => 'ap2', 'useTLS' => true);
     $pusher = new Pusher\Pusher('de441f2de3ea4cc57f04', 'cc0c9335064541f0f897', '2066269', $options);
     $channel = $_SERVER['SERVER_NAME'];
+    $channel = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $_SERVER['SERVER_NAME']);
 
     // ==================================================================== LOGIN
     if ($hook == "login") {
