@@ -279,7 +279,6 @@ $router->post('profile', function() {
 // ======================== PROFILE UPDATE
 $router->post('profile_update', function() {
 
-    // INCLUDE CONFIG
     include "./config.php";
 
     required('user_id');
@@ -290,29 +289,35 @@ $router->post('profile_update', function() {
     required('phone_country_code');
     required('country_code');
 
-    // PASSWORD CONDITION
-    if(!empty($_POST['password'])) { $password = $_POST['password']; } else { $password = ""; }
-
-    // USER UPDATE
-    $data = $db->update("users", [
+    // Prepare data for update
+    $updateData = [
         "first_name" => $_POST['first_name'],
         "last_name" => $_POST['last_name'],
         "email" => $_POST['email'],
         "phone" => $_POST['phone'],
-        "password" => md5($_POST['password']),
         "phone_country_code" => $_POST['phone_country_code'],
         "country_code" => $_POST['country_code'],
-        "state" => $_POST['state'],
-        "city" => $_POST['city'],
-        "address1" => $_POST['address1'],
-        "address2" => $_POST['address2'],
-     ], [
+        "state" => $_POST['state'] ?? null,
+        "city" => $_POST['city'] ?? null,
+        "address1" => $_POST['address1'] ?? null,
+        "address2" => $_POST['address2'] ?? null,
+    ];
+
+    // Only update password if provided
+    if (!empty($_POST['password'])) {
+        $updateData["password"] = md5($_POST['password']);
+    }
+
+    // Perform update
+    $data = $db->update("users", $updateData, [
         "user_id" => $_POST['user_id'],
     ]);
 
-    $respose = array ( "status"=>"true", "message"=>"profile updated", "data"=> $data );
-    echo json_encode($respose);
-
+    echo json_encode([
+        "status" => true,
+        "message" => "Profile updated successfully",
+        "data" => $data
+    ]);
 });
 
 // ======================== PROFILE UPDATE
