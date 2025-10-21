@@ -405,6 +405,7 @@ $router->post('app', function() {
             "img"=>upload_url.$value['img'],
             "location"=>$value['location'],
             "stars"=>$value['stars'],
+            "rating"=>$value['rating'],
             "status"=>$value['status'],
             "left_rooms"=>$value['left_rooms'],
             "price"=>number_format((float) $con_price, 2),
