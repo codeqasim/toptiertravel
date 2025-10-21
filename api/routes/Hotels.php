@@ -785,7 +785,7 @@ $router->post('hotel_details', function () {
                             "extrabed_price" => $values->extrabed_price,
                             "cancellation" => $values->cancellation,
                             "breakfast" => $values->breakfast,
-                            "dinner" => isset($values->dinner) ? $values->breakfast : "0",
+                            "dinner" => isset($values->dinner) ? $values->dinner : "0",
                             "board" => $values->board,
                             "room_booked" => $values->room_booked,
                             "child_ages" => $child_age,
