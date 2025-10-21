@@ -331,6 +331,7 @@ $router->post('app', function() {
         "hotels.img",
         "hotels.location",
         "hotels.stars",
+        "hotels.rating",
         "hotels.status",
         "hotels.left_rooms",
     ],[
