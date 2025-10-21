@@ -16,8 +16,9 @@ if (isset($hook)) {
     // $options = array('cluster' => 'us2', 'useTLS' => true);
     // $pusher = new Pusher\Pusher('be4840bf63594e1468bb', '89406484859350dc3714', '1585424', $options);
     // $channel = $_SERVER['SERVER_NAME'];
-    $options = array('cluster' => 'ap2', 'useTLS' => true);
-    $pusher = new Pusher\Pusher('de441f2de3ea4cc57f04', 'cc0c9335064541f0f897', '2066269', $options);
+    // $options = array('cluster' => 'ap2', 'useTLS' => true);
+    // $pusher = new Pusher\Pusher('de441f2de3ea4cc57f04', 'cc0c9335064541f0f897', '2066269', $options);
+    $pusher = PUSHER();
     $channel = $_SERVER['SERVER_NAME'];
     $channel = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $_SERVER['SERVER_NAME']);
 

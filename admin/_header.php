@@ -469,6 +469,15 @@ if (
         </li>
         <?php } ?>
 
+        <?php if (isset($user_permissions->pusher_settings->page_access)) { ?>
+        <li class="slide">
+            <a href="./pusher_settings.php" class="side-menu__item <?= $url_name == 'pusher_settings' ? 'active' : '' ?>">
+                <?= T::pusher_settings ?>
+            </a>
+        </li>
+        <?php } ?>
+
+
         <!-- Locations -->
         <?php if (isset($user_permissions->locations->page_access)) { ?>
         <li class="slide">

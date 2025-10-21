@@ -932,6 +932,60 @@ $router->get('get_gateway', function () {
     }
 });
 
+$router->get('get_pusher', function () {
+    include "./config.php";
+    header('Content-Type: application/json');
+
+    try {
+        // Fetch Pusher settings from DB
+        $pusherSettings = $db->get("settings", [
+            "pusher_key",
+            "pusher_cluster"
+        ], ["LIMIT" => 1]);
+
+        if (!$pusherSettings) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pusher settings not found'
+            ]);
+            exit;
+        }
+
+        if (empty($pusherSettings['pusher_key'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Pusher key missing'
+            ]);
+            exit;
+        }
+
+        // Define channel and event dynamically
+        $channel = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $_SERVER['SERVER_NAME']);
+
+        $data = [
+            'key' => $pusherSettings['pusher_key'],
+            'cluster' => $pusherSettings['pusher_cluster'] ?: 'ap2',
+            'useTLS' => true,
+            'channel' => $channel
+        ];
+
+        echo json_encode([
+            'success' => true,
+            'gateway' => 'pusher',
+            'data' => $data
+        ]);
+        exit;
+
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Internal server error',
+            'error' => $e->getMessage()
+        ]);
+        exit;
+    }
+});
+
 // Invoice Payment API Endpoint
 $router->post('invoice/process-payment', function () {
     include "./config.php";

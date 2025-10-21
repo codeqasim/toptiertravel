@@ -73,6 +73,32 @@ function MAILER($template, $titles, $content, $receiver_email, $receiver_name) {
     }
 }
 
+function PUSHER() {
+    // Open DB connection
+    $db = openConn();
+
+    // Fetch settings
+    $res = $db->get("settings", "*", ["LIMIT" => 1]);
+
+    if (!$res) {
+        throw new Exception("Pusher settings not found in database.");
+    }
+
+    // Extract credentials dynamically
+    $app_id = $res['pusher_app_id'];
+    $app_key = $res['pusher_key'];
+    $app_secret = $res['pusher_secret'];
+    $cluster = $res['pusher_cluster'] ?: 'ap2'; // fallback cluster
+
+    // Create Pusher instance
+    $options = [
+        'cluster' => $cluster,
+        'useTLS' => true
+    ];
+
+    return new Pusher\Pusher($app_key, $app_secret, $app_id, $options);
+}
+
 // Log function to insert logs into database
 function logs($user_id, $log_type, $datetime, $desc) {
     $db = openConn();
