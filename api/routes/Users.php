@@ -313,10 +313,13 @@ $router->post('profile_update', function() {
         "user_id" => $_POST['user_id'],
     ]);
 
+    $user = $db->select("users", "*", [ "user_id" => $_POST['user_id'] ]);
+
     echo json_encode([
         "status" => true,
         "message" => "Profile updated successfully",
-        "data" => $data
+        "data" => $data,
+        "user" => $user
     ]);
 });
 
