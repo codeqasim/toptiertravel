@@ -54,7 +54,7 @@ function sendhotelRequest($req_method = 'GET', $service = '', $payload = [], $_h
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // Return the response instead of outputting it
     curl_setopt($curl, CURLOPT_ENCODING, ""); // Handle all encodings
     curl_setopt($curl, CURLOPT_MAXREDIRS, 10); // Follow up to 10 redirects
-    curl_setopt($curl, CURLOPT_TIMEOUT, 30); // Time out after 30 seconds
+    curl_setopt($curl, CURLOPT_TIMEOUT, 120); // Time out after 30 seconds
     curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1); // Use HTTP/1.1
 
     // Set the request method and payload
