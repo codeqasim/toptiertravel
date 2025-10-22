@@ -1048,24 +1048,175 @@ $router->post('hotels/booking_update', function () {
 HOTEL_BOOKING PAYMENT UPDATE API
 =======================*/
 $router->post('hotels/cancellation', function () {
-    //CONFIG FILE
     include "./config.php";
 
     // VALIDATION
     required('booking_ref_no');
     $booking_ref_no = $_POST["booking_ref_no"];
 
-    $params = array('cancellation_request' => 1, );
-    $data = $db->update("hotels_bookings", $params, ["booking_ref_no" => $booking_ref_no]); //UPDATE THE CANCELATION STATUS IN DATABASE IF REQUEST IS MADE
+    // Get booking data from database
+    $data_hotel = $db->select("hotels_bookings", "*", ['booking_ref_no' => $booking_ref_no]);
+    
+    if (empty($data_hotel)) {
+        echo json_encode(array('status' => false, 'message' => 'Invalid booking reference number'));
+        return;
+    }
 
-    $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
-    $user = (json_decode($booking[0]['user_data']));
+    // Check if already cancelled
+    if ($data_hotel[0]['booking_status'] == 'cancelled') {
+        echo json_encode(array('status' => false, 'message' => 'Booking is already cancelled'));
+        return;
+    }
 
-    // HOOK
-    $hook = "hotels/cancellation_request";
-    include "./hooks.php";
+    // Check if supplier is "hotels" - manual cancellation required
+    if (strtolower($data_hotel[0]['supplier']) == 'hotels' || empty($data_hotel[0]['pnr']) || $data_hotel[0]['pnr'] == null) {
+        // Update database with cancellation request flag
+        $db->update("hotels_bookings", [
+            "cancellation_request" => 1,
+            "booking_status" => "pending_cancellation",
+        ], [
+            "booking_ref_no" => $booking_ref_no
+        ]);
 
-    echo json_encode(array('status' => true, 'message' => 'request received successfully'));
+        $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
+        $user = (json_decode($booking[0]['user_data']));
 
+        // HOOK for cancellation request
+        $hook = "hotels/cancellation_request";
+        include "./hooks.php";
+
+        echo json_encode(array(
+            'status' => true, 
+            'message' => 'Cancellation request received. Our team will process it.',
+            'booking_ref_no' => $booking_ref_no,
+            'requires_manual_processing' => true
+        ));
+        return;
+    }else{
+
+        // Get hotel module data for other suppliers
+        $gethotels = gethotelmoduledata($data_hotel[0]['supplier']);
+    
+        if ($gethotels[0]['dev_mode'] == 1) {
+            $evn_hotel = 'pro';
+        } else {
+            $evn_hotel = 'dev';
+        }
+    
+        // Prepare parameters for cancellation API
+
+        if(strtolower($data_hotel[0]['supplier']) == 'stuba'){
+            $booking_response = json_decode($data_hotel[0]['booking_response'], true);
+            $booking_id = $booking_response['BookingCreateResult']['Booking']['Id'];
+            $param = array(
+                'c1' => $gethotels[0]['c1'],
+                'c2' => $gethotels[0]['c2'],
+                'c3' => $gethotels[0]['c3'],
+                'c4' => $gethotels[0]['c4'],
+                'c5' => $gethotels[0]['c5'],
+                'env' => $evn_hotel,
+                'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
+                'booking_id' => $booking_id,
+                'hotel_id' => $data_hotel[0]['hotel_id'],
+                'checkin' => $data_hotel[0]['checkin'],
+                'checkout' => $data_hotel[0]['checkout'],
+            );
+        }else{
+            $param = array(
+                'c1' => $gethotels[0]['c1'],
+                'c2' => $gethotels[0]['c2'],
+                'c3' => $gethotels[0]['c3'],
+                'c4' => $gethotels[0]['c4'],
+                'c5' => $gethotels[0]['c5'],
+                'env' => $evn_hotel,
+                'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
+                'booking_id' => $data_hotel[0]['pnr'], // PNR from supplier
+                'hotel_id' => $data_hotel[0]['hotel_id'],
+                'checkin' => $data_hotel[0]['checkin'],
+                'checkout' => $data_hotel[0]['checkout'],
+            );
+        }
+        
+    
+        // Include credentials if needed
+        if(empty($gethotels[0]['c1'])) {
+            include "creds.php";
+        }
+    
+        // Call cancellation API
+        $url = api_modules . "/hotels/" . strtolower($gethotels[0]['name']) . "/api/v1/booking-cancellation";
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($param));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        
+        $resp_cancel = curl_exec($ch);
+        
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            echo json_encode(array('status' => false, 'message' => 'cURL error: ' . $error));
+            return;
+        }
+        
+        curl_close($ch);
+    
+        // Decode response
+        $cancel_response = json_decode($resp_cancel);
+    
+        // Update database based on cancellation result
+        if ($cancel_response && $cancel_response->status === true) {
+            // Successful cancellation
+            $db->update("hotels_bookings", [
+                "cancellation_request" => 1,
+                "booking_status" => "cancelled",
+                "cancellation_response" => $resp_cancel,
+                "cancellation_date" => date('Y-m-d H:i:s'),
+            ], [
+                "booking_ref_no" => $booking_ref_no
+            ]);
+    
+            $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
+            $user = (json_decode($booking[0]['user_data']));
+    
+            // HOOK for successful cancellation
+            $hook = "hotels/cancellation_success";
+            include "./hooks.php";
+    
+            echo json_encode(array(
+                'status' => true, 
+                'message' => 'Booking cancelled successfully',
+                'booking_ref_no' => $booking_ref_no,
+                'response' => $cancel_response
+            ));
+        } else {
+            // Cancellation failed
+            $error_message = isset($cancel_response->message) ? $cancel_response->message : 'Cancellation failed';
+            
+            $db->update("hotels_bookings", [
+                "cancellation_request" => 1,
+                "cancellation_response" => $resp_cancel,
+                "cancellation_error" => $error_message,
+            ], [
+                "booking_ref_no" => $booking_ref_no
+            ]);
+    
+            $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
+            $user = (json_decode($booking[0]['user_data']));
+    
+            // HOOK for failed cancellation
+            $hook = "hotels/cancellation_failed";
+            include "./hooks.php";
+    
+            echo json_encode(array(
+                'status' => false, 
+                'message' => $error_message,
+                'booking_ref_no' => $booking_ref_no,
+                'response' => $cancel_response
+            ));
+        }
+    }
 });
 ?>

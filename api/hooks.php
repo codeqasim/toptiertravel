@@ -184,7 +184,42 @@ if (isset($hook)) {
 
     }
 
-    // ==================================================================== HOTELS CANCELLATION REQUEST
+    if ($hook == "hotels/cancellation_success") {
+
+        // SEND EMAIL
+        $title = "Booking Cancellation Confirmed";
+        $template = "hotels_cancellation_confirmed";
+        $content = $root . '/hotels/invoice/' . $booking_ref_no;
+        $receiver_email = ($user->email);
+        $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
+        MAILER($template, $title, $content, $receiver_email, $receiver_name);
+
+        // PUSH NOTIFICATION
+        $push_data['message1'] = 'Cancellation Confirmed';
+        $push_data['message2'] = 'Hotel booking ' . $booking_ref_no . ' has been cancelled successfully';
+        $pusher->trigger($channel, 'event', $push_data);
+
+    }
+
+    // HOOK FOR FAILED CANCELLATION
+    if ($hook == "hotels/cancellation_failed") {
+
+        // SEND EMAIL
+        $title = "Booking Cancellation Failed";
+        $template = "hotels_cancellation_failed";
+        $content = $root . '/hotels/invoice/' . $booking_ref_no;
+        $receiver_email = ($user->email);
+        $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
+        MAILER($template, $title, $content, $receiver_email, $receiver_name);
+
+        // PUSH NOTIFICATION
+        $push_data['message1'] = 'Cancellation Failed';
+        $push_data['message2'] = 'Hotel booking ' . $booking_ref_no . ' cancellation request failed. Please contact support.';
+        $pusher->trigger($channel, 'event', $push_data);
+
+    }
+
+    // ORIGINAL HOOK - CANCELLATION REQUEST (Keep this for when user requests cancellation)
     if ($hook == "hotels/cancellation_request") {
 
         // SEND EMAIL
@@ -197,7 +232,7 @@ if (isset($hook)) {
 
         // PUSH NOTIFICATION
         $push_data['message1'] = 'Cancellation';
-        $push_data['message2'] = 'hotel Requested for invoice ' . $_POST['booking_ref_no'];
+        $push_data['message2'] = 'Hotel Requested for invoice ' . $_POST['booking_ref_no'];
         $pusher->trigger($channel, 'event', $push_data);
 
     }
