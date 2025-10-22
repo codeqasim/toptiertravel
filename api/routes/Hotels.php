@@ -1073,7 +1073,7 @@ $router->post('hotels/cancellation', function () {
         // Update database with cancellation request flag
         $db->update("hotels_bookings", [
             "cancellation_request" => 1,
-            "booking_status" => "pending_cancellation",
+            "booking_status" => "cancelled",
         ], [
             "booking_ref_no" => $booking_ref_no
         ]);
@@ -1173,7 +1173,7 @@ $router->post('hotels/cancellation', function () {
                 "cancellation_request" => 1,
                 "booking_status" => "cancelled",
                 "cancellation_response" => $resp_cancel,
-                "cancellation_date" => date('Y-m-d H:i:s'),
+                "cancellation_date" => date('Y-m-d'),
             ], [
                 "booking_ref_no" => $booking_ref_no
             ]);
