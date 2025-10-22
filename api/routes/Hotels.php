@@ -915,7 +915,7 @@ $router->post('hotel_booking', function () {
         'user_id' => $_POST["user_id"],
         'user_data' => $_POST["user_data"],
         'guest' => $_POST["guest"],
-        'booking_ref_no' => date('Ymdhis'),
+        'booking_ref_no' => $_POST["booking_ref_no"],
         'booking_date' => date('Y-m-d'),
         'payment_gateway' => $_POST["payment_gateway"],
         'agent_fee' => $agent_fee,
