@@ -379,6 +379,7 @@ $router->post('user_bookings', function () {
     $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
     $search = isset($_POST['search']) ? trim($_POST['search']) : '';
     $payment_status = isset($_POST['payment_status']) ? trim($_POST['payment_status']) : '';
+    $type = isset($_POST['type']) ? trim($_POST['type']) : 'agent'; // Default to agent
 
     if ($page <= 0) {
         header('Content-Type: application/json', true, 400);
@@ -465,7 +466,7 @@ $router->post('user_bookings', function () {
                     ];
                 }
                 
-                $rows = $db->select($table, $cols, $where);
+                $rows = $db->select($table, "*", $where);
                 
                 if (!is_array($rows)) {
                     $rows = [];
@@ -479,15 +480,23 @@ $router->post('user_bookings', function () {
                     $customer = trim($first . ' ' . $last);
                     if ($customer === '') $customer = null;
 
-                    $allBookings[] = [
-                        "reference"   => isset($r['booking_ref_no']) ? (string)$r['booking_ref_no'] : null,
-                        "service"     => isset($r['module_type']) ? (string)$r['module_type'] : $serviceType,
-                        "customer"    => $customer,
-                        "pnr"         => isset($r['pnr']) ? (string)$r['pnr'] : null,
-                        "total_price" => isset($r['price_markup']) ? (string)$r['price_markup'] : null,
-                        "payment"     => isset($r['payment_status']) ? (string)$r['payment_status'] : null,
-                        "date"        => isset($r['booking_date']) ? (string)$r['booking_date'] : null
-                    ];
+                    if ($type === 'customer') {
+                        // Customer gets ALL data
+                        $r['customer'] = $customer;
+                        $r['service'] = isset($r['module_type']) ? (string)$r['module_type'] : $serviceType;
+                        $allBookings[] = $r;
+                    } else {
+                        // Agent gets filtered data
+                        $allBookings[] = [
+                            "reference"   => isset($r['booking_ref_no']) ? (string)$r['booking_ref_no'] : null,
+                            "service"     => isset($r['module_type']) ? (string)$r['module_type'] : $serviceType,
+                            "customer"    => $customer,
+                            "pnr"         => isset($r['pnr']) ? (string)$r['pnr'] : null,
+                            "total_price" => isset($r['price_markup']) ? (string)$r['price_markup'] : null,
+                            "payment"     => isset($r['payment_status']) ? (string)$r['payment_status'] : null,
+                            "date"        => isset($r['booking_date']) ? (string)$r['booking_date'] : null
+                        ];
+                    }
                 }
                 
             } catch (Exception $tableError) {
