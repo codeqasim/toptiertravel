@@ -508,8 +508,8 @@ $router->post('user_bookings', function () {
         
         // Sort by booking_date DESC (newest first)
         usort($allBookings, function ($a, $b) {
-            $ad = $a['date'];
-            $bd = $b['date'];
+            $ad = $a['booking_date'];
+            $bd = $b['booking_date'];
             $at = $ad ? strtotime($ad) : 0;
             $bt = $bd ? strtotime($bd) : 0;
             if ($at === $bt) return 0;
