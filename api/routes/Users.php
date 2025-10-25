@@ -411,30 +411,35 @@ $router->post('user_bookings', function () {
         'visa_bookings'    => 'visa'
     ];
    
-    // Columns present in your DB
-    $cols = [
-        "booking_ref_no",
-        "first_name",
-        "last_name",
-        "pnr",
-        "price_markup",
-        "payment_status",
-        "booking_status",
-        "booking_date",
-        "module_type"
-    ];
-
     $allBookings = [];
+    $allBookingsUnfiltered = []; // For calculating counts
 
     try {
+        // STEP 1: Get ALL bookings for counts (no filters)
         foreach ($tables as $table => $serviceType) {
             try {
-                // Simple WHERE clause - just user_id first
+                $unfilteredRows = $db->select($table, "*", ["user_id" => $user_id]);
+                
+                if (!is_array($unfilteredRows)) {
+                    $unfilteredRows = [];
+                }
+                
+                foreach ($unfilteredRows as $r) {
+                    $allBookingsUnfiltered[] = $r;
+                }
+                
+            } catch (Exception $tableError) {
+                error_log("Error querying table $table for counts: " . $tableError->getMessage());
+                continue;
+            }
+        }
+        
+        // STEP 2: Get filtered bookings for display
+        foreach ($tables as $table => $serviceType) {
+            try {
                 $where = ["user_id" => $user_id];
                 
-                // If search is provided, modify the query
                 if ($search !== '' && $payment_status !== '' && $booking_status !== '') {
-                    // Both search and payment_status
                     $where = [
                         "user_id" => $user_id,
                         "payment_status" => $payment_status,
@@ -449,7 +454,6 @@ $router->post('user_bookings', function () {
                         ]
                     ];
                 } elseif ($search !== '') {
-                    // Only search
                     $where = [
                         "user_id" => $user_id,
                         "OR" => [
@@ -462,13 +466,11 @@ $router->post('user_bookings', function () {
                         ]
                     ];
                 } elseif ($payment_status !== '') {
-                    // Only payment_status
                     $where = [
                         "user_id" => $user_id,
                         "payment_status" => $payment_status
                     ];
                 } elseif ($booking_status !== '') {
-                    // Only payment_status
                     $where = [
                         "user_id" => $user_id,
                         "booking_status" => $booking_status
@@ -481,21 +483,18 @@ $router->post('user_bookings', function () {
                     $rows = [];
                 }
                 
-                // Normalize and push
+                // Normalize filtered data
                 foreach ($rows as $r) {
-                    // build customer name
                     $first = isset($r['first_name']) ? trim($r['first_name']) : '';
                     $last  = isset($r['last_name'])  ? trim($r['last_name'])  : '';
                     $customer = trim($first . ' ' . $last);
                     if ($customer === '') $customer = null;
 
                     if ($type === 'customer') {
-                        // Customer gets ALL data
                         $r['customer'] = $customer;
                         $r['service'] = isset($r['module_type']) ? (string)$r['module_type'] : $serviceType;
                         $allBookings[] = $r;
                     } else {
-                        // Agent gets filtered data
                         $allBookings[] = [
                             "reference"   => isset($r['booking_ref_no']) ? (string)$r['booking_ref_no'] : null,
                             "service"     => isset($r['module_type']) ? (string)$r['module_type'] : $serviceType,
@@ -503,21 +502,45 @@ $router->post('user_bookings', function () {
                             "pnr"         => isset($r['pnr']) ? (string)$r['pnr'] : null,
                             "total_price" => isset($r['price_markup']) ? (string)$r['price_markup'] : null,
                             "payment"     => isset($r['payment_status']) ? (string)$r['payment_status'] : null,
+                            "status"      => isset($r['booking_status']) ? (string)$r['booking_status'] : null,
                             "date"        => isset($r['booking_date']) ? (string)$r['booking_date'] : null
                         ];
                     }
                 }
                 
             } catch (Exception $tableError) {
-                // Skip this table but log the error for debugging
-                error_log("Error querying table $table: " . $tableError->getMessage());
+                error_log("Error querying table $table for filtered data: " . $tableError->getMessage());
                 continue;
             }
         }
         
-        // Sort by booking_date DESC (newest first)
-       
-        // Sort by booking_date DESC (newest first)
+        // STEP 3: Calculate counts from UNFILTERED data
+        $counts = [
+            "total"    => count($allBookingsUnfiltered),
+            "unpaid"  => 0,
+            "paid"     => 0,
+            "refunded" => 0,
+            "canceled" => 0
+        ];
+
+        foreach ($allBookingsUnfiltered as $booking) {
+            $payment = strtolower(trim($booking['payment_status'] ?? ''));
+            $status = strtolower(trim($booking['booking_status'] ?? ''));
+
+            // Check canceled first (both spellings, both fields)
+            if ($payment === 'canceled' || $payment === 'cancelled' || 
+                $status === 'canceled' || $status === 'cancelled') {
+                $counts['canceled']++;
+            } elseif ($payment === 'unpaid' || $status === 'unpaid') {
+                $counts['pending']++;
+            } elseif ($payment === 'paid' || $status === 'paid') {
+                $counts['paid']++;
+            } elseif ($payment === 'refunded' || $status === 'refunded') {
+                $counts['refunded']++;
+            }
+        }
+        
+        // Sort FILTERED bookings by booking_date DESC
         usort($allBookings, function ($a, $b) use ($type) {
             $ad = ($type == "customer") ? $a['booking_date'] : $a['date'];
             $bd = ($type == "customer") ? $b['booking_date'] : $b['date'];
@@ -530,32 +553,7 @@ $router->post('user_bookings', function () {
 
         $total_records = count($allBookings);
 
-        $counts = [
-            "total"    => $total_records,
-            "pending"  => 0,
-            "paid"     => 0,
-            "refunded" => 0,
-            "canceled" => 0
-        ];
-
-        // Loop through all bookings once to categorize them
-        foreach ($allBookings as $booking) {
-            $payment = strtolower(trim($booking['payment_status'] ?? ''));
-            $booking_status = strtolower(trim($booking['booking_status'] ?? ''));
-            
-            if ($payment === 'canceled' || $payment === 'cancelled' || 
-                $booking_status === 'canceled' || $booking_status === 'cancelled') {
-                $counts['canceled']++;
-            } elseif ($payment === 'pending') {
-                $counts['pending']++;
-            } elseif ($payment === 'paid') {
-                $counts['paid']++;
-            } elseif ($payment === 'refunded') {
-                $counts['refunded']++;
-            }
-        }
-
-        // Pagination: slice array
+        // Pagination: slice filtered array
         $paged = array_slice($allBookings, $offset, $limit);
 
         // Response
@@ -574,16 +572,14 @@ $router->post('user_bookings', function () {
         return;
 
     } catch (Exception $e) {
-        // Log the full error
         error_log("Fatal error in user_bookings: " . $e->getMessage());
         error_log("Stack trace: " . $e->getTraceAsString());
         
-        // Generic DB / unexpected error
         header('Content-Type: application/json', true, 500);
         echo json_encode([
             "status" => "false",
             "message" => "Server error: " . $e->getMessage(),
-            "trace" => $e->getTraceAsString() // Remove this in production
+            "trace" => $e->getTraceAsString()
         ]);
         return;
     }
