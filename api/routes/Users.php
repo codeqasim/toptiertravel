@@ -540,23 +540,18 @@ $router->post('user_bookings', function () {
 
         // Loop through all bookings once to categorize them
         foreach ($allBookings as $booking) {
-            // For agent type, payment_status is 'payment'
             $payment = strtolower(trim($booking['payment_status'] ?? ''));
-            $booking = strtolower(trim($booking['booking_status'] ?? ''));
-
-            // For canceled, sometimes it's stored under booking_status
-            $status = ($type === 'customer')
-                ? strtolower(trim($booking['booking_status'] ?? ''))
-                : strtolower(trim($booking['payment'] ?? ''));
-
-            if ($payment === 'pending') {
+            $booking_status = strtolower(trim($booking['booking_status'] ?? ''));
+            
+            if ($payment === 'canceled' || $payment === 'cancelled' || 
+                $booking_status === 'canceled' || $booking_status === 'cancelled') {
+                $counts['canceled']++;
+            } elseif ($payment === 'pending') {
                 $counts['pending']++;
             } elseif ($payment === 'paid') {
                 $counts['paid']++;
             } elseif ($payment === 'refunded') {
                 $counts['refunded']++;
-            } elseif ($booking === 'canceled') {
-                $counts['canceled']++;
             }
         }
 
