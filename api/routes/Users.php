@@ -517,11 +517,13 @@ $router->post('user_bookings', function () {
         
         // Sort by booking_date DESC (newest first)
        
-        usort($allBookings, function ($a, $b) {
-            $ad = $type == "customer" ? $a['booking_date'] : $a['date'];
-            $bd = $type == "customer" ? $a['booking_date'] : $a['date'];
+        // Sort by booking_date DESC (newest first)
+        usort($allBookings, function ($a, $b) use ($type) {
+            $ad = ($type == "customer") ? $a['booking_date'] : $a['date'];
+            $bd = ($type == "customer") ? $b['booking_date'] : $b['date'];
             $at = $ad ? strtotime($ad) : 0;
             $bt = $bd ? strtotime($bd) : 0;
+        
             if ($at === $bt) return 0;
             return ($at > $bt) ? -1 : 1;
         });
