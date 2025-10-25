@@ -871,93 +871,81 @@ $router->post('hotel_details', function () {
 HOTEL_BOOKING REQUEST API
 =======================*/
 $router->post('hotel_booking', function () {
-    
-    include "./config.php"; // CONFIG FILE
+    // CONFIG FILE
+    include "./config.php";
 
-    // Helper function to get POST value safely
-    function post($key, $default = null) {
-        return isset($_POST[$key]) && $_POST[$key] !== '' ? $_POST[$key] : $default;
-    }
-
-    // Default values for missing or empty fields
+    // Prepare sanitized input
     $param = array(
-        'price_original'     => post('price_original', 0),
-        'price_markup'       => post('price_markup', 0),
-        'vat'                => post('vat', 0),
-        'tax'                => post('tax', 0),
-        'gst'                => post('gst', 0),
-        'first_name'         => post('first_name', null),
-        'last_name'          => post('last_name', null),
-        'email'              => post('email', null),
-        'address'            => post('address', null),
-        'phone_country_code' => post('phone_country_code', null),
-        'phone'              => post('phone', null),
-        'country'            => post('country', null),
-        'nationality'        => post('nationality', null),
-        'stars'              => post('stars', 0),
-        'hotel_id'           => post('hotel_id', null),
-        'hotel_name'         => post('hotel_name', null),
-        'hotel_phone'        => post('hotel_phone', null),
-        'hotel_email'        => post('hotel_email', null),
-        'hotel_website'      => post('hotel_website', null),
-        'hotel_address'      => post('hotel_address', null),
-        'room_data'          => post('room_data', null),
-        'location'           => post('location', null),
-        'location_cords'     => post('location_cords', null),
-        'hotel_img'          => post('hotel_img', null),
-        'checkin'            => post('checkin', null),
-        'checkout'           => post('checkout', null),
-        'adults'             => post('adults', 0),
-        'childs'             => post('childs', 0),
-        'child_ages'         => post('child_ages', null),
-        'currency_original'  => post('currency_original', null),
-        'currency_markup'    => post('currency_markup', null),
-        'booking_data'       => post('booking_data', null),
-        'supplier'           => post('supplier', null),
-        'user_id'            => post('user_id', null),
-        'user_data'          => post('user_data', null),
-        'guest'              => post('guest', null),
-        'booking_ref_no'     => post('booking_ref_no', null),
-        'booking_date'       => date('Y-m-d'),
-        'payment_gateway'    => post('payment_gateway', null),
-        'agent_fee'          => post('agent_fee', 0),
-        'toptier_fee'        => post('toptier_fee', 0),
-        'payment_status'     => 'unpaid',
-        'booking_status'     => 'pending',
+        'price_original'      => $_POST["price_original"] ?? '0',
+        'price_markup'        => $_POST["price_markup"] ?? '0',
+        'vat'                 => $_POST["vat"] ?? '0',
+        'tax'                 => $_POST["tax"] ?? '0',
+        'gst'                 => $_POST["gst"] ?? '0',
+        'first_name'          => trim($_POST["first_name"] ?? ''),
+        'last_name'           => trim($_POST["last_name"] ?? ''),
+        'email'               => filter_var($_POST["email"] ?? '', FILTER_SANITIZE_EMAIL),
+        'address'             => trim($_POST["address"] ?? ''),
+        'phone_country_code'  => trim($_POST["phone_country_code"] ?? ''),
+        'phone'               => trim($_POST["phone"] ?? ''),
+        'country'             => trim($_POST["country"] ?? ''),
+        'nationality'         => trim($_POST["nationality"] ?? ''),
+        'stars'               => $_POST["stars"] ?? '0',
+        'hotel_id'            => $_POST["hotel_id"] ?? '',
+        'hotel_name'          => trim($_POST["hotel_name"] ?? ''),
+        'hotel_phone'         => trim($_POST["hotel_phone"] ?? ''),
+        'hotel_email'         => filter_var($_POST["hotel_email"] ?? '', FILTER_SANITIZE_EMAIL),
+        'hotel_website'       => trim($_POST["hotel_website"] ?? ''),
+        'hotel_address'       => trim($_POST["hotel_address"] ?? ''),
+        'room_data'           => $_POST["room_data"] ?? [],
+        'location'            => trim($_POST["location"] ?? ''),
+        'location_cords'      => $_POST["location_cords"] ?? '',
+        'hotel_img'           => $_POST["hotel_img"] ?? '',
+        'checkin'             => $_POST["checkin"] ?? '',
+        'checkout'            => $_POST["checkout"] ?? '',
+        'adults'              => $_POST["adults"] ?? '1',
+        'childs'              => $_POST["childs"] ?? '0',
+        'child_ages'          => $_POST["child_ages"] ?? [],
+        'currency_original'   => $_POST["currency_original"] ?? 'USD',
+        'currency_markup'     => $_POST["currency_markup"] ?? 'USD',
+        'booking_data'        => $_POST["booking_data"] ?? [],
+        'supplier'            => $_POST["supplier"] ?? '',
+        'user_id'             => $_POST["user_id"] ?? '0',
+        'user_data'           => $_POST["user_data"] ?? [],
+        'guest'               => $_POST["guest"] ?? [],
+        'booking_ref_no'      => $_POST["booking_ref_no"] ?? '',
+        'booking_date'        => date('Y-m-d'),
+        'payment_gateway'     => $_POST["payment_gateway"] ?? '',
+        'agent_fee'           => $agent_fee ?? '0',
+        'payment_status'      => 'unpaid',
+        'booking_status'      => 'pending',
+        'toptier_fee'         => $_POST["toptier_fee"] ?? '0',
     );
 
-    // Check if booking_ref_no already exists
-    $existing = $db->get("hotels_bookings", "*", ["booking_ref_no" => $param['booking_ref_no']]);
+    // Check if booking_ref_no is provided
+    $bookingRef = trim($param['booking_ref_no']);
+    
+    // Check if booking exists
+    $existing = $db->get("hotels_bookings", "*", ["booking_ref_no" => $bookingRef]);
 
     if ($existing) {
-        // UPDATE existing booking
-        $db->update("hotels_bookings", $param, ["booking_ref_no" => $param['booking_ref_no']]);
-        $action = 'updated';
+        // Update existing booking
+        $db->update("hotels_bookings", $param, ["booking_ref_no" => $bookingRef]);
+        $action = "updated";
+        $booking_id = $existing["id"];
     } else {
-        // INSERT new booking
+        // Insert new booking (if ref doesn't exist)
         $db->insert("hotels_bookings", $param);
-        $action = 'inserted';
+        $action = "created";
+        $booking_id = $db->id();
     }
-
-    // HOOKS
-    $data = json_decode($param["user_data"]);
-    if ($data) {
-        $data = (object) array_merge((array) $data, [
-            'booking_ref_no' => $param['booking_ref_no'],
-            'hotel_name' => $param['hotel_name']
-        ]);
-        $hook = "hotels_booking";
-        include "./hooks.php";
-    }
-
-    echo json_encode([
-        'status' => true,
-        'action' => $action,
-        'booking_ref_no' => $param['booking_ref_no'],
-        'user_email' => $param['email']
-    ]);
+    
+    $data = (json_decode($_POST["user_data"]));
+    $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
+    // HOOK
+    $hook = "hotels_booking";
+    include "./hooks.php";
+    echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
 });
-
 
 /*=======================
 HOTEL_BOOKING INVOICE API
