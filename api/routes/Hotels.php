@@ -870,7 +870,7 @@ $router->post('hotel_details', function () {
 /*=======================
 HOTEL_BOOKING REQUEST API
 =======================*/
-$router->post('hotel_booking', function () use ($db) {
+$router->post('hotel_booking', function () {
 
     include "./config.php"; // CONFIG FILE
 
