@@ -870,68 +870,96 @@ $router->post('hotel_details', function () {
 /*=======================
 HOTEL_BOOKING REQUEST API
 =======================*/
-$router->post('hotel_booking', function () {
+$router->post('hotel_booking', function () use ($db) {
 
-    if (!empty($_POST['agent_fee'])){ $agent_fee = $_POST['agent_fee']; } else { $agent_fee = ""; }
+    include "./config.php"; // CONFIG FILE
 
-    //CONFIG FILE
-    include "./config.php";
+    // Helper function to get POST value safely
+    function post($key, $default = null) {
+        return isset($_POST[$key]) && $_POST[$key] !== '' ? $_POST[$key] : $default;
+    }
 
-    //VALIDATION
+    // Default values for missing or empty fields
     $param = array(
-        'price_original' => $_POST["price_original"],
-        'price_markup' => $_POST["price_markup"],
-        'vat' => $_POST["vat"],
-        'tax' => $_POST["tax"],
-        'gst' => $_POST["gst"],
-        'first_name' => $_POST["first_name"],
-        'last_name' => $_POST["last_name"],
-        'email' => $_POST["email"],
-        'address' => $_POST["address"],
-        'phone_country_code' => $_POST["phone_country_code"],
-        'phone' => $_POST["phone"],
-        'country' => $_POST["country"],
-        'nationality' => $_POST["nationality"],
-        'stars' => $_POST["stars"],
-        'hotel_id' => $_POST["hotel_id"],
-        'hotel_name' => $_POST["hotel_name"],
-        'hotel_phone' => $_POST["hotel_phone"],
-        'hotel_email' => $_POST["hotel_email"],
-        'hotel_website' => $_POST["hotel_website"],
-        'hotel_address' => $_POST["hotel_address"],
-        'room_data' => $_POST["room_data"],
-        'location' => $_POST["location"],
-        'location_cords' => $_POST["location_cords"],
-        'hotel_img' => $_POST["hotel_img"],
-        'checkin' => $_POST["checkin"],
-        'checkout' => $_POST["checkout"],
-        'adults' => $_POST["adults"],
-        'childs' => $_POST["childs"],
-        'child_ages' => $_POST["child_ages"],
-        'currency_original' => $_POST["currency_original"],
-        'currency_markup' => $_POST["currency_markup"],
-        'booking_data' => $_POST["booking_data"],
-        'supplier' => $_POST["supplier"],
-        'user_id' => $_POST["user_id"],
-        'user_data' => $_POST["user_data"],
-        'guest' => $_POST["guest"],
-        'booking_ref_no' => $_POST["booking_ref_no"],
-        'booking_date' => date('Y-m-d'),
-        'payment_gateway' => $_POST["payment_gateway"],
-        'agent_fee' => $agent_fee,
-        'payment_status' => 'unpaid',
-        'booking_status' => 'pending',
+        'price_original'     => post('price_original', 0),
+        'price_markup'       => post('price_markup', 0),
+        'vat'                => post('vat', 0),
+        'tax'                => post('tax', 0),
+        'gst'                => post('gst', 0),
+        'first_name'         => post('first_name', null),
+        'last_name'          => post('last_name', null),
+        'email'              => post('email', null),
+        'address'            => post('address', null),
+        'phone_country_code' => post('phone_country_code', null),
+        'phone'              => post('phone', null),
+        'country'            => post('country', null),
+        'nationality'        => post('nationality', null),
+        'stars'              => post('stars', 0),
+        'hotel_id'           => post('hotel_id', null),
+        'hotel_name'         => post('hotel_name', null),
+        'hotel_phone'        => post('hotel_phone', null),
+        'hotel_email'        => post('hotel_email', null),
+        'hotel_website'      => post('hotel_website', null),
+        'hotel_address'      => post('hotel_address', null),
+        'room_data'          => post('room_data', null),
+        'location'           => post('location', null),
+        'location_cords'     => post('location_cords', null),
+        'hotel_img'          => post('hotel_img', null),
+        'checkin'            => post('checkin', null),
+        'checkout'           => post('checkout', null),
+        'adults'             => post('adults', 0),
+        'childs'             => post('childs', 0),
+        'child_ages'         => post('child_ages', null),
+        'currency_original'  => post('currency_original', null),
+        'currency_markup'    => post('currency_markup', null),
+        'booking_data'       => post('booking_data', null),
+        'supplier'           => post('supplier', null),
+        'user_id'            => post('user_id', null),
+        'user_data'          => post('user_data', null),
+        'guest'              => post('guest', null),
+        'booking_ref_no'     => post('booking_ref_no', null),
+        'booking_date'       => date('Y-m-d'),
+        'payment_gateway'    => post('payment_gateway', null),
+        'agent_fee'          => post('agent_fee', 0),
+        'payment_status'     => 'unpaid',
+        'booking_status'     => 'pending',
     );
 
-    $db->insert("hotels_bookings", $param); //INSERTION OF BOOKING DATA INTO DATABASE
+    // Check if booking_ref_no already exists
+    $existing = $db->get("hotels_bookings", "*", ["booking_ref_no" => $param['booking_ref_no']]);
 
-    $data = (json_decode($_POST["user_data"]));
-    $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
-    // HOOK
-    $hook = "hotels_booking";
-    include "./hooks.php";
-    echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
+    if ($existing) {
+        // UPDATE existing booking
+        $db->update("hotels_bookings", $param, ["booking_ref_no" => $param['booking_ref_no']]);
+        $id = $existing['id'];
+        $action = 'updated';
+    } else {
+        // INSERT new booking
+        $db->insert("hotels_bookings", $param);
+        $id = $db->id();
+        $action = 'inserted';
+    }
+
+    // HOOKS
+    $data = json_decode($param["user_data"]);
+    if ($data) {
+        $data = (object) array_merge((array) $data, [
+            'booking_ref_no' => $param['booking_ref_no'],
+            'hotel_name' => $param['hotel_name']
+        ]);
+        $hook = "hotels_booking";
+        include "./hooks.php";
+    }
+
+    echo json_encode([
+        'status' => true,
+        'action' => $action,
+        'id' => $id,
+        'booking_ref_no' => $param['booking_ref_no'],
+        'user_email' => $param['email']
+    ]);
 });
+
 
 /*=======================
 HOTEL_BOOKING INVOICE API
