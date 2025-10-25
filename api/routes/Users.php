@@ -379,6 +379,7 @@ $router->post('user_bookings', function () {
     $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
     $search = isset($_POST['search']) ? trim($_POST['search']) : '';
     $payment_status = isset($_POST['payment_status']) ? trim($_POST['payment_status']) : '';
+    $booking_status = isset($_POST['booking_status']) ? trim($_POST['booking_status']) : '';
     $type = isset($_POST['type']) ? trim($_POST['type']) : 'agent'; // Default to agent
 
     if ($page <= 0) {
@@ -418,6 +419,7 @@ $router->post('user_bookings', function () {
         "pnr",
         "price_markup",
         "payment_status",
+        "booking_status",
         "booking_date",
         "module_type"
     ];
@@ -431,11 +433,12 @@ $router->post('user_bookings', function () {
                 $where = ["user_id" => $user_id];
                 
                 // If search is provided, modify the query
-                if ($search !== '' && $payment_status !== '') {
+                if ($search !== '' && $payment_status !== '' && $booking_status !== '') {
                     // Both search and payment_status
                     $where = [
                         "user_id" => $user_id,
                         "payment_status" => $payment_status,
+                        "booking_status" => $booking_status,
                         "OR" => [
                             "booking_ref_no[~]"  => $search,
                             "first_name[~]"      => $search,
@@ -463,6 +466,12 @@ $router->post('user_bookings', function () {
                     $where = [
                         "user_id" => $user_id,
                         "payment_status" => $payment_status
+                    ];
+                } elseif ($booking_status !== '') {
+                    // Only payment_status
+                    $where = [
+                        "user_id" => $user_id,
+                        "booking_status" => $booking_status
                     ];
                 }
                 
