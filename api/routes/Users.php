@@ -376,7 +376,7 @@ $router->post('user_bookings', function () {
     }
 
     $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
-    $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
+    $limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 6;
     $search = isset($_POST['search']) ? trim($_POST['search']) : '';
     $payment_status = isset($_POST['payment_status']) ? trim($_POST['payment_status']) : '';
     $booking_status = isset($_POST['booking_status']) ? trim($_POST['booking_status']) : '';
@@ -530,6 +530,36 @@ $router->post('user_bookings', function () {
 
         $total_records = count($allBookings);
 
+        $counts = [
+            "total"    => $total_records,
+            "pending"  => 0,
+            "paid"     => 0,
+            "refunded" => 0,
+            "canceled" => 0
+        ];
+
+        // Loop through all bookings once to categorize them
+        foreach ($allBookings as $booking) {
+            // For agent type, payment_status is 'payment'
+            $payment = strtolower(trim($booking['payment_status'] ?? ''));
+            $booking = strtolower(trim($booking['booking_status'] ?? ''));
+
+            // For canceled, sometimes it's stored under booking_status
+            $status = ($type === 'customer')
+                ? strtolower(trim($booking['booking_status'] ?? ''))
+                : strtolower(trim($booking['payment'] ?? ''));
+
+            if ($payment === 'pending') {
+                $counts['pending']++;
+            } elseif ($payment === 'paid') {
+                $counts['paid']++;
+            } elseif ($payment === 'refunded') {
+                $counts['refunded']++;
+            } elseif ($booking === 'canceled') {
+                $counts['canceled']++;
+            }
+        }
+
         // Pagination: slice array
         $paged = array_slice($allBookings, $offset, $limit);
 
@@ -540,7 +570,8 @@ $router->post('user_bookings', function () {
             "total_records" => $total_records,
             "page" => $page,
             "limit" => $limit,
-            "data" => $paged
+            "data" => $paged,
+            "counts" => $counts
         ];
 
         header('Content-Type: application/json');
