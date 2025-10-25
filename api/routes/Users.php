@@ -453,6 +453,20 @@ $router->post('user_bookings', function () {
                             "booking_date[~]"    => $search
                         ]
                     ];
+                } elseif ($search !== '' && $booking_status !== '') {
+                    $where = [
+                        "user_id" => $user_id,
+                        "booking_status" => $booking_status,
+                        "OR" => [
+                            "booking_ref_no[~]"  => $search,
+                            "first_name[~]"      => $search,
+                            "last_name[~]"       => $search,
+                            "pnr[~]"             => $search,
+                            "price_markup[~]"    => $search,
+                            "booking_date[~]"    => $search
+                        ]
+                    ];
+                    
                 } elseif ($search !== '') {
                     $where = [
                         "user_id" => $user_id,
@@ -465,6 +479,7 @@ $router->post('user_bookings', function () {
                             "booking_date[~]"    => $search
                         ]
                     ];
+                    
                 } elseif ($payment_status !== '') {
                     $where = [
                         "user_id" => $user_id,
@@ -532,7 +547,7 @@ $router->post('user_bookings', function () {
                 $status === 'canceled' || $status === 'cancelled') {
                 $counts['canceled']++;
             } elseif ($payment === 'unpaid' || $status === 'unpaid') {
-                $counts['pending']++;
+                $counts['unpaid']++;
             } elseif ($payment === 'paid' || $status === 'paid') {
                 $counts['paid']++;
             } elseif ($payment === 'refunded' || $status === 'refunded') {

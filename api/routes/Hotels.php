@@ -871,7 +871,7 @@ $router->post('hotel_details', function () {
 HOTEL_BOOKING REQUEST API
 =======================*/
 $router->post('hotel_booking', function () {
-
+    
     include "./config.php"; // CONFIG FILE
 
     // Helper function to get POST value safely
@@ -932,12 +932,10 @@ $router->post('hotel_booking', function () {
     if ($existing) {
         // UPDATE existing booking
         $db->update("hotels_bookings", $param, ["booking_ref_no" => $param['booking_ref_no']]);
-        $id = $existing['id'];
         $action = 'updated';
     } else {
         // INSERT new booking
         $db->insert("hotels_bookings", $param);
-        $id = $db->id();
         $action = 'inserted';
     }
 
@@ -955,7 +953,6 @@ $router->post('hotel_booking', function () {
     echo json_encode([
         'status' => true,
         'action' => $action,
-        'id' => $id,
         'booking_ref_no' => $param['booking_ref_no'],
         'user_email' => $param['email']
     ]);
