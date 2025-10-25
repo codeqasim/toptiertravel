@@ -921,6 +921,7 @@ $router->post('hotel_booking', function () {
         'booking_date'       => date('Y-m-d'),
         'payment_gateway'    => post('payment_gateway', null),
         'agent_fee'          => post('agent_fee', 0),
+        'toptier_fee'        => post('toptier_fee', 0),
         'payment_status'     => 'unpaid',
         'booking_status'     => 'pending',
     );
