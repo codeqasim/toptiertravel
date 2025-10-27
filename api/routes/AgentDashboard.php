@@ -356,6 +356,8 @@ $router->post('agent/dashboard/logout', function () {
                 $hook="logout";
                 include "./hooks.php";
     
+
+                $update = $db->update("users", ["token" => null], ["user_id" => $user_data->user_id]);
             }}
 
             // INSERT TO LOGS

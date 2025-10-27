@@ -638,12 +638,8 @@ $router->post('logout', function() {
     $user_data = $_SESSION['phptravels_client'];
     $user_id = $user_data->user_id;
 
-    $update = $db->update("users", [
-        "token" => null
-    ], [
-        "user_id" => $user_id
-    ]);
-    
+    $update = $db->update("users", ["token" => null], ["user_id" => $user_id]);
+
     // INSERT TO LOGS
     $log_type = "logout";
     $datetime = date("Y-m-d H:i:s");
