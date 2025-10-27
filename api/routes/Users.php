@@ -670,4 +670,84 @@ $router->post('logout', function() {
     echo json_encode($response);
 });
 
+$router->post('save_token', function() {
+
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    // VALIDATION
+    required('user_id');
+    required('token');
+
+    $user_id = $_POST['user_id'];
+    $token = $_POST['token'];
+
+    // Check if user exists
+    $check_user = $db->get("users", "*", ["user_id" => $user_id]);
+    if (!$check_user) {
+        $response = array("status" => false, "message" => "User not found", "data" => null);
+        echo json_encode($response);
+        die;
+    }
+
+    // Save or update token in database
+    $update = $db->update("users", [
+        "token" => $token
+    ], [
+        "user_id" => $user_id
+    ]);
+
+    if ($update->rowCount() > 0) {
+        $response = array("status" => true, "message" => "Token saved successfully", "data" => null);
+    } else {
+        $response = array("status" => false, "message" => "Token save failed or already exists", "data" => null);
+    }
+
+    // Optional: Add log entry
+    logs($user_id, "token_save", date("Y-m-d h:i:sa"), "user token saved");
+
+    echo json_encode($response);
+});
+
+$router->post('verify_token', function() {
+
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    // VALIDATION
+    required('user_id');
+    required('token');
+
+    $user_id = $_POST['user_id'];
+    $token = $_POST['token'];
+
+    // Check if the user and token match
+    $user = $db->get("users", "*", [
+        "AND" => [
+            "user_id" => $user_id,
+            "token" => $token
+        ]
+    ]);
+
+    if ($user) {
+        // Token is valid
+        $response = array(
+            "status" => true,
+            "message" => "Authenticated",
+            "data" => (object)$user
+        );
+    } else {
+        // Invalid or expired token
+        $response = array(
+            "status" => false,
+            "message" => "Invalid token or unauthorized access",
+            "data" => null
+        );
+    }
+
+    echo json_encode($response);
+});
+
+
+
 ?>
