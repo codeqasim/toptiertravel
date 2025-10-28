@@ -623,8 +623,10 @@ $router->post('logout', function() {
     // INCLUDE CONFIG
     include "./config.php";
 
+    $user_id = isset($_POST['user_id']) ? $_POST['user_id'] : "";
+
     // Check if user is logged in
-    if (!isset($_SESSION['phptravels_client'])) {
+    if (!isset($_SESSION['phptravels_client']) || empty($user_id)) {
         $response = array(
             "status" => false, 
             "message" => "user not logged in", 
@@ -633,8 +635,6 @@ $router->post('logout', function() {
         echo json_encode($response);
         die;
     }
-
-    $user_id = isset($_POST['user_id']) ? $_POST['user_id'] : "";
 
     // Get user data before destroying session
     $user_data = $_SESSION['phptravels_client'];
