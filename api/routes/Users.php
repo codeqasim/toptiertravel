@@ -634,10 +634,10 @@ $router->post('logout', function() {
         die;
     }
 
+    $user_id = isset($_POST['user_id']) ? $_POST['user_id'] : "";
+
     // Get user data before destroying session
     $user_data = $_SESSION['phptravels_client'];
-    $user_id = $user_data->user_id;
-
     $update = $db->update("users", ["token" => null], ["user_id" => $user_id]);
 
     // INSERT TO LOGS
