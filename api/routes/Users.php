@@ -618,31 +618,33 @@ $router->post('user_delete', function() {
 });
 
 //LOGOUT API
-$router->post('logout', function() {
+$$router->post('logout', function() {
     include "./config.php";
+    header('Content-Type: application/json');
 
     // VALIDATION
     if (!isset($_POST['user_id']) || empty($_POST['user_id'])) {
-        echo json_encode(["status" => false,"message" => "user_id is required","data" => null
-        ]);
-        die;
+        http_response_code(400);
+        echo json_encode(["status" => false,"message" => "user_id is required","data" => null]);
+        exit;
     }
 
     if (!isset($_POST['token']) || empty($_POST['token'])) {
-        echo json_encode(["status" => false,"message" => "token is required","data" => null
-        ]);
-        die;
+        http_response_code(400);
+        echo json_encode(["status" => false,"message" => "token is required","data" => null]);
+        exit;
     }
 
-    $user_id = $_POST['user_id'];
+    $user_id = filter_var($_POST['user_id'], FILTER_SANITIZE_STRING);
     $token_to_remove = $_POST['token'];
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
     // Check if user exists
     $user = $db->get("users", "*", ["user_id" => $user_id]);
     if (!$user) {
-        echo json_encode(["status" => false,"message" => "User not found","data" => null
-        ]);
-        die;
+        http_response_code(404);
+        echo json_encode(["status" => false,"message" => "User not found","data" => null]);
+        exit;
     }
 
     // Decode stored tokens (array of objects: {token, ip})
@@ -651,30 +653,40 @@ $router->post('logout', function() {
         $tokens = [];
     }
 
-    // Check if the given token exists in any entry
+    // Check if the given token exists and verify IP matches
     $token_found = false;
     $updated_tokens = [];
 
     foreach ($tokens as $entry) {
-        // Only keep entries that don't match the token to remove
+        // Check if this is the token to remove
         if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
-            $token_found = true;
-            // Skip this one (i.e., remove it)
+            // Verify IP matches for additional security
+            if (isset($entry['ip']) && $entry['ip'] === $client_ip) {
+                $token_found = true;
+                // Skip this entry (remove it)
+                continue;
+            } else {
+                // IP mismatch - don't remove, but mark as unauthorized attempt
+                $updated_tokens[] = $entry;
+            }
         } else {
+            // Keep all other tokens
             $updated_tokens[] = $entry;
         }
     }
 
     if (!$token_found) {
-        echo json_encode(["status" => false,"message" => "Invalid or already logged-out token","data" => null]);
-        die;
+        http_response_code(401);
+        echo json_encode(["status" => false,"message" => "Invalid token or IP mismatch","data" => null]);
+        exit;
     }
 
     // Update DB with cleaned token list
     $updated_json = json_encode($updated_tokens);
     if (json_last_error() !== JSON_ERROR_NONE) {
+        http_response_code(500);
         echo json_encode(["status" => false,"message" => "Failed to encode tokens","data" => null]);
-        die;
+        exit;
     }
 
     $db->update("users", [
@@ -686,8 +698,6 @@ $router->post('logout', function() {
     // Log the event
     $log_type = "logout";
     $datetime = date("Y-m-d H:i:s");
-    $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    
     $desc = "User logged out from account from IP: " . $client_ip;
     logs($user_id, $log_type, $datetime, $desc);
 
@@ -703,7 +713,9 @@ $router->post('logout', function() {
         session_regenerate_id(true);
     }
 
-    echo json_encode(["status" => true,"message" => "Logout successful","data" => null]);
+    http_response_code(200);
+    echo json_encode(["status" => true,"message" => "Logout successful","data" => null
+    ]);
 });
 
 $router->post('save_token', function() {
