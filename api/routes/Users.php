@@ -623,60 +623,62 @@ $router->post('logout', function() {
 
     // VALIDATION
     if (!isset($_POST['user_id']) || empty($_POST['user_id'])) {
-        echo json_encode([
-            "status" => false,
-            "message" => "user_id is required",
-            "data" => null
+        echo json_encode(["status" => false,"message" => "user_id is required","data" => null
         ]);
         die;
     }
 
     if (!isset($_POST['token']) || empty($_POST['token'])) {
-        echo json_encode([
-            "status" => false,
-            "message" => "token is required",
-            "data" => null
+        echo json_encode(["status" => false,"message" => "token is required","data" => null
         ]);
         die;
     }
 
     $user_id = $_POST['user_id'];
-    $token = $_POST['token'];
+    $token_to_remove = $_POST['token'];
 
     // Check if user exists
     $user = $db->get("users", "*", ["user_id" => $user_id]);
     if (!$user) {
-        echo json_encode([
-            "status" => false,
-            "message" => "User not found",
-            "data" => null
+        echo json_encode(["status" => false,"message" => "User not found","data" => null
         ]);
         die;
     }
 
-    // Decode stored tokens
+    // Decode stored tokens (array of objects: {token, ip})
     $tokens = json_decode($user['token'], true);
-    if (!is_array($tokens)) $tokens = [];
+    if (!is_array($tokens)) {
+        $tokens = [];
+    }
 
-    // Check if the given token exists
-    if (!in_array($token, $tokens)) {
-        echo json_encode([
-            "status" => false,
-            "message" => "Invalid or already logged-out token",
-            "data" => null
-        ]);
+    // Check if the given token exists in any entry
+    $token_found = false;
+    $updated_tokens = [];
+
+    foreach ($tokens as $entry) {
+        // Only keep entries that don't match the token to remove
+        if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
+            $token_found = true;
+            // Skip this one (i.e., remove it)
+        } else {
+            $updated_tokens[] = $entry;
+        }
+    }
+
+    if (!$token_found) {
+        echo json_encode(["status" => false,"message" => "Invalid or already logged-out token","data" => null]);
         die;
     }
 
-    // Remove the specific token
-    $updated_tokens = array_filter($tokens, function($t) use ($token) {
-        return $t !== $token;
-    });
-    $updated_tokens = array_values($updated_tokens); // reindex
+    // Update DB with cleaned token list
+    $updated_json = json_encode($updated_tokens);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode(["status" => false,"message" => "Failed to encode tokens","data" => null]);
+        die;
+    }
 
-    // Update DB
     $db->update("users", [
-        "token" => json_encode($updated_tokens)
+        "token" => $updated_json
     ], [
         "user_id" => $user_id
     ]);
@@ -684,7 +686,8 @@ $router->post('logout', function() {
     // Log the event
     $log_type = "logout";
     $datetime = date("Y-m-d H:i:s");
-    $client_ip = get_client_ip();
+    $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    
     $desc = "User logged out from account from IP: " . $client_ip;
     logs($user_id, $log_type, $datetime, $desc);
 
@@ -693,16 +696,14 @@ $router->post('logout', function() {
     include "./hooks.php";
 
     // Clear local session if active
-    if (isset($_SESSION['phptravels_client']) && $_SESSION['phptravels_client']['user_id'] == $user_id) {
+    if (isset($_SESSION['phptravels_client']) && 
+        isset($_SESSION['phptravels_client']['user_id']) && 
+        $_SESSION['phptravels_client']['user_id'] == $user_id) {
         unset($_SESSION['phptravels_client']);
         session_regenerate_id(true);
     }
 
-    echo json_encode([
-        "status" => true,
-        "message" => "Logout successful",
-        "data" => null
-    ]);
+    echo json_encode(["status" => true,"message" => "Logout successful","data" => null]);
 });
 
 $router->post('save_token', function() {
@@ -713,6 +714,19 @@ $router->post('save_token', function() {
 
     $user_id = $_POST['user_id'];
     $token = $_POST['token'];
+    $ip = $_SERVER['REMOTE_ADDR'];
+
+    // Optional: Handle trusted proxies (use only if you control the proxy!)
+    // if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    //     $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+    //     $ip = trim($ips[0]); // Take first IP (most trusted)
+    // }
+
+    // Validate IP format (basic safety)
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        echo json_encode(["status" => false, "message" => "Invalid IP address", "data" => null]);
+        die;
+    }
 
     // Check if user exists
     $user = $db->get("users", "*", ["user_id" => $user_id]);
@@ -721,35 +735,52 @@ $router->post('save_token', function() {
         die;
     }
 
-    // Get existing tokens (if any)
-    $existing_tokens = [];
+    // Decode existing tokens
+    $tokenList = [];
     if (!empty($user['token'])) {
         $decoded = json_decode($user['token'], true);
         if (is_array($decoded)) {
-            $existing_tokens = $decoded;
+            $tokenList = $decoded;
         }
     }
 
-    // Check if token already exists
-    if (!in_array($token, $existing_tokens)) {
-        $existing_tokens[] = $token;
+    // Check if an entry with this IP already exists
+    $found = false;
+    foreach ($tokenList as &$entry) {
+        if (isset($entry['ip']) && $entry['ip'] === $ip) {
+            // Update token for this IP
+            $entry['token'] = $token;
+            $found = true;
+            break;
+        }
+    }
+    unset($entry); // Break reference
+
+    // If no entry with this IP, add new one
+    if (!$found) {
+        $tokenList[] = ['token' => $token, 'ip' => $ip];
     }
 
-    // Save back to DB as JSON
+    // Save back to DB
+    $updatedJson = json_encode($tokenList);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode(["status" => false, "message" => "Failed to encode tokens", "data" => null]);
+        die;
+    }
+
     $update = $db->update("users", [
-        "token" => json_encode($existing_tokens)
+        "token" => $updatedJson
     ], [
         "user_id" => $user_id
     ]);
 
-    if ($update->rowCount() > 0) {
-        $response = ["status" => true, "message" => "Token saved successfully", "data" => null];
+    if ($update && $update->rowCount() > 0) {
+        $response = ["status" => true, "message" => "Token saved/updated successfully", "data" => null];
     } else {
-        $response = ["status" => true, "message" => "Token already exists", "data" => null];
+        $response = ["status" => false, "message" => "Failed to update token", "data" => null];
     }
 
-    logs($user_id, "token_save", date("Y-m-d h:i:sa"), "user token saved");
-
+    logs($user_id, "token_save", date("Y-m-d h:i:sa"), "Token updated for IP: $ip");
     echo json_encode($response);
 });
 
@@ -757,25 +788,55 @@ $router->post('save_token', function() {
 $router->post('verify_token', function() {
     include "./config.php";
 
-    required('user_id');
-    required('token');
+    // Ensure required fields are present
+    if (!isset($_POST['user_id']) || empty($_POST['user_id'])) {
+        echo json_encode(["status" => false, "message" => "user_id is required", "data" => null]);
+        die;
+    }
+    if (!isset($_POST['token']) || empty($_POST['token'])) {
+        echo json_encode(["status" => false, "message" => "token is required", "data" => null]);
+        die;
+    }
 
     $user_id = $_POST['user_id'];
     $token = $_POST['token'];
+    $current_ip = $_SERVER['REMOTE_ADDR'];
 
-    // Fetch user
+    // Optional: Validate IP (good practice)
+    // if (!filter_var($current_ip, FILTER_VALIDATE_IP)) {
+    //     echo json_encode(["status" => false, "message" => "Invalid client IP", "data" => null]);
+    //     die;
+    // }
+
+    // Fetch user from database
     $user = $db->get("users", "*", ["user_id" => $user_id]);
     if (!$user) {
         echo json_encode(["status" => false, "message" => "User not found", "data" => null]);
         die;
     }
 
-    // Decode stored tokens
-    $tokens = json_decode($user['token'], true);
-    if (!is_array($tokens)) $tokens = [];
+    // Decode stored tokens (expect array of {token, ip})
+    $storedTokens = json_decode($user['token'], true);
+    if (!is_array($storedTokens)) {
+        $storedTokens = [];
+    }
 
-    // Check if token exists in array
-    if (in_array($token, $tokens)) {
+    // Verify: does this (token + IP) pair exist?
+    $authenticated = false;
+    foreach ($storedTokens as $entry) {
+        // Ensure entry has both fields
+        if (isset($entry['token']) && isset($entry['ip'])) {
+            if ($entry['token'] === $token && $entry['ip'] === $current_ip) {
+                $authenticated = true;
+                break;
+            }
+        }
+    }
+
+    if ($authenticated) {
+        // Optional: remove sensitive fields before sending user data
+        unset($user['token']); // Don't expose tokens in response!
+
         $response = [
             "status" => true,
             "message" => "Authenticated",
@@ -784,11 +845,13 @@ $router->post('verify_token', function() {
     } else {
         $response = [
             "status" => false,
-            "message" => "Invalid token or unauthorized access",
+            "message" => "Invalid token, IP mismatch, or unauthorized access",
             "data" => null
         ];
     }
 
+    // Set JSON header (good practice)
+    header('Content-Type: application/json');
     echo json_encode($response);
 });
 

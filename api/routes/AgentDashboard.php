@@ -325,7 +325,6 @@ $router->post('agent/dashboard/forgot-password', function () {
 AGENT LOGOUT API
 ==================*/
 $router->post('agent/dashboard/logout', function () {
-
     include "./config.php";
 
     // VALIDATION
@@ -339,7 +338,7 @@ $router->post('agent/dashboard/logout', function () {
     }
 
     $email = $_POST['email'];
-    $token = $_POST['token'];
+    $token_to_remove = $_POST['token'];
 
     // Fetch user
     $data = $db->get("users", "*", ["email" => $email]);
@@ -363,24 +362,40 @@ $router->post('agent/dashboard/logout', function () {
         die;
     }
 
-    // Decode tokens
+    // Decode tokens (now array of {token, ip} objects)
     $tokens = json_decode($user_data->token, true);
-    if (!is_array($tokens)) $tokens = [];
+    if (!is_array($tokens)) {
+        $tokens = [];
+    }
 
-    // Check if token exists
-    if (!in_array($token, $tokens)) {
+    // Check if the given token exists in any entry
+    $token_found = false;
+    $updated_tokens = [];
+
+    foreach ($tokens as $entry) {
+        if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
+            $token_found = true;
+            // Skip this entry → effectively removing it
+        } else {
+            $updated_tokens[] = $entry;
+        }
+    }
+
+    if (!$token_found) {
         echo json_encode(["status" => false, "message" => "invalid or already logged-out token", "data" => null]);
         die;
     }
 
-    // Remove the provided token
-    $updated_tokens = array_values(array_filter($tokens, function($t) use ($token) {
-        return $t !== $token;
-    }));
+    // Encode updated token list
+    $updated_json = json_encode($updated_tokens);
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        echo json_encode(["status" => false, "message" => "failed to process tokens", "data" => null]);
+        die;
+    }
 
     // Update user record
     $db->update("users", [
-        "token" => json_encode($updated_tokens)
+        "token" => $updated_json
     ], [
         "user_id" => $user_data->user_id
     ]);
@@ -392,18 +407,20 @@ $router->post('agent/dashboard/logout', function () {
     // LOG
     $log_type = "logout";
     $datetime = date("Y-m-d h:i:sa");
-    $desc = "User logged out of account from IP: " . get_client_ip();
+    $client_ip = function_exists('get_client_ip') ? get_client_ip() : ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    $desc = "Agent logged out of account from IP: " . $client_ip;
     logs($user_data->user_id, $log_type, $datetime, $desc);
-    include "./logs.php";
+    // Note: Including logs.php here may be redundant if `logs()` is already defined in config.php
 
     // Destroy session
-    session_start();
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
     session_unset();
     session_destroy();
 
     // RESPONSE
-    echo json_encode(["status" => true,"message" => "User Logged Out","data" => null
-    ]);
+    echo json_encode(["status" => true,"message" => "User Logged Out","data" => null]);
 });
 
 
