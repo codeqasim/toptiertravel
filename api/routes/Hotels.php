@@ -91,35 +91,145 @@ function sendhotelRequest($req_method = 'GET', $service = '', $payload = [], $_h
 /*==================
 THIS FUNCTION IS USED TO SET THE MARKUP PRICE
 ==================*/
-function markup_price($module_id, $price, $date, $location)
+function markup_price($module_id, $price, $date, $location, $user_id = null)
 {
     $conn = openconn();
-    $markup = $conn->select('markups', "*", ['type' => 'hotels', 'module_id' => $module_id, 'status' => 1]);
-    $response = '';
-    if (!empty($markup)) {
-        //THIS CODE CHECKS IF THE DATES ARE PRESENT OR NOT AND MAKES A SAME FORMAT OF DATE
-        $city_id = $conn->select('locations', ['id'], ['city' => $location]);
-        $city_id = ($city_id[0]['id'] != null) ? $city_id[0]['id'] : "";
-        $checkin = new DateTime($date[0]);
-        $checkout = new DateTime($date[1]);
-        if (($markup[0]['from_date'] != null && $markup[0]['to_date'] != null)) {
-            $from_date = new DateTime($markup[0]['from_date']);
-            $to_date = new DateTime($markup[0]['to_date']);
-        } else {
-            $from_date = "";
-            $to_date = "";
-        }
+    $type = 'hotels';
+    $is_agent = false;
 
-        if ((($from_date <= $checkin && $to_date >= $checkout) || $markup[0]['location'] == $city_id) && $markup[0]['user_id'] == null) {
-            $response = $price + ($markup[0]['b2c_markup'] * $price) / 100;
-        } else if ($markup[0]['user_id'] != null) {
-            $response = $price + ($markup[0]['b2b_markup'] * $price) / 100;
-        } else {
-            $response = ($markup[0]['b2c_markup'] != null) ? $price + ($markup[0]['b2c_markup'] * $price) / 100 : $price + ($markup[0]['user_markup'] * $price) / 100;
+    $response = [
+        'price' => $price,
+        'markup_type' => 'none'
+    ];
+
+    $location = ($conn->select('locations', ['id'], ['city' => $location])[0]['id'] ?? '');
+
+    // Inline markup calculator
+    $calculate_markup = function($price, $markup_value, $markup_type) use (&$response) {
+        $final_price = !empty($markup_value) ? $price + ($price * $markup_value) / 100 : $price;
+        $response['price'] = $final_price;
+        $response['markup_type'] = $markup_type;
+        return $response;
+    };
+
+    // 1. Check user type if user_id provided
+    if ($user_id !== null) {
+        $user = $conn->select('users', '*', ['user_id' => $user_id, 'status' => 1]);
+
+        if (!empty($user)) {
+            $is_agent = ($user[0]['user_type'] == 'Agent');
+
+            // Check for user-specific markup first
+            $user_markup = $conn->select('markups', '*', [
+                'type' => $type,
+                'user_id' => $user_id,
+                'status' => 1
+            ]);
+
+            if (!empty($user_markup)) {
+                $markup_value = '';
+                if ($is_agent) {
+                    $markup_value = $user_markup[0]['user_markup'] ?? $user_markup[0]['b2b_markup'];
+                    return $calculate_markup($price, $markup_value, 'user_markup');
+                }
+            }
         }
-    } else {
-        $response = $price;
     }
+
+    // Prepare date conditions if available
+    $date_conditions = [];
+    if (!empty($date) && count($date) === 2) {
+        $formDate = DateTime::createFromFormat('d-m-Y', $date[0]);
+        $formDate = $formDate ? $formDate->format('Y-m-d') : '';
+        $toDate = DateTime::createFromFormat('d-m-Y', $date[1]);
+        $toDate = $toDate ? $toDate->format('Y-m-d') : '';
+        $date_conditions = [
+            'from_date[<=]' => $formDate,
+            'to_date[>=]' => $toDate,
+        ];
+    }
+
+    // Determine which markup field to use based on user type
+    $markup_field = $is_agent ? 'b2b_markup' : 'b2c_markup';
+    $markup_type_label = $is_agent ? 'b2b' : 'b2c';
+
+    // 2. MODULE + LOCATION + DATE MATCH
+    if ($module_id && $location) {
+        $markup = $conn->select('markups', '*', array_merge([
+            'type' => $type,
+            'module_id' => $module_id,
+            'location' => $location,
+            'user_id' => null,
+            'status' => 1
+        ], $date_conditions));
+
+        if (!empty($markup)) {
+            return $calculate_markup($price, $markup[0][$markup_field], $markup_type_label);
+        }
+    }
+
+    // 3. MODULE + DATE MATCH (no location)
+    if ($module_id) {
+        $markup = $conn->select('markups', '*', array_merge([
+            'type' => $type,
+            'module_id' => $module_id,
+            'user_id' => null,
+            'status' => 1
+        ], $date_conditions));
+
+        if (!empty($markup)) {
+            return $calculate_markup($price, $markup[0][$markup_field], $markup_type_label);
+        }
+    }
+
+    // 4. MODULE + LOCATION (no date)
+    if ($module_id && $location) {
+        $markup = $conn->select('markups', '*', [
+            'type' => $type,
+            'module_id' => $module_id,
+            'location' => $location,
+            'user_id' => null,
+            'status' => 1
+        ]);
+
+        if (!empty($markup)) {
+            return $calculate_markup($price, $markup[0][$markup_field], $markup_type_label);
+        }
+    }
+
+    // 5. MODULE MARKUP (no location, no date)
+    if ($module_id) {
+        $markup = $conn->select('markups', '*', [
+            'type' => $type,
+            'module_id' => $module_id,
+            'user_id' => null,
+            'location' => null,
+            'from_date' => null,
+            'to_date' => null,
+            'status' => 1
+        ]);
+
+        if (!empty($markup)) {
+            return $calculate_markup($price, $markup[0][$markup_field], $markup_type_label);
+        }
+    }
+
+    // 6. DEFAULT MARKUP
+    $default_markup = $conn->select('markups', '*', [
+        'type' => $type,
+        'module_id' => null,
+        'user_id' => null,
+        'location' => null,
+        'from_date' => null,
+        'to_date' => null,
+        'status' => 1
+    ]);
+
+    if (!empty($default_markup)) {
+        return $calculate_markup($price, $default_markup[0][$markup_field], $markup_type_label . '_default');
+    }
+
+    // 7. FINAL FALLBACK
     return $response;
 }
 
@@ -161,7 +271,7 @@ $router->post('hotel_search', function () {
     $user_id = $_POST['user_id'] ?? "";
 
     //SAVING DATA FOR AUTHENTICATION PURPOSE
-    $location_id = str_replace("-"," ",$_POST["city"]);;
+    $location_id = str_replace("-"," ",$_POST["city"]);
     $currency_id = $_POST["currency"];
     $checkin_date = $_POST["checkin"];
     $checkout_date = $_POST["checkout"];
@@ -238,7 +348,8 @@ $router->post('hotel_search', function () {
         $module = $db->select('modules', ['id', 'status', 'module_color'], ['name' => 'hotels', 'type' => 'hotels']);
 
         //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
-        $markup_mprice = markup_price($module[0]['id'], $actual_room_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id);
+        $mprice_markup = markup_price($module[0]['id'], $actual_room_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id, $user_id);
+        $markup_mprice = $mprice_markup['price'];
         if (!empty($rate[0]['rate'])) {
             if ($actual_room_price != null && $module[0]['status'] == 1) {
 
@@ -391,10 +502,10 @@ $router->post('hotel_search', function () {
                 $actual_price = $values['price'] * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL
 
                 //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
-                $markup_cprice = markup_price($module_id, $actual_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id);
-
+                $cprice_markup = markup_price($module_id, $actual_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id, $user_id);
+                $markup_cprice = $cprice_markup['price'];
                 $amenities = array();
-
+                
                 $is_favorite = 0; // Default to not favorite
                 if ($user_id != "") { 
                     $favorite_check = $db->select("user_favourites", "*", [
@@ -421,8 +532,8 @@ $router->post('hotel_search', function () {
                     "longitude" => $values['longitude'],
                     "actual_price" => number_format($actual_price, 2),
                     "actual_price_per_night" => number_format($actual_price / $days, 2),
-                    "markup_price" => number_format($actual_price + $markup_cprice, 2),
-                    "markup_price_per_day" => number_format($actual_price + $markup_cprice / $days, 2),
+                    "markup_price" => number_format($markup_cprice, 2),
+                    "markup_price_per_day" => number_format($markup_cprice / $days, 2),
                     "currency" => $currency_id,
                     "booking_currency" => $currency_id,
                     "service_fee" => $values['service_fee'],
@@ -488,6 +599,7 @@ $router->post('hotel_details', function () {
     $currency = $_POST["currency"];
     $nationality = $_POST["nationality"];
     $supplier_name = $_POST["supplier_name"];
+    $user_id = $_POST['user_id'] ?? "";
 
     $rate = $db->select("currencies", ["rate", "name"], ["name" => $currency]);
     $days = str_replace("-", "", date("Y-m-d", strtotime($_POST['checkout']))) - str_replace("-", "", date("Y-m-d", strtotime($_POST['checkin']))); //CALULATING DAYS
@@ -587,8 +699,8 @@ $router->post('hotel_details', function () {
 
             if (!empty($room_price[0]['price'])) {
                 $actual_room_price = $room_price[0]['price'] * $rate[0]['rate']; // CONVERTING ACCUAL PRICE ACCORDING TO USER SELECTED CURRENCY
-                $markup_price = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city']);
-
+                $price_markup = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
+                $markup_price = $price_markup['price'];
                 //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
                 $room_options = $db->select(
                     "hotels_rooms_options",
@@ -611,7 +723,9 @@ $router->post('hotel_details', function () {
                         $option_price = $value['price'] * $rate[0]['rate'];
                         //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
 
-                        $markup_room_option_price = markup_price($module_id[0]['id'], $option_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city']);
+                        $option_price_markup_room = markup_price($module_id[0]['id'], $option_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
+                        $markup_room_option_price = $option_price_markup_room['price'];
+                        $markup_type = $option_price_markup_room['markup_type'];
                     }
 
                     if ($value['price'] != 0) {
@@ -635,6 +749,7 @@ $router->post('hotel_details', function () {
                             "breakfast" => $value['breakfast'],
                             "dinner" => "",
                             "board" => "",
+                            "markup_type" => $markup_type,
                             "room_booked" => false
                         ];
                     } else {
@@ -749,6 +864,9 @@ $router->post('hotel_details', function () {
         if ($hotel_details != null) {
             //DEFINING THE REQUIRED VARIABLES
             $rooms = [];
+            $option_price_markup_room = [];
+            $markup_type = '';
+            $price_markup = [];
             $actual_price = 0;
             $actual_option_price = 0;
             $markup_price = 0;
@@ -759,15 +877,19 @@ $router->post('hotel_details', function () {
                 $markup_room_price = 0;
                 $actual_price = $value->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRECNY
                 //MARKUP PRICE FOR HOTEL ROOMS
-                $markup_price = markup_price($getvalue[0]['id'], $actual_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city);
+                $price_markup = markup_price($getvalue[0]['id'], $actual_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city, $user_id);
+                $markup_price = $price_markup['price'];
                 $options = [];
                 $options_array = $value->options;
 
                 foreach ($options_array as $key => $values) {
                     //MARKUP PRICE FOR HOTEL ROOM OPTIONS
                     $actual_option_price = $values->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRECNY
-                    $markup_room_option_price = markup_price($getvalue[0]['id'], $actual_option_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city);
-                        $options[] = [
+                    $option_price_markup_room = markup_price($getvalue[0]['id'], $actual_option_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city, $user_id);
+                    $markup_room_option_price = $option_price_markup_room['price'];
+                    $markup_type = $option_price_markup_room['markup_type'];    
+                    
+                    $options[] = [
                             "id" => $values->id,
                             "currency" => $param['currency'],
                             "price" => number_format($actual_option_price, 2),
@@ -789,6 +911,7 @@ $router->post('hotel_details', function () {
                             "board" => $values->board,
                             "room_booked" => $values->room_booked,
                             "child_ages" => $child_age,
+                            "markup_type" => $markup_type,
                             "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
                         ];
                 }

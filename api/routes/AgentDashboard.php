@@ -198,6 +198,7 @@ $router->post('agent/dashboard/login', function () {
 
     // User exists, now check password
     $user = $user_data[0];
+    $user_data->token = null;
     if($user['password'] !== md5($_POST['password'])) {
         // Wrong password
         $response = array ( "status"=>false, "message"=>"wrong password", "data"=> null );
@@ -388,21 +389,19 @@ $router->post('agent/dashboard/logout', function () {
     $updated_tokens = [];
 
     foreach ($tokens as $entry) {
-        // Check if this is the token to remove
-        if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
-            // Verify IP matches for additional security
-            if (isset($entry['ip']) && $entry['ip'] === $client_ip) {
-                $token_found = true;
-                // Skip this entry (remove it)
-                continue;
-            } else {
-                // IP mismatch - keep token but mark as unauthorized attempt
-                $updated_tokens[] = $entry;
-            }
-        } else {
-            // Keep all other tokens
-            $updated_tokens[] = $entry;
+        // Check if this entry should be removed (token or IP match)
+        if (
+            (isset($entry['token']) && $entry['token'] === $token_to_remove) ||
+            (isset($entry['ip']) && $entry['ip'] === $client_ip)
+        ) {
+            
+            $token_found = true;
+            // Skip this entry (remove it)
+            continue;
         }
+    
+        // Keep all other tokens
+        $updated_tokens[] = $entry;
     }
 
     if (!$token_found) {

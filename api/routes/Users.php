@@ -139,6 +139,7 @@ $router->post('login', function() {
         };
 
         $user_data = (object)$data[0];
+        $user_data->token = null;
         $respose = array ( "status"=> true, "message"=>"user details", "data"=> $user_data );
 
         if (isset($user_data)){
@@ -618,7 +619,7 @@ $router->post('user_delete', function() {
 });
 
 //LOGOUT API
-$$router->post('logout', function() {
+$router->post('logout', function() {
     include "./config.php";
     header('Content-Type: application/json');
 
@@ -635,10 +636,10 @@ $$router->post('logout', function() {
         exit;
     }
 
-    $user_id = filter_var($_POST['user_id'], FILTER_SANITIZE_STRING);
+    $user_id = filter_var($_POST['user_id']);
     $token_to_remove = $_POST['token'];
     $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-
+    
     // Check if user exists
     $user = $db->get("users", "*", ["user_id" => $user_id]);
     if (!$user) {
@@ -646,35 +647,33 @@ $$router->post('logout', function() {
         echo json_encode(["status" => false,"message" => "User not found","data" => null]);
         exit;
     }
-
+    
     // Decode stored tokens (array of objects: {token, ip})
     $tokens = json_decode($user['token'], true);
     if (!is_array($tokens)) {
         $tokens = [];
     }
-
+    
     // Check if the given token exists and verify IP matches
     $token_found = false;
     $updated_tokens = [];
 
     foreach ($tokens as $entry) {
-        // Check if this is the token to remove
-        if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
-            // Verify IP matches for additional security
-            if (isset($entry['ip']) && $entry['ip'] === $client_ip) {
-                $token_found = true;
-                // Skip this entry (remove it)
-                continue;
-            } else {
-                // IP mismatch - don't remove, but mark as unauthorized attempt
-                $updated_tokens[] = $entry;
-            }
-        } else {
-            // Keep all other tokens
-            $updated_tokens[] = $entry;
+        // Check if this entry should be removed (token or IP match)
+        if (
+            (isset($entry['token']) && $entry['token'] === $token_to_remove) ||
+            (isset($entry['ip']) && $entry['ip'] === $client_ip)
+        ) {
+            
+            $token_found = true;
+            // Skip this entry (remove it)
+            continue;
         }
+    
+        // Keep all other tokens
+        $updated_tokens[] = $entry;
     }
-
+    
     if (!$token_found) {
         http_response_code(401);
         echo json_encode(["status" => false,"message" => "Invalid token or IP mismatch","data" => null]);
@@ -688,12 +687,20 @@ $$router->post('logout', function() {
         echo json_encode(["status" => false,"message" => "Failed to encode tokens","data" => null]);
         exit;
     }
-
-    $db->update("users", [
-        "token" => $updated_json
-    ], [
-        "user_id" => $user_id
-    ]);
+    
+    if(!empty($updated_tokens)){
+        $db->update("users", [
+            "token" => $updated_json
+        ], [
+            "user_id" => $user_id
+        ]);
+    }else{
+        $db->update("users", [
+            "token" => null
+        ], [
+            "user_id" => $user_id
+        ]);
+    }
 
     // Log the event
     $log_type = "logout";
