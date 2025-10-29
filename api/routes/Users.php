@@ -619,65 +619,95 @@ $router->post('user_delete', function() {
 
 //LOGOUT API
 $router->post('logout', function() {
-
-    // INCLUDE CONFIG
-    include "./config.php";
-
-    $user_id = isset($_POST['user_id']) ? $_POST['user_id'] : "";
-
-    // Check if user is logged in
-    if (!isset($_SESSION['phptravels_client']) || empty($user_id)) {
-        $response = array(
-            "status" => false, 
-            "message" => "user not logged in", 
-            "data" => null
-        );
-        echo json_encode($response);
-        die;
-    }
-
-    // Get user data before destroying session
-    $user_data = $_SESSION['phptravels_client'];
-    $update = $db->update("users", ["token" => null], ["user_id" => $user_id]);
-
-    // INSERT TO LOGS
-    $log_type = "logout";
-    $datetime = date("Y-m-d H:i:s");
-    $client_ip = get_client_ip();
-    $desc = "user logged out from account from IP: " . $client_ip;
-    logs($user_id, $log_type, $datetime, $desc);
-
-    // HOOK - before logout
-    $hook = "logout";
-    include "./hooks.php";
-
-    // Clear specific session variable
-    unset($_SESSION['phptravels_client']);
-
-    // Optionally destroy entire session
-    // session_destroy();
-
-    // Regenerate session ID for security
-    session_regenerate_id(true);
-
-    // Success response
-    $response = array(
-        "status" => true, 
-        "message" => "logout successful", 
-        "data" => null
-    );
-
-    include "./logs.php";
-
-    echo json_encode($response);
-});
-
-$router->post('save_token', function() {
-
-    // INCLUDE CONFIG
     include "./config.php";
 
     // VALIDATION
+    if (!isset($_POST['user_id']) || empty($_POST['user_id'])) {
+        echo json_encode([
+            "status" => false,
+            "message" => "user_id is required",
+            "data" => null
+        ]);
+        die;
+    }
+
+    if (!isset($_POST['token']) || empty($_POST['token'])) {
+        echo json_encode([
+            "status" => false,
+            "message" => "token is required",
+            "data" => null
+        ]);
+        die;
+    }
+
+    $user_id = $_POST['user_id'];
+    $token = $_POST['token'];
+
+    // Check if user exists
+    $user = $db->get("users", "*", ["user_id" => $user_id]);
+    if (!$user) {
+        echo json_encode([
+            "status" => false,
+            "message" => "User not found",
+            "data" => null
+        ]);
+        die;
+    }
+
+    // Decode stored tokens
+    $tokens = json_decode($user['token'], true);
+    if (!is_array($tokens)) $tokens = [];
+
+    // Check if the given token exists
+    if (!in_array($token, $tokens)) {
+        echo json_encode([
+            "status" => false,
+            "message" => "Invalid or already logged-out token",
+            "data" => null
+        ]);
+        die;
+    }
+
+    // Remove the specific token
+    $updated_tokens = array_filter($tokens, function($t) use ($token) {
+        return $t !== $token;
+    });
+    $updated_tokens = array_values($updated_tokens); // reindex
+
+    // Update DB
+    $db->update("users", [
+        "token" => json_encode($updated_tokens)
+    ], [
+        "user_id" => $user_id
+    ]);
+
+    // Log the event
+    $log_type = "logout";
+    $datetime = date("Y-m-d H:i:s");
+    $client_ip = get_client_ip();
+    $desc = "User logged out from account from IP: " . $client_ip;
+    logs($user_id, $log_type, $datetime, $desc);
+
+    // Optional: Run logout hook
+    $hook = "logout";
+    include "./hooks.php";
+
+    // Clear local session if active
+    if (isset($_SESSION['phptravels_client']) && $_SESSION['phptravels_client']['user_id'] == $user_id) {
+        unset($_SESSION['phptravels_client']);
+        session_regenerate_id(true);
+    }
+
+    echo json_encode([
+        "status" => true,
+        "message" => "Logout successful",
+        "data" => null
+    ]);
+});
+
+$router->post('save_token', function() {
+    include "./config.php";
+
     required('user_id');
     required('token');
 
@@ -685,71 +715,81 @@ $router->post('save_token', function() {
     $token = $_POST['token'];
 
     // Check if user exists
-    $check_user = $db->get("users", "*", ["user_id" => $user_id]);
-    if (!$check_user) {
-        $response = array("status" => false, "message" => "User not found", "data" => null);
-        echo json_encode($response);
+    $user = $db->get("users", "*", ["user_id" => $user_id]);
+    if (!$user) {
+        echo json_encode(["status" => false, "message" => "User not found", "data" => null]);
         die;
     }
 
-    // Save or update token in database
+    // Get existing tokens (if any)
+    $existing_tokens = [];
+    if (!empty($user['token'])) {
+        $decoded = json_decode($user['token'], true);
+        if (is_array($decoded)) {
+            $existing_tokens = $decoded;
+        }
+    }
+
+    // Check if token already exists
+    if (!in_array($token, $existing_tokens)) {
+        $existing_tokens[] = $token;
+    }
+
+    // Save back to DB as JSON
     $update = $db->update("users", [
-        "token" => $token
+        "token" => json_encode($existing_tokens)
     ], [
         "user_id" => $user_id
     ]);
 
     if ($update->rowCount() > 0) {
-        $response = array("status" => true, "message" => "Token saved successfully", "data" => null);
+        $response = ["status" => true, "message" => "Token saved successfully", "data" => null];
     } else {
-        $response = array("status" => false, "message" => "Token save failed or already exists", "data" => null);
+        $response = ["status" => true, "message" => "Token already exists", "data" => null];
     }
 
-    // Optional: Add log entry
     logs($user_id, "token_save", date("Y-m-d h:i:sa"), "user token saved");
 
     echo json_encode($response);
 });
 
-$router->post('verify_token', function() {
 
-    // INCLUDE CONFIG
+$router->post('verify_token', function() {
     include "./config.php";
 
-    // VALIDATION
     required('user_id');
     required('token');
 
     $user_id = $_POST['user_id'];
     $token = $_POST['token'];
 
-    // Check if the user and token match
-    $user = $db->get("users", "*", [
-        "AND" => [
-            "user_id" => $user_id,
-            "token" => $token
-        ]
-    ]);
+    // Fetch user
+    $user = $db->get("users", "*", ["user_id" => $user_id]);
+    if (!$user) {
+        echo json_encode(["status" => false, "message" => "User not found", "data" => null]);
+        die;
+    }
 
-    if ($user) {
-        // Token is valid
-        $response = array(
+    // Decode stored tokens
+    $tokens = json_decode($user['token'], true);
+    if (!is_array($tokens)) $tokens = [];
+
+    // Check if token exists in array
+    if (in_array($token, $tokens)) {
+        $response = [
             "status" => true,
             "message" => "Authenticated",
             "data" => (object)$user
-        );
+        ];
     } else {
-        // Invalid or expired token
-        $response = array(
+        $response = [
             "status" => false,
             "message" => "Invalid token or unauthorized access",
             "data" => null
-        );
+        ];
     }
 
     echo json_encode($response);
 });
-
-
 
 ?>

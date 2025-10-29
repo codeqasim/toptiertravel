@@ -326,64 +326,86 @@ AGENT LOGOUT API
 ==================*/
 $router->post('agent/dashboard/logout', function () {
 
-    // INCLUDE CONFIG
     include "./config.php";
 
     // VALIDATION
-    required('email');
-
-    $data = $db->select("users","*", [
-        "email" => $_POST['email'],
-    ]);
-
-    if(isset($data[0])) {
-
-        if ($data[0]['status'] == 0) {
-            $response = array ( "status"=> false, "message"=>"user account not verified", "data"=> $data[0] );
-            echo json_encode($response);
-            die;
-        };
-
-        $user_data = (object)$data[0];
-        
-        if(isset($user_data) && $user_data->user_type != 'Agent'){
-            $response = array ( "status"=>false, "message"=>"this user is not an agent", "data"=> null );    
-        }else{
-            if (isset($user_data)){
-                if ($user_data->status == 1){
-
-                // HOOK
-                $hook="logout";
-                include "./hooks.php";
-    
-
-                $update = $db->update("users", ["token" => null], ["user_id" => $user_data->user_id]);
-            }}
-
-            // INSERT TO LOGS
-            $user_id = $user_data->user_id;
-            $log_type = "logout";
-            $datetime = date("Y-m-d h:i:sa");
-            $desc = "user logged out of account" .get_client_ip();
-            logs($user_id,$log_type,$datetime,$desc);
-
-            include "./logs.php";
-
-            session_start();
-            session_unset();
-            session_destroy();
-            // header("location:Logins");
-
-            $response = array ( "status"=> true, "message"=>"User Logged Out", "data"=> null );
-
-        }
-        
-    } else {
-        $response = array ( "status"=>false, "message"=>"no user found", "data"=> null );
+    if (!isset($_POST['email']) || empty($_POST['email'])) {
+        echo json_encode(["status" => false, "message" => "email is required", "data" => null]);
+        die;
+    }
+    if (!isset($_POST['token']) || empty($_POST['token'])) {
+        echo json_encode(["status" => false, "message" => "token is required", "data" => null]);
+        die;
     }
 
-    echo json_encode($response);
+    $email = $_POST['email'];
+    $token = $_POST['token'];
+
+    // Fetch user
+    $data = $db->get("users", "*", ["email" => $email]);
+
+    if (!$data) {
+        echo json_encode(["status" => false, "message" => "no user found", "data" => null]);
+        die;
+    }
+
+    $user_data = (object)$data;
+
+    // Check if account is verified
+    if ($user_data->status == 0) {
+        echo json_encode(["status" => false, "message" => "user account not verified", "data" => $user_data]);
+        die;
+    }
+
+    // Check if user is an Agent
+    if ($user_data->user_type != 'Agent') {
+        echo json_encode(["status" => false, "message" => "this user is not an agent", "data" => null]);
+        die;
+    }
+
+    // Decode tokens
+    $tokens = json_decode($user_data->token, true);
+    if (!is_array($tokens)) $tokens = [];
+
+    // Check if token exists
+    if (!in_array($token, $tokens)) {
+        echo json_encode(["status" => false, "message" => "invalid or already logged-out token", "data" => null]);
+        die;
+    }
+
+    // Remove the provided token
+    $updated_tokens = array_values(array_filter($tokens, function($t) use ($token) {
+        return $t !== $token;
+    }));
+
+    // Update user record
+    $db->update("users", [
+        "token" => json_encode($updated_tokens)
+    ], [
+        "user_id" => $user_data->user_id
+    ]);
+
+    // HOOK
+    $hook = "logout";
+    include "./hooks.php";
+
+    // LOG
+    $log_type = "logout";
+    $datetime = date("Y-m-d h:i:sa");
+    $desc = "User logged out of account from IP: " . get_client_ip();
+    logs($user_data->user_id, $log_type, $datetime, $desc);
+    include "./logs.php";
+
+    // Destroy session
+    session_start();
+    session_unset();
+    session_destroy();
+
+    // RESPONSE
+    echo json_encode(["status" => true,"message" => "User Logged Out","data" => null
+    ]);
 });
+
 
 /*==================
 AGENT SALES AND COMMISSIONS API
