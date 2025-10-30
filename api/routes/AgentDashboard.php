@@ -4,6 +4,30 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header("X-Frame-Options: SAMEORIGIN");
 
+// Get reliable client identifier
+function getClientIdentifier() {
+    // Try to get real IP
+    $ip = '';
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ips[0]);
+    } else {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    
+    // Create fingerprint with IP + User Agent
+    $fingerprint = md5($ip . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    
+    // Store in session for consistency
+    if (!isset($_SESSION['client_fingerprint'])) {
+        $_SESSION['client_fingerprint'] = $fingerprint;
+    }
+    
+    return $_SESSION['client_fingerprint'];
+}
+
 /*==================
 AGENT SIGNUP API
 ==================*/
@@ -344,7 +368,7 @@ $router->post('agent/dashboard/logout', function () {
 
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $token_to_remove = $_POST['token'];
-    $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $client_ip = getClientIdentifier();
 
     // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {

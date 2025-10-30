@@ -2,6 +2,30 @@
 
 use Medoo\Medoo;
 
+// Get reliable client identifier
+function getClientIdentifier() {
+    // Try to get real IP
+    $ip = '';
+    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ips[0]);
+    } else {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+    
+    // Create fingerprint with IP + User Agent
+    $fingerprint = md5($ip . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    
+    // Store in session for consistency
+    if (!isset($_SESSION['client_fingerprint'])) {
+        $_SESSION['client_fingerprint'] = $fingerprint;
+    }
+    
+    return $_SESSION['client_fingerprint'];
+}
+
 // ======================== SIGNUP
 $router->post('signup', function() {
 
@@ -638,7 +662,7 @@ $router->post('logout', function() {
 
     $user_id = filter_var($_POST['user_id']);
     $token_to_remove = $_POST['token'];
-    $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $client_ip = getClientIdentifier();
     
     // Check if user exists
     $user = $db->get("users", "*", ["user_id" => $user_id]);
@@ -733,7 +757,7 @@ $router->post('save_token', function() {
 
     $user_id = $_POST['user_id'];
     $token = $_POST['token'];
-    $ip = $_SERVER['REMOTE_ADDR'];
+    $ip = getClientIdentifier();
 
     // Optional: Handle trusted proxies (use only if you control the proxy!)
     // if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -794,7 +818,7 @@ $router->post('save_token', function() {
     ]);
 
     if ($update && $update->rowCount() > 0) {
-        $response = ["status" => true, "message" => "Token saved/updated successfully", "data" => null];
+        $response = ["status" => true, "message" => "Token saved/updated successfully", "data" => $ip];
     } else {
         $response = ["status" => false, "message" => "Failed to update token", "data" => null];
     }
@@ -819,7 +843,7 @@ $router->post('verify_token', function() {
 
     $user_id = $_POST['user_id'];
     $token = $_POST['token'];
-    $current_ip = $_SERVER['REMOTE_ADDR'];
+    $current_ip = getClientIdentifier();
 
     // Optional: Validate IP (good practice)
     // if (!filter_var($current_ip, FILTER_VALIDATE_IP)) {
