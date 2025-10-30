@@ -4,30 +4,6 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header("X-Frame-Options: SAMEORIGIN");
 
-// Get reliable client identifier
-function getClientIdentifier() {
-    // Try to get real IP
-    $ip = '';
-    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
-        $ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
-    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip = trim($ips[0]);
-    } else {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    }
-    
-    // Create fingerprint with IP + User Agent
-    $fingerprint = md5($ip . ($_SERVER['HTTP_USER_AGENT'] ?? ''));
-    
-    // Store in session for consistency
-    if (!isset($_SESSION['client_fingerprint'])) {
-        $_SESSION['client_fingerprint'] = $fingerprint;
-    }
-    
-    return $_SESSION['client_fingerprint'];
-}
-
 /*==================
 AGENT SIGNUP API
 ==================*/
@@ -352,7 +328,7 @@ AGENT LOGOUT API
 $router->post('agent/dashboard/logout', function () {
     include "./config.php";
     header('Content-Type: application/json');
-
+    
     // VALIDATION
     if (!isset($_POST['email']) || empty($_POST['email'])) {
         http_response_code(400);
@@ -360,105 +336,141 @@ $router->post('agent/dashboard/logout', function () {
         exit;
     }
 
-    if (!isset($_POST['token']) || empty($_POST['token'])) {
-        http_response_code(400);
-        echo json_encode(["status" => false,"message" => "token is required","data" => null]);
-        exit;
-    }
-
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
-    $token_to_remove = $_POST['token'];
-    $client_ip = getClientIdentifier();
-
+    $token_to_remove = isset($_POST['token']) ? $_POST['token'] : null;
+    
     // Validate email format
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         http_response_code(400);
         echo json_encode(["status" => false,"message" => "invalid email format","data" => null]);
         exit;
     }
-
+    
     // Fetch user
     $data = $db->get("users", "*", ["email" => $email]);
-
     if (!$data) {
         http_response_code(404);
         echo json_encode(["status" => false,"message" => "no user found","data" => null]);
         exit;
     }
-
+    
     $user_data = (object)$data;
-
+    
     // Check if account is verified
     if ($user_data->status == 0) {
         http_response_code(403);
         echo json_encode(["status" => false,"message" => "user account not verified","data" => null]);
         exit;
     }
-
+    
     // Check if user is an Agent
     if ($user_data->user_type != 'Agent') {
         http_response_code(403);
         echo json_encode(["status" => false,"message" => "this user is not an agent","data" => null]);
         exit;
     }
-
-    // Decode tokens (array of {token, ip} objects)
+    
+    // Decode tokens (array of {token, created_at, last_used} objects)
     $tokens = json_decode($user_data->token, true);
     if (!is_array($tokens)) {
         $tokens = [];
     }
-
-    // Check if the given token exists and verify IP matches
-    $token_found = false;
-    $updated_tokens = [];
-
-    foreach ($tokens as $entry) {
-        // Check if this entry should be removed (token or IP match)
-        if (
-            (isset($entry['token']) && $entry['token'] === $token_to_remove) ||
-            (isset($entry['ip']) && $entry['ip'] === $client_ip)
-        ) {
-            
-            $token_found = true;
-            // Skip this entry (remove it)
-            continue;
-        }
     
-        // Keep all other tokens
-        $updated_tokens[] = $entry;
-    }
+    $updated_tokens = [];
+    $token_found = false;
+    $inactive_removed = 0;
+    $three_hours_ago = date('Y-m-d H:i:s', strtotime('-3 hours'));
 
-    if (!$token_found) {
-        http_response_code(401);
-        echo json_encode(["status" => false,"message" => "invalid token or IP mismatch","data" => null]);
-        exit;
+    if (!empty($token_to_remove)) {
+        // TOKEN PROVIDED: Remove specific token
+        foreach ($tokens as $entry) {
+            if (isset($entry['token']) && $entry['token'] === $token_to_remove) {
+                $token_found = true;
+                // Skip this entry (remove it)
+                continue;
+            }
+            // Keep all other tokens
+            $updated_tokens[] = $entry;
+        }
+        
+        if (!$token_found) {
+            http_response_code(401);
+            echo json_encode([
+                "status" => false,
+                "message" => "invalid token",
+                "data" => null
+            ]);
+            exit;
+        }
+        
+        $logout_message = "Agent logged out successfully";
+        $log_desc = "Agent logged out with token: " . substr($token_to_remove, 0, 10) . "...";
+        
+    } else {
+        // NO TOKEN PROVIDED: Remove tokens inactive for 3+ hours
+        foreach ($tokens as $entry) {
+            $last_used = isset($entry['last_used']) ? $entry['last_used'] : (isset($entry['created_at']) ? $entry['created_at'] : null);
+            
+            // If no timestamp or token is older than 3 hours, remove it
+            if (empty($last_used) || $last_used < $three_hours_ago) {
+                $inactive_removed++;
+                continue; // Skip this entry (remove it)
+            }
+            
+            // Keep active tokens
+            $updated_tokens[] = $entry;
+        }
+        
+        if ($inactive_removed === 0) {
+            http_response_code(200);
+            echo json_encode([
+                "status" => true,
+                "message" => "No inactive tokens found to remove",
+                "data" => ["removed_count" => 0, "remaining_tokens" => count($tokens)]
+            ]);
+            exit;
+        }
+        
+        $logout_message = "Inactive agent tokens removed successfully";
+        $log_desc = "Removed $inactive_removed inactive agent token(s) (not used for 3+ hours)";
     }
-
+    
     // Encode updated token list
     $updated_json = json_encode($updated_tokens);
     if (json_last_error() !== JSON_ERROR_NONE) {
         http_response_code(500);
-        echo json_encode(["status" => false,"message" => "failed to process tokens","data" => null]);
+        echo json_encode([
+            "status" => false,
+            "message" => "failed to process tokens",
+            "data" => null
+        ]);
         exit;
     }
-
+    
     // Update user record
-    $db->update("users", [
-        "token" => $updated_json
-    ], [
-        "user_id" => $user_data->user_id
-    ]);
-
+    if (!empty($updated_tokens)) {
+        $db->update("users", [
+            "token" => $updated_json
+        ], [
+            "user_id" => $user_data->user_id
+        ]);
+    } else {
+        $db->update("users", [
+            "token" => null
+        ], [
+            "user_id" => $user_data->user_id
+        ]);
+    }
+    
     // LOG
     $log_type = "logout";
     $datetime = date("Y-m-d H:i:s");
-    $desc = "Agent logged out of account from IP: " . $client_ip;
-    logs($user_data->user_id, $log_type, $datetime, $desc);
-
+    logs($user_data->user_id, $log_type, $datetime, $log_desc);
+    
     // HOOK
     $hook = "logout";
     include "./hooks.php";
-
+    
     // Clear session if it belongs to this user
     if (session_status() == PHP_SESSION_NONE) {
         session_start();
@@ -471,10 +483,17 @@ $router->post('agent/dashboard/logout', function () {
         unset($_SESSION['phptravels_agent']);
         session_regenerate_id(true);
     }
-
+    
     // RESPONSE
     http_response_code(200);
-    echo json_encode(["status" => true,"message" => "Agent logged out successfully","data" => null]);
+    echo json_encode([
+        "status" => true,
+        "message" => $logout_message,
+        "data" => [
+            "removed_count" => !empty($token_to_remove) ? 1 : $inactive_removed,
+            "remaining_tokens" => count($updated_tokens)
+        ]
+    ]);
 });
 
 /*==================
