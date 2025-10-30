@@ -99,16 +99,23 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
 
     $response = [
         'price' => $price,
-        'markup_type' => 'none'
+        'markup_type' => 'none',
+        'markup_value' => 0,
+        'markup_amount' => 0
     ];
 
     $location = ($conn->select('locations', ['id'], ['city' => $location])[0]['id'] ?? '');
 
     // Inline markup calculator
     $calculate_markup = function($price, $markup_value, $markup_type) use (&$response) {
-        $final_price = !empty($markup_value) ? $price + ($price * $markup_value) / 100 : $price;
+        $markup_amount = !empty($markup_value) ? ($price * $markup_value) / 100 : 0;
+        $final_price = $price + $markup_amount;
+
         $response['price'] = $final_price;
         $response['markup_type'] = $markup_type;
+        $response['markup_value'] = (float) $markup_value;
+        $response['markup_amount'] = round($markup_amount, 2);
+
         return $response;
     };
 
@@ -350,6 +357,8 @@ $router->post('hotel_search', function () {
         //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
         $mprice_markup = markup_price($module[0]['id'], $actual_room_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id, $user_id);
         $markup_mprice = $mprice_markup['price'];
+        $markup_value = $mprice_markup['markup_value'] ?? 0;
+        $markup_amount = $mprice_markup['markup_amount'] ?? 0;
         if (!empty($rate[0]['rate'])) {
             if ($actual_room_price != null && $module[0]['status'] == 1) {
 
@@ -413,6 +422,8 @@ $router->post('hotel_search', function () {
                     "actual_price_per_night" => number_format($actual_room_price, 2),
                     "markup_price" => number_format($markup_mprice, 2),
                     "markup_price_per_night" => number_format($markup_mprice, 2),
+                    "markup_percentage" => $markup_value,
+                    "markup_amount" => number_format($markup_amount, 2),
                     "currency" => $currency_id,
                     "booking_currency" => $currency_id,
                     "service_fee" => "0",
@@ -504,6 +515,8 @@ $router->post('hotel_search', function () {
                 //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
                 $cprice_markup = markup_price($module_id, $actual_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id, $user_id);
                 $markup_cprice = $cprice_markup['price'];
+                $markup_value = $cprice_markup['markup_value'] ?? 0;
+                $markup_amount = $cprice_markup['markup_amount'] ?? 0;
                 $amenities = array();
                 
                 $is_favorite = 0; // Default to not favorite
@@ -534,6 +547,8 @@ $router->post('hotel_search', function () {
                     "actual_price_per_night" => number_format($actual_price / $days, 2),
                     "markup_price" => number_format($markup_cprice, 2),
                     "markup_price_per_day" => number_format($markup_cprice / $days, 2),
+                    "markup_percentage" => $markup_value,
+                    "markup_amount" => number_format($markup_amount, 2),
                     "currency" => $currency_id,
                     "booking_currency" => $currency_id,
                     "service_fee" => $values['service_fee'],
@@ -701,6 +716,8 @@ $router->post('hotel_details', function () {
                 $actual_room_price = $room_price[0]['price'] * $rate[0]['rate']; // CONVERTING ACCUAL PRICE ACCORDING TO USER SELECTED CURRENCY
                 $price_markup = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
                 $markup_price = $price_markup['price'];
+                $markup_value = $price_markup['markup_value'] ?? 0;
+                $markup_amount = $price_markup['markup_amount'] ?? 0;
                 //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
                 $room_options = $db->select(
                     "hotels_rooms_options",
@@ -725,7 +742,9 @@ $router->post('hotel_details', function () {
 
                         $option_price_markup_room = markup_price($module_id[0]['id'], $option_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
                         $markup_room_option_price = $option_price_markup_room['price'];
-                        $markup_type = $option_price_markup_room['markup_type'];
+                        $option_markup_type = $option_price_markup_room['markup_type'];
+                        $option_markup_value = $option_price_markup_room['markup_value'];
+                        $option_markup_amount = $option_price_markup_room['markup_amount'];
                     }
 
                     if ($value['price'] != 0) {
@@ -750,6 +769,10 @@ $router->post('hotel_details', function () {
                             "dinner" => "",
                             "board" => "",
                             "markup_type" => $markup_type,
+                            "markup_percentage" => $markup_value,
+                            "markup_type" => $option_markup_type,
+                            "markup_percentage" => $option_markup_value,
+                            "markup_amount" => number_format($option_markup_amount * $days, 2),
                             "room_booked" => false
                         ];
                     } else {
@@ -778,6 +801,9 @@ $router->post('hotel_details', function () {
                     "actual_price_per_night" => number_format($actual_room_price, 2),
                     "markup_price" => number_format($markup_price * $days, 2),
                     "markup_price_per_night" => number_format($markup_price, 2),
+                    "markup_type" => $markup_type,
+                    "markup_percentage" => $markup_value,
+                    "markup_amount" => number_format($markup_amount * $days, 2),
                     "service_fee" => 0,
                     "currency" => $currency,
                     "refundable" => $refundable,
@@ -875,19 +901,26 @@ $router->post('hotel_details', function () {
             //MAKING ROOM AND ROOM OPTION RESPONSE WITH MARKUP PRICES
             foreach ($hotel_details->rooms as $value) {
                 $markup_room_price = 0;
-                $actual_price = $value->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRECNY
+                $actual_price = $value->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRENCY
+                
                 //MARKUP PRICE FOR HOTEL ROOMS
                 $price_markup = markup_price($getvalue[0]['id'], $actual_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city, $user_id);
                 $markup_price = $price_markup['price'];
+                $room_markup_type = $price_markup['markup_type'];
+                $room_markup_value = $price_markup['markup_value'];
+                $room_markup_amount = $price_markup['markup_amount'];
+                
                 $options = [];
                 $options_array = $value->options;
 
                 foreach ($options_array as $key => $values) {
                     //MARKUP PRICE FOR HOTEL ROOM OPTIONS
-                    $actual_option_price = $values->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRECNY
+                    $actual_option_price = $values->price * $rate[0]['rate']; //ACTUAL PRICE OF HOTEL ROOMS ACCORDING TO USER SELECTED CURRENCY
                     $option_price_markup_room = markup_price($getvalue[0]['id'], $actual_option_price, array(0 => $checkin, 1 => $checkout), $hotel_details->city, $user_id);
                     $markup_room_option_price = $option_price_markup_room['price'];
-                    $markup_type = $option_price_markup_room['markup_type'];    
+                    $markup_type = $option_price_markup_room['markup_type'];
+                    $markup_value = $option_price_markup_room['markup_value'];
+                    $markup_amount = $option_price_markup_room['markup_amount'];
                     
                     $options[] = [
                             "id" => $values->id,
@@ -912,6 +945,8 @@ $router->post('hotel_details', function () {
                             "room_booked" => $values->room_booked,
                             "child_ages" => $child_age,
                             "markup_type" => $markup_type,
+                            "markup_percentage" => $markup_value,
+                            "markup_amount" => number_format($markup_amount, 2),
                             "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
                         ];
                 }
@@ -924,6 +959,9 @@ $router->post('hotel_details', function () {
                         "actual_price_per_night" => number_format($actual_price / $days, 2),
                         "markup_price" => number_format($markup_price, 2),
                         "markup_price_per_night" => number_format($markup_price / $days, 2),
+                        "markup_type" => $room_markup_type,
+                        "markup_percentage" => $room_markup_value,
+                        "markup_amount" => number_format($room_markup_amount, 2),
                         "service_fee" => $value->service_fee,
                         "currency" => $param['currency'],
                         "refundable" => $value->refundable,
