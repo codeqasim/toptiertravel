@@ -120,14 +120,14 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
     };
 
     // 1. Check user type if user_id provided
-    if ($user_id !== null) {
+    if ($user_id !== null && $user_id !== '') {
         $user = $conn->select('users', '*', ['user_id' => $user_id, 'status' => 1]);
 
         if (!empty($user)) {
             $is_agent = ($user[0]['user_type'] == 'Agent');
 
             // Check for user-specific markup first
-            $user_markup = $conn->select('markups', '*', [
+            $user_markup = $conn->select('markupss', '*', [
                 'type' => $type,
                 'user_id' => $user_id,
                 'status' => 1
@@ -146,9 +146,9 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
     // Prepare date conditions if available
     $date_conditions = [];
     if (!empty($date) && count($date) === 2) {
-        $formDate = DateTime::createFromFormat('d-m-Y', $date[0]);
+        $formDate = DateTime::createFromFormat('Y-m-d', $date[0]);
         $formDate = $formDate ? $formDate->format('Y-m-d') : '';
-        $toDate = DateTime::createFromFormat('d-m-Y', $date[1]);
+        $toDate = DateTime::createFromFormat('Y-m-d', $date[1]);
         $toDate = $toDate ? $toDate->format('Y-m-d') : '';
         $date_conditions = [
             'from_date[<=]' => $formDate,
