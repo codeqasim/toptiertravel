@@ -448,10 +448,13 @@ $router->post('user_bookings', function () {
                         "OR" => [
                             "booking_ref_no[~]"  => $search,
                             "first_name[~]"      => $search,
+                            "hotel_name[~]"      => $search,
                             "last_name[~]"       => $search,
                             "pnr[~]"             => $search,
                             "price_markup[~]"    => $search,
-                            "booking_date[~]"    => $search
+                            "booking_date[~]"    => $search,
+                            "checkin[~]"    => $search,
+                            "checkout[~]"    => $search,
                         ]
                     ];
                 } elseif ($search !== '' && $booking_status !== '') {
@@ -461,10 +464,30 @@ $router->post('user_bookings', function () {
                         "OR" => [
                             "booking_ref_no[~]"  => $search,
                             "first_name[~]"      => $search,
+                            "hotel_name[~]"      => $search,
                             "last_name[~]"       => $search,
                             "pnr[~]"             => $search,
                             "price_markup[~]"    => $search,
-                            "booking_date[~]"    => $search
+                            "booking_date[~]"    => $search,
+                            "checkin[~]"    => $search,
+                            "checkout[~]"    => $search,
+                        ]
+                    ];
+                    
+                }  elseif ($search !== '' && $payment_status !== '') {
+                    $where = [
+                        "user_id" => $user_id,
+                        "payment_status" => $payment_status,
+                        "OR" => [
+                            "booking_ref_no[~]"  => $search,
+                            "first_name[~]"      => $search,
+                            "hotel_name[~]"      => $search,
+                            "last_name[~]"       => $search,
+                            "pnr[~]"             => $search,
+                            "price_markup[~]"    => $search,
+                            "booking_date[~]"    => $search,
+                            "checkin[~]"    => $search,
+                            "checkout[~]"    => $search,
                         ]
                     ];
                     
@@ -474,10 +497,13 @@ $router->post('user_bookings', function () {
                         "OR" => [
                             "booking_ref_no[~]"  => $search,
                             "first_name[~]"      => $search,
+                            "hotel_name[~]"      => $search,
                             "last_name[~]"       => $search,
                             "pnr[~]"             => $search,
                             "price_markup[~]"    => $search,
-                            "booking_date[~]"    => $search
+                            "booking_date[~]"    => $search,
+                            "checkin[~]"    => $search,
+                            "checkout[~]"    => $search,
                         ]
                     ];
                     
