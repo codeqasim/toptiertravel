@@ -216,7 +216,7 @@ $router->post('agent/dashboard/login', function () {
     $user_data = (object)$user;
     if (isset($user_data)) {
         $user_data->profile_photo = !empty($user_data->profile_photo) 
-            ? upload_url . $user_data->profile_photo
+            ? user_upload_url . $user_data->profile_photo
             : null; 
     }
 
@@ -268,6 +268,8 @@ $router->post('agent/dashboard/profile', function() {
 
     // USERS
     $data = $db->select("users", "*", ["user_id" => $_POST['user_id'],]);
+    $data[0]['profile_photo'] = (isset($data[0]['profile_photo']) && $data[0]['profile_photo'] != null) ? user_upload_url . $data[0]['profile_photo'] : null;
+    $data[0]['token'] = null;
     if (!empty($data)) {
         $response = array("status" => "true", "message" => "profile details", "data" => $data);
     } else {
@@ -512,24 +514,28 @@ $router->post('agent/dashboard', function () {
     $settings = $db->select("settings", "*", [ "user_id" => $user_id]);
     if (isset($user[0])) {
         $user[0]['profile_photo'] = !empty($user[0]['profile_photo']) 
-            ? upload_url . $user[0]['profile_photo']
+            ? user_upload_url . $user[0]['profile_photo']
             : null; 
     }
     if (isset($user[0]) && isset($settings[0])) {
         $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
-            ? upload_url . $settings[0]['header_logo_img']
+            ? user_upload_url . $settings[0]['header_logo_img']
             : null; 
             
         $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
-            ? upload_url . $settings[0]['favicon_img']
+            ? user_upload_url . $settings[0]['favicon_img']
             : null; 
+    }
+    
+    if(isset($user[0]['token'])){
+        $user[0]['token'] = null;
     }
         if(isset($user[0])){
             $user_data = (object)$user[0];
             
             if ($user_data->user_type == 'Agent') {
                 if ($user_data->status == 1) {
-
+                    
                     // GET CURRENT AND LAST MONTH DATE RANGES
                     $current_month_start = date('Y-m-01');
                     $current_month_end = date('Y-m-t');
@@ -1254,8 +1260,8 @@ $router->post('agent/dashboard/settings', function () {
                 "domain_name" => $settings['site_url'] ?? '',
                 "website_offline" => $settings['site_offline'] ?? 'No',
                 "offline_message" => $settings['offline_message'] ?? '',
-                "business_logo" => !empty($settings['header_logo_img']) ? upload_url . $settings['header_logo_img'] : null,
-                "favicon" => !empty($settings['favicon_img']) ? upload_url . $settings['favicon_img'] : null
+                "business_logo" => !empty($settings['header_logo_img']) ? user_upload_url . $settings['header_logo_img'] : null,
+                "favicon" => !empty($settings['favicon_img']) ? user_upload_url . $settings['favicon_img'] : null
             ]
         ];
         
@@ -1289,7 +1295,7 @@ $router->post('agent/dashboard/settings', function () {
             "status" => true,
             "message" => "Personal settings retrieved successfully",
             "data" => [
-                "profile_photo" => !empty($user['profile_photo']) ? upload_url . $user['profile_photo'] : null,
+                "profile_photo" => !empty($user['profile_photo']) ? user_upload_url . $user['profile_photo'] : null,
                 "first_name" => $user['first_name'] ?? '',
                 "last_name" => $user['last_name'] ?? '',
                 "email" => $user['email'] ?? '',

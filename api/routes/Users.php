@@ -139,6 +139,9 @@ $router->post('login', function() {
         };
 
         $user_data = (object)$data[0];
+        $user_data->profile_photo = !empty($user_data->profile_photo) 
+            ? user_upload_url . $user_data->profile_photo
+            : null; 
         $user_data->token = null;
         $respose = array ( "status"=> true, "message"=>"user details", "data"=> $user_data );
 
@@ -256,7 +259,7 @@ $router->post('profile', function() {
             $pending_bookings += $pending_count;
         }
 
-        $data[0]['profile_photo'] = (isset($data[0]['profile_photo']) && $data[0]['profile_photo'] != null) ? upload_url . $data[0]['profile_photo'] : null;
+        $data[0]['profile_photo'] = (isset($data[0]['profile_photo']) && $data[0]['profile_photo'] != null) ? user_upload_url . $data[0]['profile_photo'] : null;
         
         // Add booking counts to user data
         $data[0]['total_bookings'] = $total_bookings;
@@ -317,7 +320,9 @@ $router->post('profile_update', function() {
     ]);
 
     $user = $db->select("users", "*", [ "user_id" => $_POST['user_id'] ]);
-
+    if(isset($user)){
+        $user[0]['token'] = null;
+    }
     echo json_encode([
         "status" => true,
         "message" => "Profile updated successfully",
