@@ -12,57 +12,57 @@ $router->post('agent/dashboard/signup', function () {
     // INCLUDE CONFIG
     include "./config.php";
 
-    // reCAPTCHA v3 VERIFICATION - UPDATED FOR v3
-    if (!isset($_POST['recaptcha_token']) || empty($_POST['recaptcha_token'])) {
-        echo json_encode([
-            "status"  => false,
-            "message" => "Please complete the reCAPTCHA verification.",
-            "data"    => ""
-        ]);
-        die;
-    }
+    // // reCAPTCHA v3 VERIFICATION - UPDATED FOR v3
+    // if (!isset($_POST['recaptcha_token']) || empty($_POST['recaptcha_token'])) {
+    //     echo json_encode([
+    //         "status"  => false,
+    //         "message" => "Please complete the reCAPTCHA verification.",
+    //         "data"    => ""
+    //     ]);
+    //     die;
+    // }
 
-    // VERIFY reCAPTCHA v3 WITH GOOGLE
-    $recaptchaSecret = '6Lcwl68rAAAAAML_0FadvMSNW71lz30RoO2Mw94L';
-    $recaptchaResponse = $_POST['recaptcha_token'];
+    // // VERIFY reCAPTCHA v3 WITH GOOGLE
+    // $recaptchaSecret = '6LeLbPwrAAAAAEkqjruEO1WJeUHgD0NzM_PiYLp1';
+    // $recaptchaResponse = $_POST['recaptcha_token'];
     
-    $url = 'https://www.google.com/recaptcha/api/siteverify';
-    $data = [
-        'secret' => $recaptchaSecret,
-        'response' => $recaptchaResponse,
-        'remoteip' => $_SERVER['REMOTE_ADDR']
-    ];
+    // $url = 'https://www.google.com/recaptcha/api/siteverify';
+    // $data = [
+    //     'secret' => $recaptchaSecret,
+    //     'response' => $recaptchaResponse,
+    //     'remoteip' => $_SERVER['REMOTE_ADDR']
+    // ];
     
-    $options = [
-        'http' => [
-            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-            'method' => 'POST',
-            'content' => http_build_query($data)
-        ]
-    ];
+    // $options = [
+    //     'http' => [
+    //         'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+    //         'method' => 'POST',
+    //         'content' => http_build_query($data)
+    //     ]
+    // ];
     
-    $context = stream_context_create($options);
-    $result = file_get_contents($url, false, $context);
-    $captchaResult = json_decode($result, true);
+    // $context = stream_context_create($options);
+    // $result = file_get_contents($url, false, $context);
+    // $captchaResult = json_decode($result, true);
     
-    if (!$captchaResult['success']) {
-        echo json_encode([
-            "status"  => false,
-            "message" => "reCAPTCHA verification failed. Please try again.",
-            "data"    => ""
-        ]);
-        die;
-    }
+    // if (!$captchaResult['success']) {
+    //     echo json_encode([
+    //         "status"  => false,
+    //         "message" => "reCAPTCHA verification failed. Please try again.",
+    //         "data"    => ""
+    //     ]);
+    //     die;
+    // }
 
-    // reCAPTCHA v3 SCORE CHECK (0.0 = likely bot, 1.0 = likely human)
-    if (isset($captchaResult['score']) && $captchaResult['score'] < 0.5) {
-        echo json_encode([
-            "status"  => false,
-            "message" => "Suspicious activity detected. Please try again.",
-            "data"    => ""
-        ]);
-        die;
-    }
+    // // reCAPTCHA v3 SCORE CHECK (0.0 = likely bot, 1.0 = likely human)
+    // if (isset($captchaResult['score']) && $captchaResult['score'] < 0.5) {
+    //     echo json_encode([
+    //         "status"  => false,
+    //         "message" => "Suspicious activity detected. Please try again.",
+    //         "data"    => ""
+    //     ]);
+    //     die;
+    // }
 
     // REQUIRED FIELD VALIDATION
     required('first_name');
@@ -216,7 +216,7 @@ $router->post('agent/dashboard/login', function () {
     $user_data = (object)$user;
     if (isset($user_data)) {
         $user_data->profile_photo = !empty($user_data->profile_photo) 
-            ? 'https://toptiertravel.site/assets/uploads/' . $user_data->profile_photo
+            ? upload_url . $user_data->profile_photo
             : null; 
     }
 
@@ -512,16 +512,16 @@ $router->post('agent/dashboard', function () {
     $settings = $db->select("settings", "*", [ "user_id" => $user_id]);
     if (isset($user[0])) {
         $user[0]['profile_photo'] = !empty($user[0]['profile_photo']) 
-            ? 'https://toptiertravel.site/assets/uploads/' . $user[0]['profile_photo']
+            ? upload_url . $user[0]['profile_photo']
             : null; 
     }
     if (isset($user[0]) && isset($settings[0])) {
         $user[0]['business_logo'] = !empty($settings[0]['header_logo_img']) 
-            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['header_logo_img']
+            ? upload_url . $settings[0]['header_logo_img']
             : null; 
             
         $user[0]['favicon'] = !empty($settings[0]['favicon_img']) 
-            ? 'https://toptiertravel.site/assets/uploads/' . $settings[0]['favicon_img']
+            ? upload_url . $settings[0]['favicon_img']
             : null; 
     }
         if(isset($user[0])){
@@ -1254,8 +1254,8 @@ $router->post('agent/dashboard/settings', function () {
                 "domain_name" => $settings['site_url'] ?? '',
                 "website_offline" => $settings['site_offline'] ?? 'No',
                 "offline_message" => $settings['offline_message'] ?? '',
-                "business_logo" => !empty($settings['header_logo_img']) ? 'https://toptiertravel.site/assets/uploads/' . $settings['header_logo_img'] : null,
-                "favicon" => !empty($settings['favicon_img']) ? 'https://toptiertravel.site/assets/uploads/' . $settings['favicon_img'] : null
+                "business_logo" => !empty($settings['header_logo_img']) ? upload_url . $settings['header_logo_img'] : null,
+                "favicon" => !empty($settings['favicon_img']) ? upload_url . $settings['favicon_img'] : null
             ]
         ];
         
@@ -1289,7 +1289,7 @@ $router->post('agent/dashboard/settings', function () {
             "status" => true,
             "message" => "Personal settings retrieved successfully",
             "data" => [
-                "profile_photo" => !empty($user['profile_photo']) ? 'https://toptiertravel.site/assets/uploads/' . $user['profile_photo'] : null,
+                "profile_photo" => !empty($user['profile_photo']) ? upload_url . $user['profile_photo'] : null,
                 "first_name" => $user['first_name'] ?? '',
                 "last_name" => $user['last_name'] ?? '',
                 "email" => $user['email'] ?? '',

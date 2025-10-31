@@ -255,6 +255,8 @@ $router->post('profile', function() {
             ]);
             $pending_bookings += $pending_count;
         }
+
+        $data[0]['profile_photo'] = (isset($data[0]['profile_photo']) && $data[0]['profile_photo'] != null) ? upload_url . $data[0]['profile_photo'] : null;
         
         // Add booking counts to user data
         $data[0]['total_bookings'] = $total_bookings;
