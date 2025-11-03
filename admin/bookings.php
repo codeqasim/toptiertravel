@@ -22,10 +22,6 @@ if ($_SERVER['HTTP_HOST'] == 'localhost') {
     $root = (isset($_SERVER['HTTPS']) ? "https://" : "http://") . $_SERVER['HTTP_HOST'];
 }
 
-if(!empty($_GET['booking_edit']) && $_GET['booking_edit'] == "edit"){
-    include_once "booking_update.php";
-    die;
-}
 function compareByTimeStamp($time1, $time2)
 {
     if (strtotime($time1['booking_date']) < strtotime($time2['booking_date']))
@@ -254,8 +250,8 @@ function compareByTimeStamp($time1, $time2)
                                 </script>
                             <?php } } ?>
                         <span>
-                            <a href="<?=$root."/admin/bookings.php?booking_edit=edit&booking=".$value['booking_ref_no']."&module=".$value['module_type']?>" class="btn btn-info"><?=T::edit?>  <?=T::booking?> </a>
-                            <a href="<?=$root."/".$value['module_type']."/invoice/".$value['booking_ref_no']?>" target="_blank" class="btn btn-info"><?=T::booking?> <?=T::details?></a>
+                            <a href="<?=$root."/admin/booking_update.php?booking_edit=edit&booking=".$value['booking_ref_no']."&module=".$value['module_type']?>" class="btn btn-info"><?=T::edit?>  <?=T::booking?></a>
+                            <a href="<?="https://toptier-tr-ef19.vercel.app/".$value['module_type']."/invoice/".$value['booking_ref_no']?>" target="_blank" class="btn btn-info"><?=T::booking?> <?=T::details?></a>
                         </span>
 
                     </div>

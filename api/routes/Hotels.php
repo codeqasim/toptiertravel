@@ -122,12 +122,12 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
     // 1. Check user type if user_id provided
     if ($user_id !== null && $user_id !== '') {
         $user = $conn->select('users', '*', ['user_id' => $user_id, 'status' => 1]);
-
+        
         if (!empty($user)) {
             $is_agent = ($user[0]['user_type'] == 'Agent');
 
             // Check for user-specific markup first
-            $user_markup = $conn->select('markupss', '*', [
+            $user_markup = $conn->select('markups', '*', [
                 'type' => $type,
                 'user_id' => $user_id,
                 'status' => 1
@@ -240,6 +240,34 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
     return $response;
 }
 
+function calculateBookingFinancials($markupPrice, $actualPrice, $days, $rooms, $taxPercent = 14) {
+    // Calculate totals
+    $totalMarkupPrice = $markupPrice * $days * $rooms;
+    $totalActualPrice = $actualPrice * $days * $rooms;
+    
+    // Credit Card Fee: (total × 2.9%) + $0.30
+    $ccFee = ($totalMarkupPrice * 0.029) + 0.30;
+    
+    // Subtotal per night (price without tax)
+    $subtotalPerNight = $markupPrice / (1 + ($taxPercent / 100));
+    
+    // Total subtotal
+    $totalSubtotal = $subtotalPerNight * $days * $rooms;
+    
+    // Net Profit: revenue - cost - cc fee
+    // (Agent commission will be calculated separately based on agent login)
+    $netProfit = $totalMarkupPrice - $totalActualPrice - $ccFee;
+    
+    return [
+        'total_markup_price' => $totalMarkupPrice,
+        'total_actual_price' => $totalActualPrice,
+        'subtotal' => $totalSubtotal,
+        'subtotal_per_night' => $subtotalPerNight,
+        'cc_fee' => $ccFee,
+        'net_profit' => $netProfit
+    ];
+}
+
 // ======================== APP
 $router->post('featured', function () {
 
@@ -295,7 +323,13 @@ $router->post('hotel_search', function () {
     }
 
     $rate = $db->select("currencies", ['rate'], ["name" => $currency_id]); // GET RATE FROM CURRENCIES TABLE
-    $days = str_replace("-", "", date("Y-m-d", strtotime($_POST['checkout']))) - str_replace("-", "", date("Y-m-d", strtotime($_POST['checkin']))); //CALULATING DAYS
+    
+    //CALULATING DAYS
+    $checkin  = new DateTime($_POST['checkin']);
+    $checkout = new DateTime($_POST['checkout']);
+    $interval = $checkin->diff($checkout);
+    $days = $interval->days; 
+    $rooms = $_POST['rooms'];
     $data = $db->select("locations", "*", ["city[~]" => $location_id]); // GET CITY DATA FROM THE DATABASE
     if(!empty($data)){
         $city_data = $data;
@@ -371,7 +405,7 @@ $router->post('hotel_search', function () {
                 }
 
                 if(!empty($_POST['price_from']) && !empty($_POST['price_to'])){
-                    if ( round($actual_room_price * $days, 2) < $_POST['price_from'] ||  round($actual_room_price * $days, 2) > $_POST['price_to']) {
+                    if ( round($markup_mprice * $days, 2) < $_POST['price_from'] || round($markup_mprice * $days, 2) > $_POST['price_to']) {
                         continue; // Skip this hotel if not within the price range
                     }
                 }
@@ -418,9 +452,9 @@ $router->post('hotel_search', function () {
                     "rating" => $value['stars'],
                     "latitude" => $latitude,
                     "longitude" => $longitude,
-                    "actual_price" => number_format($actual_room_price, 2),
+                    "actual_price" => number_format($actual_room_price*$days*$rooms, 2),
                     "actual_price_per_night" => number_format($actual_room_price, 2),
-                    "markup_price" => number_format($markup_mprice, 2),
+                    "markup_price" => number_format($markup_mprice*$days*$rooms, 2),
                     "markup_price_per_night" => number_format($markup_mprice, 2),
                     "markup_percentage" => $markup_value,
                     "markup_amount" => number_format($markup_amount, 2),
@@ -543,9 +577,9 @@ $router->post('hotel_search', function () {
                     "rating" => $values['rating'],
                     "latitude" => $values['latitude'],
                     "longitude" => $values['longitude'],
-                    "actual_price" => number_format($actual_price, 2),
+                    "actual_price" => number_format($actual_price * $rooms, 2),
                     "actual_price_per_night" => number_format($actual_price / $days, 2),
-                    "markup_price" => number_format($markup_cprice, 2),
+                    "markup_price" => number_format($markup_cprice * $rooms, 2),
                     "markup_price_per_day" => number_format($markup_cprice / $days, 2),
                     "markup_percentage" => $markup_value,
                     "markup_amount" => number_format($markup_amount, 2),
@@ -617,7 +651,12 @@ $router->post('hotel_details', function () {
     $user_id = $_POST['user_id'] ?? "";
 
     $rate = $db->select("currencies", ["rate", "name"], ["name" => $currency]);
-    $days = str_replace("-", "", date("Y-m-d", strtotime($_POST['checkout']))) - str_replace("-", "", date("Y-m-d", strtotime($_POST['checkin']))); //CALULATING DAYS
+    
+    //CALULATING DAYS
+    $checkin_date  = new DateTime($_POST['checkin']);
+    $checkout_date = new DateTime($_POST['checkout']);
+    $interval = $checkin_date->diff($checkout_date);
+    $days = $interval->days; 
     //GET DATA FROM hotels_ROOMS TABLE AND hotels TABLE
     $details = $db->select("hotels", "*", [
         "id" => $hotel_id
@@ -687,7 +726,7 @@ $router->post('hotel_details', function () {
 
         //GET MODULE_ID FROM MODULES TABLE
         $module_id = $db->select('modules', ['id'], ['name' => $supplier_name, 'type' => 'hotels']);
-
+        $no_of_rooms = $rooms;
         //GET DATA FROM hotels_ROOMS TABLE AND hotels_SETTINGS TABLE OF ROOMS
         $rooms = $db->select(
             "hotels_rooms",
@@ -716,6 +755,7 @@ $router->post('hotel_details', function () {
                 $actual_room_price = $room_price[0]['price'] * $rate[0]['rate']; // CONVERTING ACCUAL PRICE ACCORDING TO USER SELECTED CURRENCY
                 $price_markup = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
                 $markup_price = $price_markup['price'];
+                $markup_type = $price_markup['$markup_type'] ?? 0;
                 $markup_value = $price_markup['markup_value'] ?? 0;
                 $markup_amount = $price_markup['markup_amount'] ?? 0;
                 //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
@@ -748,12 +788,21 @@ $router->post('hotel_details', function () {
                     }
 
                     if ($value['price'] != 0) {
+
+                        $financials = calculateBookingFinancials(
+                            $markup_room_option_price, 
+                            $option_price, 
+                            $days, 
+                            $rooms,
+                            2 // tax percentage - get from database or response
+                        );
+                        dd($financials);
                         $options[] = [
                             "id" => (string) $value['room_id'],
                             "currency" => $rate[0]['name'],
-                            "price" => number_format($option_price * $days, 2),
+                            "price" => number_format($option_price * $days * $no_of_rooms, 2),
                             "per_day" => number_format($option_price, 2),
-                            "markup_price" => number_format($markup_room_option_price * $days, 2),
+                            "markup_price" => number_format($markup_room_option_price * $days * $no_of_rooms, 2),
                             "markup_price_per_night" => number_format($markup_room_option_price, 2),
                             "service_fee" => 10,
                             "quantity" => $value['quantity'],
@@ -768,12 +817,14 @@ $router->post('hotel_details', function () {
                             "breakfast" => $value['breakfast'],
                             "dinner" => "",
                             "board" => "",
-                            "markup_type" => $markup_type,
-                            "markup_percentage" => $markup_value,
                             "markup_type" => $option_markup_type,
                             "markup_percentage" => $option_markup_value,
                             "markup_amount" => number_format($option_markup_amount * $days, 2),
-                            "room_booked" => false
+                            "room_booked" => false,
+                            "subtotal" => number_format($financials['subtotal'], 2),
+                            "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
+                            "cc_fee" => number_format($financials['cc_fee'], 2),
+                            "net_profit" => number_format($financials['net_profit'], 2),
                         ];
                     } else {
                         $options = "NO OPTIONS AVAILABLE";
@@ -797,13 +848,13 @@ $router->post('hotel_details', function () {
                 $room_details[] = (object) [
                     "id" => (string) $index['id'],
                     "name" => $index['name'],
-                    "actual_price" => number_format($actual_room_price * $days, 2),
+                    "actual_price" => number_format($actual_room_price * $days * $rooms, 2),
                     "actual_price_per_night" => number_format($actual_room_price, 2),
-                    "markup_price" => number_format($markup_price * $days, 2),
+                    "markup_price" => number_format($markup_price * $days * $rooms, 2),
                     "markup_price_per_night" => number_format($markup_price, 2),
                     "markup_type" => $markup_type,
                     "markup_percentage" => $markup_value,
-                    "markup_amount" => number_format($markup_amount * $days, 2),
+                    "markup_amount" => number_format($markup_amount * $days * $rooms, 2),
                     "service_fee" => 0,
                     "currency" => $currency,
                     "refundable" => $refundable,
@@ -847,38 +898,40 @@ $router->post('hotel_details', function () {
             "discount" => 0,
         ];
     } else {
-                // Get module data for each active module
-                $getvalue = gethotelmoduledata($supplier_name);
+        // Get module data for each active module
+        $getvalue = gethotelmoduledata($supplier_name);
 
-                // Determine whether the module is in development or production mode
-                if ($getvalue[0]['dev_mode'] == 1) {
-                    $env = 'production';
-                } else {
-                    $env = 'dev';
-                }
+        // Determine whether the module is in development or production mode
+        if ($getvalue[0]['dev_mode'] == 1) {
+            $env = 'production';
+        } else {
+            $env = 'dev';
+        }
 
-                //VALIDATION
-                $param = array(
-                   "endpoint" => api_modules ."/hotels/" . strtolower($supplier_name) . "/api/v1/hotel_details",
-                   // "endpoint" => "https://api.phptravels.com/hotels/".strtolower($supplier_name)."/api/v1/hotel_details",
-                    "hotel_id" => $hotel_id,
-                    "checkin" => $checkin,
-                    "checkout" => $checkout,
-                    "nationality" => $nationality,
-                    "adults" => $adults,
-                    "childs" => $childs,
-                    "child_age" => $child_age,
-                    "rooms" => $rooms,
-                    "language" => $language_name,
-                    "currency" => $currency,
-                    "supplier_name" => $supplier_name,
-                    'c1' => $getvalue[0]['c1'],
-                    'c2' => $getvalue[0]['c2'],
-                    'c3' => $getvalue[0]['c3'],
-                    'c4' => $getvalue[0]['c4'],
-                    'c5' => $getvalue[0]['c5'],
-                    "env" => $env
-                );
+        //VALIDATION
+        $param = array(
+           "endpoint" => api_modules ."/hotels/" . strtolower($supplier_name) . "/api/v1/hotel_details",
+           // "endpoint" => "https://api.phptravels.com/hotels/".strtolower($supplier_name)."/api/v1/hotel_details",
+            "hotel_id" => $hotel_id,
+            "checkin" => $checkin,
+            "checkout" => $checkout,
+            "nationality" => $nationality,
+            "adults" => $adults,
+            "childs" => $childs,
+            "child_age" => $child_age,
+            "rooms" => $rooms,
+            "language" => $language_name,
+            "currency" => $currency,
+            "supplier_name" => $supplier_name,
+            'c1' => $getvalue[0]['c1'],
+            'c2' => $getvalue[0]['c2'],
+            'c3' => $getvalue[0]['c3'],
+            'c4' => $getvalue[0]['c4'],
+            'c5' => $getvalue[0]['c5'],
+            "env" => $env
+        );
+
+        $no_of_rooms = $rooms;
 
         if(empty($getvalue[0]['c1'])) {
             include "creds.php";
@@ -922,46 +975,58 @@ $router->post('hotel_details', function () {
                     $markup_value = $option_price_markup_room['markup_value'];
                     $markup_amount = $option_price_markup_room['markup_amount'];
                     
+                    $financials = calculateBookingFinancials(
+                        number_format($markup_room_option_price / $days, 2), 
+                        number_format($actual_option_price / $days, 2), 
+                        $days, 
+                        $no_of_rooms,
+                        2 // tax percentage
+                    );
+
                     $options[] = [
-                            "id" => $values->id,
-                            "currency" => $param['currency'],
-                            "price" => number_format($actual_option_price, 2),
-                            "per_day" => number_format($actual_option_price / $days, 2),
-                            "markup_price" => number_format($markup_room_option_price, 2),
-                            "markup_price_per_night" => number_format($markup_room_option_price / $days, 2),
-                            "service_fee" => $values->service_fee,
-                            "quantity" => $values->quantity,
-                            "adults" => $values->adults,
-                            "child" => $values->child,
-                            "children_ages" => $values->children_ages,
-                            "bookingurl" => $values->bookingurl,
-                            "booking_data" => $values->booking_data,
-                            "extrabeds_quantity" => $values->extrabeds_quantity,
-                            "extrabed_price" => $values->extrabed_price,
-                            "cancellation" => $values->cancellation,
-                            "breakfast" => $values->breakfast,
-                            "dinner" => isset($values->dinner) ? $values->dinner : "0",
-                            "board" => $values->board,
-                            "room_booked" => $values->room_booked,
-                            "child_ages" => $child_age,
-                            "markup_type" => $markup_type,
-                            "markup_percentage" => $markup_value,
-                            "markup_amount" => number_format($markup_amount, 2),
-                            "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
-                        ];
+                        "id" => $values->id,
+                        "currency" => $param['currency'],
+                        "price" => number_format($actual_option_price * $no_of_rooms, 2),
+                        "per_day" => number_format($actual_option_price / $days, 2),
+                        "markup_price" => number_format($markup_room_option_price * $no_of_rooms, 2),
+                        "markup_price_per_night" => number_format($markup_room_option_price / $days, 2),
+                        "service_fee" => $values->service_fee,
+                        "quantity" => $values->quantity,
+                        "adults" => $values->adults,
+                        "child" => $values->child,
+                        "children_ages" => $values->children_ages,
+                        "bookingurl" => $values->bookingurl,
+                        "booking_data" => $values->booking_data,
+                        "extrabeds_quantity" => $values->extrabeds_quantity,
+                        "extrabed_price" => $values->extrabed_price,
+                        "cancellation" => $values->cancellation,
+                        "breakfast" => $values->breakfast,
+                        "dinner" => isset($values->dinner) ? $values->dinner : "0",
+                        "board" => $values->board,
+                        "room_booked" => $values->room_booked,
+                        "child_ages" => $child_age,
+                        "markup_type" => $markup_type,
+                        "markup_percentage" => $markup_value,
+                        "markup_amount" => number_format($markup_amount * $no_of_rooms, 2),
+                        "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
+                        "subtotal" => number_format($financials['subtotal'], 2),
+                        "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
+                        "cc_fee" => number_format($financials['cc_fee'], 2),
+                        "net_profit" => number_format($financials['net_profit'], 2),
+                    ];
                 }
 
                 if ($actual_price != 0.00 && !empty($options)) {
                     $rooms[] = [
                         "id" => $value->id,
                         "name" => $value->name,
-                        "actual_price" => number_format($actual_price, 2),
+                        "actual_price" => number_format($actual_price * $no_of_rooms, 2),
                         "actual_price_per_night" => number_format($actual_price / $days, 2),
-                        "markup_price" => number_format($markup_price, 2),
+                        "markup_price" => number_format($markup_price * $no_of_rooms, 2),
                         "markup_price_per_night" => number_format($markup_price / $days, 2),
                         "markup_type" => $room_markup_type,
                         "markup_percentage" => $room_markup_value,
-                        "markup_amount" => number_format($room_markup_amount, 2),
+                        "markup_amount" => number_format($room_markup_amount * $no_of_rooms, 2),
                         "service_fee" => $value->service_fee,
                         "currency" => $param['currency'],
                         "refundable" => $value->refundable,
@@ -1037,8 +1102,13 @@ $router->post('hotel_booking', function () {
 
     // Prepare sanitized input
     $param = array(
+        'booking_ref_no'      => $_POST["booking_ref_no"] ?? '',
+        'booking_date'        => date('Y-m-d'),
+        'booking_status'      => 'pending',
         'price_original'      => $_POST["price_original"] ?? '0',
         'price_markup'        => $_POST["price_markup"] ?? '0',
+        'toptier_fee'         => $_POST["toptier_fee"] ?? '0',
+        'agent_fee'           => $_POST["agent_fee"] ?? '0',
         'vat'                 => $_POST["vat"] ?? '0',
         'tax'                 => $_POST["tax"] ?? '0',
         'gst'                 => $_POST["gst"] ?? '0',
@@ -1049,7 +1119,6 @@ $router->post('hotel_booking', function () {
         'phone_country_code'  => trim($_POST["phone_country_code"] ?? ''),
         'phone'               => trim($_POST["phone"] ?? ''),
         'country'             => trim($_POST["country"] ?? ''),
-        'nationality'         => trim($_POST["nationality"] ?? ''),
         'stars'               => $_POST["stars"] ?? '0',
         'hotel_id'            => $_POST["hotel_id"] ?? '',
         'hotel_name'          => trim($_POST["hotel_name"] ?? ''),
@@ -1057,29 +1126,53 @@ $router->post('hotel_booking', function () {
         'hotel_email'         => filter_var($_POST["hotel_email"] ?? '', FILTER_SANITIZE_EMAIL),
         'hotel_website'       => trim($_POST["hotel_website"] ?? ''),
         'hotel_address'       => trim($_POST["hotel_address"] ?? ''),
-        'room_data'           => $_POST["room_data"] ?? [],
+        'room_data'           => $_POST["room_data"] ?? '',
         'location'            => trim($_POST["location"] ?? ''),
         'location_cords'      => $_POST["location_cords"] ?? '',
         'hotel_img'           => $_POST["hotel_img"] ?? '',
         'checkin'             => $_POST["checkin"] ?? '',
         'checkout'            => $_POST["checkout"] ?? '',
+        'booking_nights'      => $_POST["booking_nights"] ?? '1',
         'adults'              => $_POST["adults"] ?? '1',
         'childs'              => $_POST["childs"] ?? '0',
-        'child_ages'          => $_POST["child_ages"] ?? [],
+        'child_ages'          => $_POST["child_ages"] ?? '',
         'currency_original'   => $_POST["currency_original"] ?? 'USD',
         'currency_markup'     => $_POST["currency_markup"] ?? 'USD',
-        'booking_data'        => $_POST["booking_data"] ?? [],
-        'supplier'            => $_POST["supplier"] ?? '',
-        'user_id'             => $_POST["user_id"] ?? '0',
-        'user_data'           => $_POST["user_data"] ?? [],
-        'guest'               => $_POST["guest"] ?? [],
-        'booking_ref_no'      => $_POST["booking_ref_no"] ?? '',
-        'booking_date'        => date('Y-m-d'),
-        'payment_gateway'     => $_POST["payment_gateway"] ?? '',
-        'agent_fee'           => $agent_fee ?? '0',
+        'payment_date'        => $_POST["payment_date"] ?? null,
+        'cancellation_request' => '0',
+        'cancellation_status' => '0',
+        'cancellation_response' => null,
+        'cancellation_date'   => null,
+        'cancellation_error'  => null,
+        'booking_data'        => $_POST["booking_data"] ?? '',
         'payment_status'      => 'unpaid',
-        'booking_status'      => 'pending',
-        'toptier_fee'         => $_POST["toptier_fee"] ?? '0',
+        'supplier'            => $_POST["supplier"] ?? '',
+        'transaction_id'      => $_POST["transaction_id"] ?? '',
+        'user_id'             => $_POST["user_id"] ?? '',
+        'user_data'           => $_POST["user_data"] ?? '',
+        'guest'               => $_POST["guest"] ?? '',
+        'nationality'         => $_POST["nationality"] ?? '',
+        'payment_gateway'     => $_POST["payment_gateway"] ?? '',
+        'module_type'         => 'hotels',
+        'pnr'                 => $_POST["pnr"] ?? '',
+        'booking_response'    => $_POST["booking_response"] ?? '',
+        'error_response'      => $_POST["error_response"] ?? '',
+        'agent_id'            => $_POST["agent_id"] ?? '',
+        'net_profit'          => $_POST["net_profit"] ?? '0',
+        'booking_note'        => $_POST["booking_note"] ?? '',
+        'supplier_payment_status' => null,
+        'supplier_due_date'   => date('Y-m-d'),
+        'cancellation_terms'  => $_POST["cancellation_terms"] ?? '',
+        'supplier_cost'       => $_POST["supplier_cost"] ?? '0',
+        'supplier_id'         => $_POST["supplier_id"] ?? '',
+        'supplier_payment_type' => $_POST["supplier_payment_type"] ?? '',
+        'customer_payment_type' => $_POST["customer_payment_type"] ?? '',
+        'iata'                => $_POST["iata"] ?? '',
+        'agent_commission_status' => null,
+        'subtotal'            => $_POST["subtotal"] ?? '0',
+        'agent_payment_type'  => null,
+        'agent_payment_status' => null,
+        'agent_payment_date'  => null,
     );
 
     // Check if booking_ref_no is provided
@@ -1242,9 +1335,9 @@ $router->post('hotels/cancellation', function () {
         echo json_encode(array('status' => false, 'message' => 'Booking is already cancelled'));
         return;
     }
-
+    
     // Check if supplier is "hotels" - manual cancellation required
-    if (strtolower($data_hotel[0]['supplier']) == 'hotels' || empty($data_hotel[0]['pnr']) || $data_hotel[0]['pnr'] == null) {
+    // if (strtolower($data_hotel[0]['supplier']) == 'hotels' || empty($data_hotel[0]['pnr']) || $data_hotel[0]['pnr'] == null) {
         // Update database with cancellation request flag
         $db->update("hotels_bookings", [
             "cancellation_request" => 1,
@@ -1267,131 +1360,141 @@ $router->post('hotels/cancellation', function () {
             'requires_manual_processing' => true
         ));
         return;
-    }else{
+    // }else{
 
-        // Get hotel module data for other suppliers
-        $gethotels = gethotelmoduledata($data_hotel[0]['supplier']);
+    //     // Get hotel module data for other suppliers
+    //     $gethotels = gethotelmoduledata($data_hotel[0]['supplier']);
     
-        if ($gethotels[0]['dev_mode'] == 1) {
-            $evn_hotel = 'pro';
-        } else {
-            $evn_hotel = 'dev';
-        }
+    //     if ($gethotels[0]['dev_mode'] == 1) {
+    //         $evn_hotel = 'pro';
+    //     } else {
+    //         $evn_hotel = 'dev';
+    //     }
     
-        // Prepare parameters for cancellation API
+    //     // Prepare parameters for cancellation API
 
-        if(strtolower($data_hotel[0]['supplier']) == 'stuba'){
-            $booking_response = json_decode($data_hotel[0]['booking_response'], true);
-            $booking_id = $booking_response['BookingCreateResult']['Booking']['Id'];
-            $param = array(
-                'c1' => $gethotels[0]['c1'],
-                'c2' => $gethotels[0]['c2'],
-                'c3' => $gethotels[0]['c3'],
-                'c4' => $gethotels[0]['c4'],
-                'c5' => $gethotels[0]['c5'],
-                'env' => $evn_hotel,
-                'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
-                'booking_id' => $booking_id,
-                'hotel_id' => $data_hotel[0]['hotel_id'],
-                'checkin' => $data_hotel[0]['checkin'],
-                'checkout' => $data_hotel[0]['checkout'],
-            );
-        }else{
-            $param = array(
-                'c1' => $gethotels[0]['c1'],
-                'c2' => $gethotels[0]['c2'],
-                'c3' => $gethotels[0]['c3'],
-                'c4' => $gethotels[0]['c4'],
-                'c5' => $gethotels[0]['c5'],
-                'env' => $evn_hotel,
-                'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
-                'booking_id' => $data_hotel[0]['pnr'], // PNR from supplier
-                'hotel_id' => $data_hotel[0]['hotel_id'],
-                'checkin' => $data_hotel[0]['checkin'],
-                'checkout' => $data_hotel[0]['checkout'],
-            );
-        }
+    //     if(strtolower($data_hotel[0]['supplier']) == 'stuba'){
+    //         $booking_response = json_decode($data_hotel[0]['booking_response'], true);
+    //         $booking_id = $booking_response['BookingCreateResult']['Booking']['Id'];
+    //         $param = array(
+    //             'c1' => $gethotels[0]['c1'],
+    //             'c2' => $gethotels[0]['c2'],
+    //             'c3' => $gethotels[0]['c3'],
+    //             'c4' => $gethotels[0]['c4'],
+    //             'c5' => $gethotels[0]['c5'],
+    //             'env' => $evn_hotel,
+    //             'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
+    //             'booking_id' => $booking_id,
+    //             'hotel_id' => $data_hotel[0]['hotel_id'],
+    //             'checkin' => $data_hotel[0]['checkin'],
+    //             'checkout' => $data_hotel[0]['checkout'],
+    //         );
+    //     }else{
+    //         $param = array(
+    //             'c1' => $gethotels[0]['c1'],
+    //             'c2' => $gethotels[0]['c2'],
+    //             'c3' => $gethotels[0]['c3'],
+    //             'c4' => $gethotels[0]['c4'],
+    //             'c5' => $gethotels[0]['c5'],
+    //             'env' => $evn_hotel,
+    //             'booking_ref_no' => $data_hotel[0]['booking_ref_no'],
+    //             'booking_id' => $data_hotel[0]['pnr'], // PNR from supplier
+    //             'hotel_id' => $data_hotel[0]['hotel_id'],
+    //             'checkin' => $data_hotel[0]['checkin'],
+    //             'checkout' => $data_hotel[0]['checkout'],
+    //         );
+    //     }
         
     
-        // Include credentials if needed
-        if(empty($gethotels[0]['c1'])) {
-            include "creds.php";
-        }
+    //     // Include credentials if needed
+    //     if(empty($gethotels[0]['c1'])) {
+    //         include "creds.php";
+    //     }
     
-        // Call cancellation API
-        $url = api_modules . "/hotels/" . strtolower($gethotels[0]['name']) . "/api/v1/booking-cancellation";
+    //     // Call cancellation API
+    //     $url = api_modules . "/hotels/" . strtolower($gethotels[0]['name']) . "/api/v1/booking-cancellation";
         
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($param));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    //     $ch = curl_init($url);
+    //     curl_setopt($ch, CURLOPT_POST, 1);
+    //     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($param));
+    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         
-        $resp_cancel = curl_exec($ch);
+    //     $resp_cancel = curl_exec($ch);
         
-        if (curl_errno($ch)) {
-            $error = curl_error($ch);
-            curl_close($ch);
-            echo json_encode(array('status' => false, 'message' => 'cURL error: ' . $error));
-            return;
-        }
+    //     if (curl_errno($ch)) {
+    //         $error = curl_error($ch);
+    //         curl_close($ch);
+    //         echo json_encode(array('status' => false, 'message' => 'cURL error: ' . $error));
+    //         return;
+    //     }
         
-        curl_close($ch);
+    //     curl_close($ch);
     
-        // Decode response
-        $cancel_response = json_decode($resp_cancel);
+    //     // Decode response
+    //     $cancel_response = json_decode($resp_cancel);
     
-        // Update database based on cancellation result
-        if ($cancel_response && $cancel_response->status === true) {
-            // Successful cancellation
-            $db->update("hotels_bookings", [
-                "cancellation_request" => 1,
-                "booking_status" => "cancelled",
-                "cancellation_response" => $resp_cancel,
-                "cancellation_date" => date('Y-m-d'),
-            ], [
-                "booking_ref_no" => $booking_ref_no
-            ]);
+    //     // Update database based on cancellation result
+    //     if ($cancel_response && $cancel_response->status === true) {
+    //         // Successful cancellation
+    //         $db->update("hotels_bookings", [
+    //             "cancellation_request" => 1,
+    //             "booking_status" => "cancelled",
+    //             "cancellation_response" => $resp_cancel,
+    //             "cancellation_date" => date('Y-m-d'),
+    //         ], [
+    //             "booking_ref_no" => $booking_ref_no
+    //         ]);
     
-            $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
-            $user = (json_decode($booking[0]['user_data']));
+    //         $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
+    //         $user = (json_decode($booking[0]['user_data']));
     
-            // HOOK for successful cancellation
-            $hook = "hotels/cancellation_success";
-            include "./hooks.php";
+    //         // HOOK for successful cancellation
+    //         $hook = "hotels/cancellation_success";
+    //         include "./hooks.php";
     
-            echo json_encode(array(
-                'status' => true, 
-                'message' => 'Booking cancelled successfully',
-                'booking_ref_no' => $booking_ref_no,
-                'response' => $cancel_response
-            ));
-        } else {
-            // Cancellation failed
-            $error_message = isset($cancel_response->message) ? $cancel_response->message : 'Cancellation failed';
+    //         echo json_encode(array(
+    //             'status' => true, 
+    //             'message' => 'Booking cancelled successfully',
+    //             'booking_ref_no' => $booking_ref_no,
+    //             'response' => $cancel_response
+    //         ));
+    //     } else {
+    //         // Cancellation failed
+    //         $error_message = isset($cancel_response->message) ? $cancel_response->message : 'Cancellation failed';
             
-            $db->update("hotels_bookings", [
-                "cancellation_request" => 1,
-                "cancellation_response" => $resp_cancel,
-                "cancellation_error" => $error_message,
-            ], [
-                "booking_ref_no" => $booking_ref_no
-            ]);
+    //         $db->update("hotels_bookings", [
+    //             "cancellation_request" => 1,
+    //             "cancellation_response" => $resp_cancel,
+    //             "cancellation_error" => $error_message,
+    //         ], [
+    //             "booking_ref_no" => $booking_ref_no
+    //         ]);
     
-            $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
-            $user = (json_decode($booking[0]['user_data']));
+    //         $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
+    //         $user = (json_decode($booking[0]['user_data']));
     
-            // HOOK for failed cancellation
-            $hook = "hotels/cancellation_failed";
-            include "./hooks.php";
+    //         // HOOK for failed cancellation
+    //         $hook = "hotels/cancellation_failed";
+    //         include "./hooks.php";
     
-            echo json_encode(array(
-                'status' => false, 
-                'message' => $error_message,
-                'booking_ref_no' => $booking_ref_no,
-                'response' => $cancel_response
-            ));
-        }
-    }
+    //         echo json_encode(array(
+    //             'status' => false, 
+    //             'message' => $error_message,
+    //             'booking_ref_no' => $booking_ref_no,
+    //             'response' => $cancel_response
+    //         ));
+    //     }
+    // }
+});
+
+$router->post('user_markup', function () {
+    include "./config.php";
+
+    // VALIDATION
+    required('user_id');
+    $user_id = $_POST["user_id"];
+
+    $markup = $db-> 
 });
 ?>

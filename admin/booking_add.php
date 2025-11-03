@@ -10,7 +10,7 @@
    $title = T::add .' '. T::booking;
    include "_header.php";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+   if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       if (!isset($_POST['hotel'])) {
          die("Error: Hotel ID is required.");
@@ -21,19 +21,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $iso_code = $selected_country['iso'] ?? "";
       $nationality = $selected_country['iso'] ?? "";
 
-      // for remvoing 0 form starting of phone 
+      // Remove 0 from starting of phone 
       $phone_number = ltrim($_POST['phone'], '0');
-
-      $clientPhone = $phone_code .$phone_number;
+      $clientPhone = $phone_code . $phone_number;
 
       $hotel_img = $db->select("hotels_images", "*", ["hotel_id" => $_POST['hotel']]);
+
+      // Calculate days between check-in and check-out
+      $checkin_date = new DateTime($_POST['checkin']);
+      $checkout_date = new DateTime($_POST['checkout']);
+      $interval = $checkin_date->diff($checkout_date);
+      $days = $interval->days;
+
+      // Get room quantity and per-night prices
+      $room_quantity = isset($_POST['room_quantity']) ? floatval($_POST['room_quantity']) : 1;
+      $room_price_per_night = isset($_POST['room_price']) ? floatval($_POST['room_price']) : 0.0;
+      $actual_room_price_per_night = isset($_POST['actual_room_price']) ? floatval($_POST['actual_room_price']) : 0.0;
+
+      // Get pre-calculated totals from JavaScript (from hidden inputs)
+      $total_markup_price = $room_price_per_night * $days * $room_quantity;
+      $total_actual_price = $actual_room_price_per_night * $days * $room_quantity;
+      $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0.0;
+      $net_profit = isset($_POST['net_profit']) ? floatval($_POST['net_profit']) : 0.0;
+      $agent_commission_amount = isset($_POST['agent_commission_amount']) ? floatval($_POST['agent_commission_amount']) : 0.0;
+
+      // Calculate credit card fee
+      $cc_fee = ($total_markup_price * 0.029) + 0.3;
+
+      // Get other values
+      $tax_percent = isset($_POST['tax']) ? floatval($_POST['tax']) : 0;
+      $supplier_cost = isset($_POST['supplier_cost']) ? floatval($_POST['supplier_cost']) : 0.0;
+      $iata = isset($_POST['iata']) ? floatval($_POST['iata']) : 0.0;
 
       $params = [
          "booking_ref_no" => date('Ymdhis') . rand(),
          "location" => $_POST['location'] ?? "",
          "hotel_id" => $_POST['hotel'],
          "hotel_img" => $hotel_img[0]['img'] ?? "no-image.jpg",
-         "price_markup" => $_POST['price'] ?? 0.0,
+         "price_markup" => $total_markup_price,
          "first_name" => $_POST['adults_data'][0]['firstname'] ?? "",
          "last_name" => $_POST['adults_data'][0]['lastname'] ?? "",
          "email" => $_POST['email'] ?? "",
@@ -44,24 +69,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          "supplier" => "hotels",
          "checkin" => $_POST['checkin'] ?? "",
          "checkout" => $_POST['checkout'] ?? "",
+         "booking_nights" => $days,
          "agent_id" => $_POST['agent'] ?? null,
          "booking_date" => date('Y-m-d'),
-         "agent_fee" => $_POST['agent_commission_amount'] ?? 0,
-         "tax" => $_POST['tax'] ?? 0,
-         "net_profit" => $_POST['net_profit'] ?? 0,
-         "price_original" => $_POST['room_price'] ?? 0.0,
+         "agent_fee" => $agent_commission_amount,
+         "tax" => $tax_percent,
+         "net_profit" => $net_profit,
+         "price_original" => $total_actual_price,
          "booking_note" => $_POST['bookingnote'] ?? "",
          "cancellation_terms" => $_POST['cancellation_terms'] ?? "",
-         "supplier_cost" => $_POST['supplier_cost'] ?? 0.0,
+         "supplier_cost" => $supplier_cost,
          "supplier_payment_status" => $_POST['supplier_payment_status'] ?? "unpaid",
          "supplier_due_date" => $_POST['supplier_due_date'] ?? "",
          "supplier_id" => $_POST["supplier_id"] ?? "",
-         "supplier_payment_type" => $_POST["supplier_payment_type"],
-         "customer_payment_type" => $_POST["customer_payment_type"],
-         "iata" => $_POST["iata"],
-         "subtotal" => $_POST['subtotal'],
-         "agent_payment_status" => $_POST['agent_payment_status'],
-         "agent_payment_type" => $_POST['agent_payment_type'],
+         "supplier_payment_type" => $_POST["supplier_payment_type"] ?? "",
+         "customer_payment_type" => $_POST["customer_payment_type"] ?? "",
+         "iata" => $iata,
+         "subtotal" => $subtotal,
+         "agent_payment_status" => $_POST['agent_payment_status'] ?? 'pending',
+         "agent_payment_type" => $_POST['agent_payment_type'] ?? 'pending',
+         "address" => $_POST['address'] ?? "",
       ];
 
       if ($params['agent_payment_status'] == 'paid') {
@@ -84,13 +111,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $travelers_data = [];
       if (!empty($_POST['adults_data'])) {
          foreach ($_POST['adults_data'] as $adult) {
-            $travelers_data[] = [
-               "traveller_type" => "adults",
-               "title" => $adult['title'] ?? "",
-               "first_name" => $adult['firstname'] ?? "",
-               "last_name" => $adult['lastname'] ?? "",
-               "age" => ""
-            ];
+               $travelers_data[] = [
+                  "traveller_type" => "adults",
+                  "title" => $adult['title'] ?? "",
+                  "first_name" => $adult['firstname'] ?? "",
+                  "last_name" => $adult['lastname'] ?? "",
+                  "age" => ""
+               ];
          }
       }
 
@@ -107,37 +134,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          $room_id = $_POST['room'];
 
          $room_details = $db->select("hotels_rooms", [
-            "[>]hotels_settings" => ["room_type_id" => "id"]
+               "[>]hotels_settings" => ["room_type_id" => "id"]
          ], [
-            "hotels_rooms.id",
-            "hotels_settings.name",
-            "hotels_rooms.extra_bed_charges",
-            "hotels_rooms.extra_bed",
+               "hotels_rooms.id",
+               "hotels_settings.name",
+               "hotels_rooms.extra_bed_charges",
+               "hotels_rooms.extra_bed",
          ], [
-            "hotels_rooms.id" => $room_id,
-            "hotels_rooms.status" => 1
+               "hotels_rooms.id" => $room_id,
+               "hotels_rooms.status" => 1
          ]);
 
          $room_options = $db->select("hotels_rooms_options", ["price", "quantity"], [
-            "room_id" => $room_id
+               "room_id" => $room_id
          ]);
 
          if (!empty($room_details)) {
-            $room_data = [
-               "room_id" => $room_details[0]['id'],
-               "room_name" => $room_details[0]['name'],
-               "room_price" => $_POST['room_price'] ?? 0.0,
-               "room_quantity" => !empty($room_options) ? $room_options[0]['quantity'] : "1",
-               "room_extrabed_price" => $room_details[0]['extra_bed_charges'] ?? 0.0,
-               "room_extrabed" => $room_details[0]['extra_bed'] ?? 0,
-               "room_actual_price" => !empty($room_options) ? $room_options[0]['price'] : "0.00"
-            ];
+               $room_data = [
+                  "room_id" => $room_details[0]['id'],
+                  "room_name" => $room_details[0]['name'],
+                  "room_price_per_night" => $room_price_per_night,
+                  "room_quantity" => $room_quantity,
+                  "room_extrabed_price" => $room_details[0]['extra_bed_charges'] ?? 0.0,
+                  "room_extrabed" => $room_details[0]['extra_bed'] ?? 0,
+                  "room_actual_price_per_night" => $actual_room_price_per_night,
+                  "total_nights" => $days,
+                  "total_markup_price" => $total_markup_price,
+                  "total_actual_price" => $total_actual_price,
+                  "cc_fee" => $cc_fee
+               ];
 
-            $params['room_data'] = json_encode([$room_data]);
+               $params['room_data'] = json_encode([$room_data]);
+
+               $booking_data_entry = [
+                  "id" => $_POST['room'] ?? "0",
+                  "currency" => $params['currency_markup'] ?? 'USD',
+                  "price" => number_format($total_actual_price, 2, '.', ''), 
+                  "per_day" => number_format($actual_room_price_per_night, 2, '.', ''), 
+                  "markup_price" => number_format($total_markup_price, 2, '.', ''), 
+                  "markup_price_per_night" => number_format($room_price_per_night, 2, '.', ''),
+                  "service_fee" => number_format($cc_fee, 2, '.', ''), 
+                  "quantity" => $room_quantity,
+                  "adults" => 2,
+                  "child" => 0,
+                  "children_ages" => 0,
+                  "bookingurl" => "", 
+                  "booking_data" => "", 
+                  "extrabeds_quantity" => 0,
+                  "extrabed_price" => 0,
+                  "cancellation" => "1",
+                  "breakfast" => "1", 
+                  "room_booked" => false 
+               ];
+
+               $params['booking_data'] = json_encode([$booking_data_entry]);
          }
       }
 
-      // for sending messages 
+      // For sending messages 
       $sendEmail_agent = isset($_POST['sendEmail_agent']) ? true : false;
       $sendSMS_agent = isset($_POST['sendSMS_agent']) ? true : false;
       $sendWhatsapp_agent = isset($_POST['sendWhatsapp_agent']) ? true : false;
@@ -149,20 +203,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $agentDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['agent']]);
       $supplierDetails = $db->get("users", ["phone", "phone_country_code", "first_name", "last_name","email"], ["user_id" => $_POST['supplier_id']]);
 
-      $clientNum = "+".$clientPhone;
-      $agentNum = isset($agentDetails["phone_country_code"]) && isset($agentDetails["phone"]) ? "+".$agentDetails["phone_country_code"] . $agentDetails["phone"] : "";
-      $supplierNum = isset($supplierDetails["phone_country_code"]) && isset($supplierDetails["phone"]) ? "+".$supplierDetails["phone_country_code"] . $supplierDetails["phone"] : "";
+      $clientNum = "+" . $clientPhone;
+      $agentNum = isset($agentDetails["phone_country_code"]) && isset($agentDetails["phone"]) ? "+" . $agentDetails["phone_country_code"] . $agentDetails["phone"] : "";
+      $supplierNum = isset($supplierDetails["phone_country_code"]) && isset($supplierDetails["phone"]) ? "+" . $supplierDetails["phone_country_code"] . $supplierDetails["phone"] : "";
 
-      $commissionAmount = ($_POST['price'] ?? 0.0) * ($_POST['agent_comission'] ?? 0) / 100;
-
-      /////////// for agent ///////////
-      // send email to agent 
-      if ($sendEmail_agent) {
+      /////////// For agent ///////////
+      // Send email to agent 
+      if ($sendEmail_agent && !empty($agentDetails)) {
          $contentArray = [
-            'client_name' => $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'], 
-            'total_price' => $_POST['price'] ?? 0.0, 
-            'hotel_name' => $hotel_data[0]['name'],
-            'agentComission' => $commissionAmount,  
+               'client_name' => $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'], 
+               'total_price' => $total_markup_price, 
+               'hotel_name' => $hotel_data[0]['name'],
+               'agentComission' => $agent_commission_amount,  
          ];        
 
          // SEND EMAIL
@@ -170,40 +222,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
          $template = "agent_new_sale";
          $content = $contentArray;
          $receiver_email = $agentDetails['email'];
-         $receiver_name =  $agentDetails['first_name'].' '.$agentDetails['last_name'];
-         MAILER($template,$title,$content,$receiver_email,$receiver_name);
+         $receiver_name = $agentDetails['first_name'] . ' ' . $agentDetails['last_name'];
+         MAILER($template, $title, $content, $receiver_email, $receiver_name);
       }
-      // send sms to agent 
-      if ($sendSMS_agent) {
 
+      // Send SMS to agent 
+      if ($sendSMS_agent && !empty($agentDetails) && !empty($agentNum)) {
          require_once 'send_sms.php';
-         $room_price = $_POST['room_price'] ?? 0.0; 
-         $agent_comission = $_POST['agent_comission'] ?? 0.0;  
-         $commission_amount = ($room_price * $agent_comission) / 100;
-         $subtotal = $_POST['subtotal'];
+         
          $formattedCheckin = (new DateTime($_POST['checkin']))->format('m-d-Y');
          $formattedCheckout = (new DateTime($_POST['checkout']))->format('m-d-Y');
+         
          $message = "
-NEW SALE ALERT
+               NEW SALE ALERT
 
-Great news, " . $agentDetails['first_name'] . ' ' . $agentDetails['last_name'] . "! You’ve just made a new hotel sale for " . $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'] . "’s trip to " . $_POST['location'] . ".  
+               Great news, " . $agentDetails['first_name'] . ' ' . $agentDetails['last_name'] . "! You've just made a new hotel sale for " . $_POST['adults_data'][0]['firstname'] . ' ' . $_POST['adults_data'][0]['lastname'] . "'s trip to " . $_POST['location'] . ".  
 
-Hotel: " . $hotel_data[0]['name'] . " 
+               Hotel: " . $hotel_data[0]['name'] . " 
 
-Check in: " . $formattedCheckin. "
-Check out: " . $formattedCheckout. "
+               Check in: " . $formattedCheckin . "
+               Check out: " . $formattedCheckout . "
+               Nights: " . $days . "
 
-Sale amount: $".$subtotal."
+               Sale amount: $" . number_format($subtotal, 2) . "
 
-Commission: $".number_format($commissionAmount, 2)."
+               Commission: $" . number_format($agent_commission_amount, 2) . "
 
-Log into your account to see your sales, commissions and more details about your business! https://toptiertravel.site/admin/login.php
+               Log into your account to see your sales, commissions and more details about your business! https://toptiertravel.site/admin/login.php  
          ";
-      sendSMS($agentNum, $message);
-         // echo $response;
-         // exit;
+         sendSMS($agentNum, $message);
       }
-
 
       $db->insert("hotels_bookings", $params);
       $id = $db->id();
@@ -214,7 +262,7 @@ Log into your account to see your sales, commissions and more details about your
       } else {
          die("Error inserting booking. Booking ID not generated.");
       }
-}
+   }
 ?>
 
 <!-- <div class="page_head bg-transparent">
@@ -291,21 +339,28 @@ Log into your account to see your sales, commissions and more details about your
                            </select>
                         </div>
                      </div>
-                     <div class="col-md-6">
+                     <div class="col-md-3">
                         <label for="">
                            <?=T::customer?>
                            <?=T::payment?>
                            <?=T::type?>
                         </label>
-                        <hr>
                         <div class=" ">
-                           <select class="select2" id="customer_payment_type" name="customer_payment_type" required>
+                           <div class="form-floating mt-2">
+                              <div class="input-group">
+                                 <!-- <div class="form-floating"> -->
+                                 <input type="text" class="form-control" id="customer_payment_type" name="customer_payment_type" value="stripe" required readonly>
+
+                              </div>
+                              <!-- <label for="">Room Price</label> -->
+                           </div>
+                           <!-- <select class="select2" id="customer_payment_type" name="customer_payment_type" required>
                               <option disabled selected value="">
                                  <?=T::select?>
                                  <?=T::payment?>
                                  <?=T::type?>
                               </option>
-                              <option value="stripe">
+                              <option value="stripe" selected>
                                  <?=T::stripe?>
                               </option>
                               <option value="wire">
@@ -323,12 +378,48 @@ Log into your account to see your sales, commissions and more details about your
                               <option value="cash">
                                  <?=T::cash?>
                               </option>
-                           </select>
+                           </select> -->
                         </div>
                      </div>
-                     <div class="col-md-6">
+                     <div class="col-md-3">
 
-                        <label for="">Room Price</label>
+                        <label for="">Room Quantity</label>
+
+                        <!-- <small for="">Room Price</small> -->
+                        <div class="form-floating mt-2">
+                           <div class="input-group">
+                              <!-- <div class="form-floating"> -->
+                              <input type="number" class="form-control" id="" name="room_quantity" value="1" step="any"
+                                 min="0" required>
+
+                           </div>
+                           <!-- <label for="">Room Price</label> -->
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+
+                        <label for="">Actual Room Price</label>
+
+                        <?php $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+                        <!-- <small for="">Room Price</small> -->
+                        <div class="form-floating mt-2">
+                           <div class="input-group">
+                              <!-- <div class="form-floating"> -->
+                              <input type="number" class="form-control" id="" name="actual_room_price" value="0" step="any"
+                                 min="0" required
+                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+
+                              <!-- </div> -->
+                              <span class="input-group-text text-white bg-primary">
+                                 <?= $curreny[0]['name']?>
+                              </span>
+                           </div>
+                           <!-- <label for="">Room Price</label> -->
+                        </div>
+                     </div>
+                     <div class="col-md-3">
+
+                        <label for="">Markup Room Price</label>
 
                         <?php $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                         <!-- <small for="">Room Price</small> -->
@@ -476,22 +567,16 @@ Log into your account to see your sales, commissions and more details about your
                   <div class="row g-3">
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="date" class=" form-control" id="" name="checkin" autocomplete="off" required
-                              value="<?php $d=strtotime(" +3 Days"); echo date("Y-m-d", $d); ?>">
-                           <label for="checkinDate">
-                              <?=T::checkin?>
-                              <?=T::date?>
-                           </label>
+                        <input type="text" class="form-control" id="checkin" name="checkin" autocomplete="off" required
+                           value="<?php $d=strtotime('+3 Days'); echo date('Y-m-d', $d); ?>">
+                        <label for="checkin"><?=T::checkin?> <?=T::date?></label>
                         </div>
                      </div>
                      <div class="col-md-6">
                         <div class="form-floating">
-                           <input type="date" class=" form-control" id="" name="checkout" required autocomplete="off"
-                              value="<?php $d=strtotime(" +4 Days"); echo date("Y-m-d", $d); ?>">
-                           <label for="checkoutDate">
-                              <?=T::checkout?>
-                              <?=T::date?>
-                           </label>
+                        <input type="text" class="form-control" id="checkout" name="checkout" autocomplete="off" required
+                           value="<?php $d=strtotime('+4 Days'); echo date('Y-m-d', $d); ?>">
+                        <label for="checkout"><?=T::checkout?> <?=T::date?></label>
                         </div>
                      </div>
                   </div>
@@ -537,8 +622,7 @@ Log into your account to see your sales, commissions and more details about your
                            <?=T::status?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="form-select select2 pt-2" id="payment_status" name="supplier_payment_status"
-                              required>
+                           <select class="form-select select2 pt-2" id="payment_status" name="supplier_payment_status">
                               <option value="" disabled selected>
                                  <?=T::select?>
                                  <?=T::payment?>
@@ -560,7 +644,7 @@ Log into your account to see your sales, commissions and more details about your
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
                            <select class="form-select select2 pt-2" id="supplier_payment_type"
-                              name="supplier_payment_type" required>
+                              name="supplier_payment_type">
                               <option value="" disabled selected>
                                  <?=T::select?>
                                  <?=T::payment?>
@@ -643,7 +727,7 @@ Log into your account to see your sales, commissions and more details about your
                            <?=T::agent?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="select2 pt-2" id="agentSelect" name="agent" required>
+                           <select class="select2 pt-2" id="agentSelect" name="agent">
                               <option value="" selected>
                                  <?=T::select?>
                                  <?=T::agent?>
@@ -667,7 +751,7 @@ Log into your account to see your sales, commissions and more details about your
                         <?= T::payment?> <?= T::type?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="select2 pt-2" id="agentPaymentType" name="agent_payment_type" required>
+                           <select class="select2 pt-2" id="agentPaymentType" name="agent_payment_type">
                                  <option value="" selected>
                                     <?= T::select ?> <?= T::payment?> <?= T::type?>
                                  </option>
@@ -685,7 +769,7 @@ Log into your account to see your sales, commissions and more details about your
                            <?= T::payment?> <?= T::status?>
                         </label>
                         <div class="form-floating mt-3 rounded-2 h-100">
-                           <select class="select2 pt-2" id="agentPaymentStatus" name="agent_payment_status" required>
+                           <select class="select2 pt-2" id="agentPaymentStatus" name="agent_payment_status">
                                  <option selected value="pending"><?= T::pending ?></option>
                                  <option value="paid"><?= T::paid ?></option>
                                  <option value="cancelled"><?= T::cancelled ?></option>
@@ -700,7 +784,7 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <input type="number" step="any" min="0" class="form-control rounded-0" id="agentCommissionAmount"
-                                 name="agent_commission_amount" value="0" required>
+                                 name="agent_commission_amount" value="0">
                               <span class="input-group-text text-white bg-primary"><?= $curreny[0]['name']?></span>
                            </div>
                         </div>
@@ -715,7 +799,7 @@ Log into your account to see your sales, commissions and more details about your
                         <div class="form-floating mt-2">
                            <div class="input-group">
                               <input type="number" step="any" min="0" class="form-control rounded-0" id=""
-                                 name="agent_comission" value="0" required>
+                                 name="agent_comission" value="0">
                               <span class="input-group-text text-white bg-primary">%</span>
                            </div>
                            <!-- <label for="">Agent Commission</label> -->
@@ -1003,6 +1087,8 @@ Log into your account to see your sales, commissions and more details about your
                      <div class="input-group">
                         <input type="number" step="any" min="0" class="form-control fw-semibold text-dark rounded-0"
                            id="bookingPrice" name="price" readonly>
+                        <input type="hidden" step="any" min="0" class="form-control fw-semibold text-dark rounded-0"
+                           id="actualbookingPrice" name="actual_price" readonly>
                         <span class="input-group-text text-white bg-primary">
                            <?= $curreny[0]['name']?>
                         </span>
@@ -1025,53 +1111,163 @@ Log into your account to see your sales, commissions and more details about your
 </div>
 <script>
    $(document).ready(function () {
+      const flatpickrInstance = {
+         checkin: null,
+         checkout: null
+      };
+
+      // Initialize checkin datepicker
+      flatpickrInstance.checkin = flatpickr("#checkin", {
+         dateFormat: "Y-m-d",
+         minDate: "today",
+         onChange: function(selectedDates, dateStr, instance) {
+            // Automatically set checkout to +1 day
+            const checkout = flatpickrInstance.checkout;
+            if (checkout) {
+               const nextDay = new Date(selectedDates[0]);
+               nextDay.setDate(nextDay.getDate() + 1);
+               checkout.set("minDate", nextDay);
+            }
+            calculateTotalPrice();
+            calculateDays();
+         }
+      });
+
+      // Initialize checkout datepicker
+      flatpickrInstance.checkout = flatpickr("#checkout", {
+         dateFormat: "Y-m-d",
+         minDate: new Date().fp_incr(1), // tomorrow
+         onChange: function(selectedDates, dateStr, instance) {
+            calculateTotalPrice();
+            calculateDays();
+         }
+      });
+
+      // Function to calculate days between check-in and check-out
+      function calculateDays() {
+         const checkinDate = flatpickrInstance.checkin.selectedDates[0];
+         const checkoutDate = flatpickrInstance.checkout.selectedDates[0];
+         
+         if (checkinDate && checkoutDate) {
+            // Calculate difference in milliseconds
+            const diffTime = checkoutDate - checkinDate;
+            // Convert to days
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            console.log(`Number of nights: ${diffDays}`);
+            
+            // Display it somewhere on your page
+            document.getElementById("nights-display").textContent = `${diffDays} night${diffDays !== 1 ? 's' : ''}`;
+         }
+      }
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
+      
+      /* 
+      EXPLANATION OF CALCULATIONS:
+      ================================
+
+      1. TOTAL MARKUP PRICE (Customer pays):
+         roomPricePerNight × days × roomQuantity
+         Example: $100/night × 3 nights × 2 rooms = $600
+
+      2. TOTAL ACTUAL PRICE (Original cost):
+         actualRoomPricePerNight × days × roomQuantity
+         Example: $80/night × 3 nights × 2 rooms = $480
+
+      3. CREDIT CARD FEE:
+         (totalMarkupPrice × 2.9%) + $0.30
+         Example: ($600 × 0.029) + $0.30 = $17.70
+
+      4. SUBTOTAL (Price before tax):
+         Per Night: roomPricePerNight / (1 + tax%)
+         Total: subtotalPerNight × days × roomQuantity
+         Example: $100 / 1.14 = $87.72 per night
+               $87.72 × 3 nights × 2 rooms = $526.32 total
+
+      5. AGENT COMMISSION:
+         totalSubtotal × commission%
+         Example: $526.32 × 10% = $52.63
+
+      6. NET PROFIT:
+         totalMarkupPrice - supplierCost - agentCommission + iata - ccFee
+         Example: $600 - $480 - $52.63 + $5 - $17.70 = $54.67
+
+      ================================
+      */
 
       function calculateTotalPrice() {
          const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-         // Get input values
-         const roomPrice = getInputValue("room_price");
-         const agentCommissionPercent = getInputValue("agent_comission");
-         const taxPercent = getInputValue("tax");
-         const supplierCost = getInputValue("supplier_cost");
-         const iata = getInputValue("iata");
+         // Get total days from flatpickr instances
+         const checkinDate = flatpickrInstance.checkin?.selectedDates[0];
+         const checkoutDate = flatpickrInstance.checkout?.selectedDates[0];
+         
+         let days = 0;
+         if (checkinDate && checkoutDate) {
+            const diffTime = checkoutDate - checkinDate;
+            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+         }
 
-         if (roomPrice === 0) {
+         // If no days, don't calculate
+         if (days === 0) {
             $('#bookingPrice').val("0.00");
+            $('#actualbookingPrice').val("0.00");
             $('#subtotal').val("0.00");
             $('input[name="net_profit"]').val("0.00");
+            $('input[name="agent_commission_amount"]').val("0.00");
             return;
          }
 
-         // Total Price should be the same as Room Price
-         let totalPrice = roomPrice;
+         // Get input values
+         const roomPricePerNight = getInputValue("room_price"); // Markup price per night
+         const actualRoomPricePerNight = getInputValue("actual_room_price"); // Actual price per night
+         const roomQuantity = getInputValue("room_quantity") || 1;
+         const agentCommissionPercent = getInputValue("agent_comission");
+         const taxPercent = getInputValue("tax");
+         const iata = getInputValue("iata");
 
-         // Calculate Credit Card Fee
-         let ccFee = (totalPrice * 0.029) + 0.3;
+         if (roomPricePerNight === 0) {
+            $('#bookingPrice').val("0.00");
+            $('#actualbookingPrice').val("0.00");
+            $('#subtotal').val("0.00");
+            $('input[name="net_profit"]').val("0.00");
+            $('input[name="agent_commission_amount"]').val("0.00");
+            return;
+         }
 
-         // Add CC Fee to total value
-         // totalPrice += ccFee;
+         // Calculate total prices (per night × days × quantity)
+         const totalMarkupPrice = roomPricePerNight * days * roomQuantity;
+         const totalActualPrice = actualRoomPricePerNight * days * roomQuantity;
 
-         // Subtotal calculation: total price divided by (1 + taxPercent/100)
-         const subtotal = roomPrice / (1 + taxPercent / 100);
+         // Calculate Credit Card Fee (based on total markup price)
+         const ccFee = (totalMarkupPrice * 0.029) + 0.3;
 
-         // Agent commission amount calculation
-         const agentCommission = (subtotal * agentCommissionPercent) / 100;
+         // Subtotal calculation: PER-NIGHT price without tax
+         const subtotalPerNight = roomPricePerNight / (1 + taxPercent / 100);
+         
+         // Total subtotal (subtotal per night × days × quantity)
+         const totalSubtotal = subtotalPerNight * days * roomQuantity;
 
-         // Net Profit Calculation: roomPrice - supplierCost - agentCommission + iata - ccFee
-         let netProfit = roomPrice - supplierCost - agentCommission + iata - ccFee;
+         // Agent commission calculation (based on total subtotal)
+         const agentCommissionAmount = (totalSubtotal * agentCommissionPercent) / 100;
+
+         // Net Profit Calculation:
+         // Total revenue - supplier cost - agent commission + IATA benefit - CC fee
+         const netProfit = totalMarkupPrice - totalActualPrice - agentCommissionAmount + iata - ccFee;
 
          // Set calculated values in respective input fields
-         $('#bookingPrice').val(totalPrice.toFixed(2));
-         $('#subtotal').val(subtotal.toFixed(2));
+         $('#bookingPrice').val(totalMarkupPrice.toFixed(2));
+         $('#actualbookingPrice').val(totalActualPrice.toFixed(2));
+         $('#subtotal').val(totalSubtotal.toFixed(2));
          $('input[name="net_profit"]').val(netProfit.toFixed(2));
-         $('input[name="agent_commission_amount"]').val(agentCommission.toFixed(2));
+         $('input[name="agent_commission_amount"]').val(agentCommissionAmount.toFixed(2));
+         $('input[name="supplier_cost"]').val(totalActualPrice.toFixed(2));
+         $('input[name="supplier_cost"]').text(totalActualPrice.toFixed(2));
       }
 
       // Event listeners for input fields
-      $('input[name="room_price"], input[name="agent_comission"], input[name="tax"], input[name="supplier_cost"], input[name="iata"]').on('input', calculateTotalPrice);
+      $('input[name="room_price"], input[name="agent_comission"], input[name="supplier_cost"], input[name="tax"], input[name="supplier_cost"], input[name="iata"], input[name="room_quantity"]').on('input', calculateTotalPrice);
 
       // Initial calculation
       calculateTotalPrice();

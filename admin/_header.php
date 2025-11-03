@@ -42,9 +42,13 @@
     <link rel="stylesheet" href="./spruha-assets/libs/jsvectormap/css/jsvectormap.min.css">
 
     <link rel="stylesheet" href="./spruha-assets/libs/swiper/swiper-bundle.min.css">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     <script src="./assets/js/jquery-3.6.0.min.js"></script>
+    
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
     <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
@@ -361,7 +365,7 @@ if (isset($user_permissions->booking_add->page_access)) {
 if (isset($user_permissions->all_bookings->page_access)) {
 ?>
 <li class="slide">
-<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings') { echo "active"; } ?>">
+<a href="./bookings.php" class="side-menu__item <?php if ($url_name == 'bookings' || $url_name == 'booking_update') { echo "active"; } ?>">
 <?= T::all ?> <?= T::bookings ?>
 </a>
 </li>

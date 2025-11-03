@@ -322,12 +322,12 @@ $router->post('profile_update', function() {
     $user = $db->select("users", "*", [ "user_id" => $_POST['user_id'] ]);
     if(isset($user)){
         $user[0]['token'] = null;
+        $user[0]['profile_photo'] = (isset($user[0]['profile_photo']) && $user[0]['profile_photo'] != null) ? user_upload_url . $user[0]['profile_photo'] : null;
     }
     echo json_encode([
         "status" => true,
         "message" => "Profile updated successfully",
-        "data" => $data,
-        "user" => $user
+        "data" => $user
     ]);
 });
 
