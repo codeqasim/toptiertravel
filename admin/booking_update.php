@@ -5,6 +5,167 @@ $title = T::booking .' '. T::edit;
 include "_header.php";
 
 ?>
+
+<style>
+  .modal.fade {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease-in-out;
+    }
+
+    .modal.show {
+    display: flex;
+    }
+
+    /* Modal Dialog */
+    .modal-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: auto;
+    }
+
+    /* Modal Content */
+    .modal-content {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+    overflow: hidden;
+    animation: fadeInScale 0.25s ease;
+    }
+
+    @keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+    }
+
+    /* Header */
+    .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    }
+
+    .modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    }
+
+    .btn-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    color: #555;
+    cursor: pointer;
+    }
+
+    .btn-close:hover {
+    color: #000;
+    }
+
+    /* Body */
+    .modal-body {
+    padding: 1.5rem;
+    text-align: center;
+    }
+
+    .input-group {
+    display: flex;
+    align-items: stretch;
+    }
+
+    .input-group input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-right: none;
+    border-radius: 0.375rem 0 0 0.375rem;
+    font-size: 0.95rem;
+    }
+
+    .input-group button {
+    border: 1px solid #ced4da;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 0 0.375rem 0.375rem 0;
+    transition: background 0.2s ease;
+    }
+
+    .input-group button:hover {
+    background-color: #e2e6ea;
+    }
+
+    /* Footer */
+    .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    gap: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+    display: inline-block;
+    font-weight: 500;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .btn-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    }
+
+    .btn-primary:hover {
+    background-color: #0b5ed7;
+    }
+
+    .btn-secondary {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+    background-color: #5c636a;
+    }
+
+    .btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: #fff;
+    }
+</style>
 <div class="page_head">
     <div class="panel-heading">
         <div class="float-start">
@@ -89,12 +250,12 @@ include "_header.php";
             $booking_data_json = $existing['booking_data'];
             $booking_data = json_decode($existing['booking_data'], true);
             if (!empty($booking_data) && is_array($booking_data)) {
-                $booking_data[0]['price'] = number_format($total_actual_price, 2, '.', '');
-                $booking_data[0]['per_day'] = number_format($actual_room_price_per_night, 2, '.', '');
-                $booking_data[0]['markup_price'] = number_format($total_markup_price, 2, '.', '');
-                $booking_data[0]['markup_price_per_night'] = number_format($room_price_per_night, 2, '.', '');
-                $booking_data[0]['service_fee'] = number_format($cc_fee, 2, '.', '');
-                $booking_data[0]['quantity'] = $room_quantity;
+                $booking_data['price'] = number_format($total_actual_price, 2, '.', '');
+                $booking_data['per_day'] = number_format($actual_room_price_per_night, 2, '.', '');
+                $booking_data['markup_price'] = number_format($total_markup_price, 2, '.', '');
+                $booking_data['markup_price_per_night'] = number_format($room_price_per_night, 2, '.', '');
+                $booking_data['service_fee'] = number_format($cc_fee, 2, '.', '');
+                $booking_data['quantity'] = $room_quantity;
                 $booking_data_json = json_encode($booking_data);
             }
 
@@ -818,35 +979,14 @@ include "_header.php";
             <input type="hidden" id="booking_id" name="booking_id" value="<?=$_GET['booking']?>">
             <input type="hidden" id="module" name="module" value="<?=$_GET['module']?>">
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100 h-100 rounded-4"
+                <button type="submit" data-ref="<?=$data[0]['booking_ref_no']?>" data_status="<?=$data[0]['payment_status']?>" class="btn btn-primary w-100 h-100 rounded-4"
                     style="border-radius: 8px !important;">
                     <?=T::submit?>
                 </button>
             </div>
         </form>
 
-        <?php if (isset($update_success) && !empty($update_success)){?>
-        <div class="modal fade show" id="linkModal" tabindex="-1" style="display: block; background: rgba(0,0,0,0.5);">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title"><?=T::booking?> <?=T::updated?></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p><?=T::booking?> <?=T::successfully?> <?=T::updated?>.</p>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="bookingLink" value="<?=$root?>/booking-view.php?booking=<?=urlencode($booking_ref)?>&module=<?=urlencode($module)?>" readonly>
-                            <button class="btn btn-outline-secondary" type="button" id="copyLinkBtn"><?=T::copy?></button>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" id="okBtn"><?=T::ok?></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php } ?>
+    </div>
         <script>
             $(document).ready(function () {
                 function updateRooms(hotelId, selectedRoomId) {
@@ -1036,102 +1176,181 @@ include "_header.php";
 
         </script>
         <script>
-            $("#search").submit(function (event) {
-                event.preventDefault();
+            $(document).ready(function() {
+                $("#search").submit(function(event) {
+                    event.preventDefault();
 
-                var booking_id = $("#booking_id").val();
-                var module = $("#module").val();
-                var booking_date = $("#booking_date").val();
-                var booking_status = $(".booking_status").val();
-                var payment_status = $(".payment_status").val();
-                var checkin = $("#checkin").val();
-                var checkout = $("#checkout").val();
-                var hotel_id = $("#hotel_select").val();
-                var first_name = $("#first_name").val();
-                var last_name = $("#last_name").val();
-                var email = $("#email").val();
-                var phone = $("#phone").val();
-                var bookingnote = $("#bookingnote").val();
-                var agent_id = $("#agent_id").val() ?? '';
-                var room_price = $("#room_price").val();
-                var actual_room_price = $("#actual_room_price").val(); // ADD THIS
-                var room_quantity = $("#room_quantity").val(); // ADD THIS
-                var net_profit = $("#net_profit").val();
-                var tax = $("#tax").val();
-                var agent_comission = $("#agent_comission").val();
-                var bookingPrice = $("#bookingPrice").val();
-                var room_select = $("#room_select").val();
-                var cancellation_terms = $("#cancellation_terms").val();
-                var supplier_id = $("#supplier_id").val();
-                var supplier_payment_status = $("#supplier_payment_status").val();
-                var supplier_cost = $("#supplier_cost").val();
-                var supplier_due_date = $("#supplier_due_date").val();
-                var supplier_payment_type = $("#supplier_payment_type").val();
-                var customer_payment_type = $("#customer_payment_type").val();
-                var iata = $("#iata").val();
-                var subtotal = $("#subtotal").val();
-                var agent_payment_type = $("#agent_payment_type").val();
-                var agent_payment_status = $("#agent_payment_status").val();
+                    // Get the button that triggered the submit
+                    const submitBtn = $(this).find("button[type='submit']");
+                    const bookingRef = submitBtn.data("ref");
+                    const paymentStatus = submitBtn.attr("data_status"); // notice underscore attribute
 
-                // Build URL with all parameters
-                var url = "<?=$root?>booking_update.php?" +
-                    "booking_id=" + booking_id +
-                    "&module=" + module +
-                    "&booking_date=" + booking_date +
-                    "&booking_status=" + booking_status +
-                    "&payment_status=" + payment_status +
-                    "&checkin=" + checkin +
-                    "&checkout=" + checkout +
-                    "&hotel_id=" + hotel_id +
-                    "&first_name=" + first_name +
-                    "&last_name=" + last_name +
-                    "&email=" + email +
-                    "&phone=" + phone +
-                    "&room_price=" + room_price +
-                    "&actual_room_price=" + actual_room_price + // ADD THIS
-                    "&room_quantity=" + room_quantity + // ADD THIS
-                    "&net_profit=" + net_profit +
-                    "&tax=" + tax +
-                    "&agent_comission=" + agent_comission +
-                    "&bookingPrice=" + bookingPrice +
-                    "&bookingnote=" + bookingnote +
-                    "&agent_id=" + agent_id +
-                    "&room_select=" + room_select +
-                    "&supplier_payment_status=" + supplier_payment_status +
-                    "&supplier_due_date=" + supplier_due_date +
-                    "&cancellation_terms=" + cancellation_terms +
-                    "&supplier_cost=" + supplier_cost +
-                    "&supplier_id=" + supplier_id +
-                    "&supplier_payment_type=" + supplier_payment_type +
-                    "&customer_payment_type=" + customer_payment_type +
-                    "&iata=" + iata +
-                    "&subtotal=" + subtotal +
-                    "&agent_payment_type=" + agent_payment_type +
-                    "&agent_payment_status=" + agent_payment_status;
+                    console.log("Booking Ref:", bookingRef);
+                    console.log("Payment Status:", paymentStatus);
 
-                window.location.href = url;
+                    // If paid → directly submit
+                    if (paymentStatus && paymentStatus.toLowerCase() === "paid") {
+                        console.log("Payment already done — submitting directly.");
+                        submitForm();
+                        return;
+                    }
+
+                    // If not paid → show modal
+                    const linkToShow = `https://toptier-tr-ef19.vercel.app/bookings/payment/${bookingRef}`;
+                    console.log("Form intercepted — showing modal");
+                    showModal(linkToShow);
+                });
+
+                function showModal(link) {
+                    $("#customModal").remove();
+
+                    const modalHtml = `
+                                    <div class="modal fade" id="customModal" tabindex="-1" aria-labelledby="customModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content shadow-lg border-0 rounded-3">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="customModalLabel">Share Link</h5>
+                                            <button type="button" class="btn-close" id="modalClose"></button>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <p>Here is your payment link:</p>
+                                            <div class="input-group mb-3">
+                                            <input type="text" class="form-control" id="copyLink" value="${link}" readonly style="border-top-right-radius: 0px !important;border-bottom-right-radius: 0px !important;">
+                                            <button class="btn btn-outline-secondary" type="button" id="copyBtn" title="Copy">
+                                                <!-- Copy Icon -->
+                                                <svg xmlns="http://www.w3.org/2000/svg" id="copyIcon" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M10 1.5A1.5 1.5 0 0 1 11.5 3v1h1A1.5 1.5 0 0 1 14 5.5v8A1.5 1.5 0 0 1 12.5 15h-8A1.5 1.5 0 0 1 3 13.5v-1h1v1A.5.5 0 0 0 4.5 14h8a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-1v-1A.5.5 0 0 0 11.5 3h-8a.5.5 0 0 0-.5.5v1H2v-1A1.5 1.5 0 0 1 3.5 2h6.5z"/>
+                                                <path d="M4.5 5A1.5 1.5 0 0 1 6 6.5v8A1.5 1.5 0 0 1 4.5 16h-3A1.5 1.5 0 0 1 0 14.5v-8A1.5 1.5 0 0 1 1.5 5h3z"/>
+                                                </svg>
+                                            </button>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" id="modalCancel">Cancel</button>
+                                            <button type="button" class="btn btn-primary" id="modalOk">OK</button>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                `;
+
+                    $("body").append(modalHtml);
+                    const modal = $("#customModal");
+                    modal.addClass("show").css("display", "flex");
+
+                    // Copy button logic
+                    $(document).off("click", "#copyBtn").on("click", "#copyBtn", function() {
+                        const linkInput = document.getElementById("copyLink");
+                        linkInput.select();
+                        document.execCommand("copy");
+
+                        const btn = $(this);
+                        btn.removeClass("btn-outline-secondary").addClass("btn-success").html(`
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 16 16">
+                                        <path d="M13.485 1.929a.75.75 0 0 1 1.06 1.06l-8 8a.75.75 0 0 1-1.06 0l-4-4a.75.75 0 0 1 1.06-1.06L6 9.439l7.485-7.51z"/>
+                                    </svg>
+                                    `);
+
+                        setTimeout(() => {
+                            btn.removeClass("btn-success").addClass("btn-outline-secondary").html(`
+                                        <svg xmlns="http://www.w3.org/2000/svg" id="copyIcon" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M10 1.5A1.5 1.5 0 0 1 11.5 3v1h1A1.5 1.5 0 0 1 14 5.5v8A1.5 1.5 0 0 1 12.5 15h-8A1.5 1.5 0 0 1 3 13.5v-1h1v1A.5.5 0 0 0 4.5 14h8a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-1v-1A.5.5 0 0 0 11.5 3h-8a.5.5 0 0 0-.5.5v1H2v-1A1.5 1.5 0 0 1 3.5 2h6.5z"/>
+                                        <path d="M4.5 5A1.5 1.5 0 0 1 6 6.5v8A1.5 1.5 0 0 1 4.5 16h-3A1.5 1.5 0 0 1 0 14.5v-8A1.5 1.5 0 0 1 1.5 5h3z"/>
+                                        </svg>
+                                    `);
+                        }, 2000);
+                    });
+
+                    // OK button logic
+                    $(document).off("click", "#modalOk").on("click", "#modalOk", function() {
+                        hideCustomModal();
+                        submitForm();
+                    });
+
+                    // Cancel or close button
+                    $(document).off("click", "#modalCancel, #modalClose").on("click", "#modalCancel, #modalClose", hideCustomModal);
+                }
+
+                function hideCustomModal() {
+                    const modal = $("#customModal");
+                    modal.removeClass("show").fadeOut(200, function() {
+                        $(this).remove();
+                    });
+                }
+
+                function submitForm() {
+                    var booking_id = $("#booking_id").val();
+                    var module = $("#module").val();
+                    var booking_date = $("#booking_date").val();
+                    var booking_status = $(".booking_status").val();
+                    var payment_status = $(".payment_status").val();
+                    var checkin = $("#checkin").val();
+                    var checkout = $("#checkout").val();
+                    var hotel_id = $("#hotel_select").val();
+                    var first_name = $("#first_name").val();
+                    var last_name = $("#last_name").val();
+                    var email = $("#email").val();
+                    var phone = $("#phone").val();
+                    var bookingnote = $("#bookingnote").val();
+                    var agent_id = $("#agent_id").val() ?? '';
+                    var room_price = $("#room_price").val();
+                    var actual_room_price = $("#actual_room_price").val(); // ADD THIS
+                    var room_quantity = $("#room_quantity").val(); // ADD THIS
+                    var net_profit = $("#net_profit").val();
+                    var tax = $("#tax").val();
+                    var agent_comission = $("#agent_comission").val();
+                    var bookingPrice = $("#bookingPrice").val();
+                    var room_select = $("#room_select").val();
+                    var cancellation_terms = $("#cancellation_terms").val();
+                    var supplier_id = $("#supplier_id").val();
+                    var supplier_payment_status = $("#supplier_payment_status").val();
+                    var supplier_cost = $("#supplier_cost").val();
+                    var supplier_due_date = $("#supplier_due_date").val();
+                    var supplier_payment_type = $("#supplier_payment_type").val();
+                    var customer_payment_type = $("#customer_payment_type").val();
+                    var iata = $("#iata").val();
+                    var subtotal = $("#subtotal").val();
+                    var agent_payment_type = $("#agent_payment_type").val();
+                    var agent_payment_status = $("#agent_payment_status").val();
+
+                    // Build URL with all parameters
+                    var url = "<?=$root?>booking_update.php?" +
+                        "booking_id=" + booking_id +
+                        "&module=" + module +
+                        "&booking_date=" + booking_date +
+                        "&booking_status=" + booking_status +
+                        "&payment_status=" + payment_status +
+                        "&checkin=" + checkin +
+                        "&checkout=" + checkout +
+                        "&hotel_id=" + hotel_id +
+                        "&first_name=" + first_name +
+                        "&last_name=" + last_name +
+                        "&email=" + email +
+                        "&phone=" + phone +
+                        "&room_price=" + room_price +
+                        "&actual_room_price=" + actual_room_price + // ADD THIS
+                        "&room_quantity=" + room_quantity + // ADD THIS
+                        "&net_profit=" + net_profit +
+                        "&tax=" + tax +
+                        "&agent_comission=" + agent_comission +
+                        "&bookingPrice=" + bookingPrice +
+                        "&bookingnote=" + bookingnote +
+                        "&agent_id=" + agent_id +
+                        "&room_select=" + room_select +
+                        "&supplier_payment_status=" + supplier_payment_status +
+                        "&supplier_due_date=" + supplier_due_date +
+                        "&cancellation_terms=" + cancellation_terms +
+                        "&supplier_cost=" + supplier_cost +
+                        "&supplier_id=" + supplier_id +
+                        "&supplier_payment_type=" + supplier_payment_type +
+                        "&customer_payment_type=" + customer_payment_type +
+                        "&iata=" + iata +
+                        "&subtotal=" + subtotal +
+                        "&agent_payment_type=" + agent_payment_type +
+                        "&agent_payment_status=" + agent_payment_status;
+
+                    window.location.href = url;
+                }
             });
         </script>
-        <script>
-            //function booking_status(data)
-            //{
-            //    var booking_id = $("#booking_id").val();
-            //    var module = $("#module").val();
-            //    alert(data.value);
-            //    window.location.href = "<?//=$root?>//booking_update.php?booking="+booking_id+"&module="+module+"&booking_status="+data.value;
-            //}
-
-            document.getElementById('copyLinkBtn').addEventListener('click', function() {
-                const linkInput = document.getElementById('bookingLink');
-                linkInput.select();
-                document.execCommand('copy');
-                alert('<?=T::link?> <?=T::copied?>!');
-            });
-
-            document.getElementById('okBtn').addEventListener('click', function() {
-                window.location.href = '<?=$root?>/admin/bookings.php';
-            });
-
-        </script>
-    </div>
     <?php include "_footer.php" ?>

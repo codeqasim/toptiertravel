@@ -539,7 +539,7 @@ $router->post('hotel_search', function () {
         }
 
         $c_response = (array) json_decode(sendhotelRequest('POST', 'hotel_search', $param), true); // Adding true to json_decode to ensure associative array
-
+    
         // Check if 'response' key exists and is an array
         if (!empty($c_response) && isset($c_response['response']) && is_array($c_response['response'])) {
 
@@ -1160,18 +1160,18 @@ $router->post('hotel_booking', function () {
         'agent_id'            => $_POST["agent_id"] ?? '',
         'net_profit'          => $_POST["net_profit"] ?? '0',
         'booking_note'        => $_POST["booking_note"] ?? '',
-        'supplier_payment_status' => null,
-        'supplier_due_date'   => date('Y-m-d'),
+        'supplier_payment_status' => $POST['supplier_payment_status'] ?? 'unpaid',
+        'supplier_due_date'   => $_POST['supplier_due_date'] ?? date('Y-m-d', strtotime('+3 days')),
         'cancellation_terms'  => $_POST["cancellation_terms"] ?? '',
         'supplier_cost'       => $_POST["supplier_cost"] ?? '0',
         'supplier_id'         => $_POST["supplier_id"] ?? '',
         'supplier_payment_type' => $_POST["supplier_payment_type"] ?? '',
         'customer_payment_type' => $_POST["customer_payment_type"] ?? '',
         'iata'                => $_POST["iata"] ?? '',
-        'agent_commission_status' => null,
+        'agent_commission_status' => $_POST['agent_commission_status'] ?? 'pending',
         'subtotal'            => $_POST["subtotal"] ?? '0',
-        'agent_payment_type'  => null,
-        'agent_payment_status' => null,
+        'agent_payment_type'  => 'pending',
+        'agent_payment_status' => 'pending',
         'agent_payment_date'  => null,
     );
 
@@ -1185,7 +1185,7 @@ $router->post('hotel_booking', function () {
         // Update existing booking
         $db->update("hotels_bookings", $param, ["booking_ref_no" => $bookingRef]);
         $action = "updated";
-        $booking_id = $existing["id"];
+        $booking_id = $existing["booking_id"];
     } else {
         // Insert new booking (if ref doesn't exist)
         $db->insert("hotels_bookings", $param);
@@ -1198,7 +1198,7 @@ $router->post('hotel_booking', function () {
     // HOOK
     $hook = "hotels_booking";
     include "./hooks.php";
-    echo json_encode(array('status' => true, 'id' => $db->id(), 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
+    echo json_encode(array('status' => true, 'id' => $booking_id, 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
 });
 
 /*=======================
@@ -1488,13 +1488,4 @@ $router->post('hotels/cancellation', function () {
     // }
 });
 
-$router->post('user_markup', function () {
-    include "./config.php";
-
-    // VALIDATION
-    required('user_id');
-    $user_id = $_POST["user_id"];
-
-    $markup = $db-> 
-});
 ?>
