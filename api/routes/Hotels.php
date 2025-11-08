@@ -317,6 +317,8 @@ $router->post('hotel_search', function () {
     $currency_id = $_POST["currency"];
     $checkin_date = $_POST["checkin"];
     $checkout_date = $_POST["checkout"];
+    $adults = $_POST["adults"];
+    $childs = $_POST["childs"];
 
     // Split the REQUEST_URI into an array of strings using the forward slash (/) character as the separator
     $uri = explode('/', $_SERVER['REQUEST_URI']);
@@ -377,24 +379,58 @@ $router->post('hotel_search', function () {
     );
 
     foreach ($hotels as $value) {
+        
         //GET THE LOWEST PRICE OF ROOM FROM DATABASE ACCORDING TO ROOM ID AND SHOW IT IN HOTEL SEARCH RESULT
         $room_data = $db->select('hotels_rooms', [
             "[>]hotels_rooms_options" => ["id" => "room_id"]
         ], [
-            'hotels_rooms_options.price'
+            'hotels_rooms_options.price',
+            'hotels_rooms_options.adults',
+            'hotels_rooms_options.childs'
         ], ['hotel_id' => $value['id']]);
-
+        
+        $has_suitable_room = false;
+        $lowest_price = null;
+        
+        if (!empty($room_data)) {
+            foreach ($room_data as $room) {
+                // Skip if price is null or zero
+                if ($room['price'] === null || $room['adults'] === null || $room['childs'] === null || $room['price'] == 0) {
+                    continue;
+                }
+                
+                $room_adults = (int)($room['adults'] ?? 0);
+                $room_childs = (int)($room['childs'] ?? 0);
+                
+                // Check if this room can accommodate the requested guests
+                if ($room_adults >= $adults && $room_childs >= $childs) {
+                    $has_suitable_room = true;
+                    // Get the lowest price among suitable rooms
+                    if ($lowest_price === null || $room['price'] < $lowest_price) {
+                        $lowest_price = $room['price'];
+                    }
+                }
+            }
+        }
+        
+        // Skip this hotel if it doesn't have suitable rooms or no valid price found
+        if (!$has_suitable_room || $lowest_price === null) {
+            continue;
+        }
+        
         // CHECK IF LOCATION EXIST
         if (!empty($value['location_cords'])) {
             $cords = explode(",", $value['location_cords']);
         }
         !empty($cords[0]) ? $latitude = $cords[0] : $latitude = null; // CONDITION IF LOCATION LATITUDE CORDS EXIST
         !empty($cords[1]) ? $longitude = $cords[1] : $longitude = null; // CONDITION IF LOCATION LATITUDE CORDS EXIST
-        $actual_room_price = !empty($room_data) ? $room_data[0]['price'] * $rate[0]['rate'] : 0; // CONVERTING ACCUAL PRICE ACCORDING TO USER SELECTED CURRENCY
-
+        
+        // Use the lowest valid price found
+        $actual_room_price = $lowest_price * $rate[0]['rate']; // CONVERTING ACTUAL PRICE ACCORDING TO USER SELECTED CURRENCY
+        
         //GET MODULE_ID FROM MODULES TABLE
         $module = $db->select('modules', ['id', 'status', 'module_color'], ['name' => 'hotels', 'type' => 'hotels']);
-
+        
         //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
         $mprice_markup = markup_price($module[0]['id'], $actual_room_price, array(0 => $checkin_date, 1 => $checkout_date), $city_id, $user_id);
         $markup_mprice = $mprice_markup['price'];
@@ -756,122 +792,159 @@ $router->post('hotel_details', function () {
 
         $room_details = []; $actual_room_price = 0; $markup_price = 0;
         foreach ($rooms as $index) {
-            $room_price = $db->select("hotels_rooms_options", ['room_id','price'], ["room_id" => $index['id']]);
-
-            if (!empty($room_price[0]['price'])) {
-                $actual_room_price = $room_price[0]['price'] * $rate[0]['rate']; // CONVERTING ACCUAL PRICE ACCORDING TO USER SELECTED CURRENCY
-                $price_markup = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
-                $markup_price = $price_markup['price'];
-                $markup_type = $price_markup['$markup_type'] ?? 0;
-                $markup_value = $price_markup['markup_value'] ?? 0;
-                $markup_amount = $price_markup['markup_amount'] ?? 0;
-                //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
-                $room_options = $db->select(
-                    "hotels_rooms_options",
-                    [
-                        "room_id",
-                        "price",
-                        "quantity",
-                        "adults",
-                        "childs",
-                        "cancellation",
-                        "breakfast",
-                    ],
-                    [
-                        "room_id" => $index['id']
-                    ]
+            $room_price = $db->select("hotels_rooms_options", ['room_id','price', 'adults', 'childs'], ["room_id" => $index['id']]);
+        
+            // Check if there are any valid room options that meet capacity requirements
+            $has_valid_option = false;
+            $lowest_valid_price = null;
+            
+            foreach ($room_price as $rp) {
+                // Skip null values
+                if ($rp['price'] === null || $rp['adults'] === null || $rp['childs'] === null || $rp['price'] == 0) {
+                    continue;
+                }
+                
+                // Check capacity
+                if ((int)$rp['adults'] >= $adults && (int)$rp['childs'] >= $childs) {
+                    $has_valid_option = true;
+                    if ($lowest_valid_price === null || $rp['price'] < $lowest_valid_price) {
+                        $lowest_valid_price = $rp['price'];
+                    }
+                }
+            }
+            
+            // Skip this room if no valid options found
+            if (!$has_valid_option || $lowest_valid_price === null) {
+                continue;
+            }
+            
+            $actual_room_price = $lowest_valid_price * $rate[0]['rate']; // CONVERTING ACTUAL PRICE ACCORDING TO USER SELECTED CURRENCY
+            $price_markup = markup_price($module_id[0]['id'], $actual_room_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
+            $markup_price = $price_markup['price'];
+            $markup_type = $price_markup['markup_type'] ?? 0; // Fixed typo: was '$markup_type'
+            $markup_value = $price_markup['markup_value'] ?? 0;
+            $markup_amount = $price_markup['markup_amount'] ?? 0;
+            
+            //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
+            $room_options = $db->select(
+                "hotels_rooms_options",
+                [
+                    "room_id",
+                    "price",
+                    "quantity",
+                    "adults",
+                    "childs",
+                    "cancellation",
+                    "breakfast",
+                ],
+                [
+                    "room_id" => $index['id']
+                ]
+            );
+            
+            $options = [];
+            foreach ($room_options as $key => $value) {
+                // Skip if price, adults, or childs are null or if price is zero
+                if ($value['price'] === null || $value['adults'] === null || $value['childs'] === null || $value['price'] == 0) {
+                    continue;
+                }
+                
+                // Check if this room option can accommodate the requested guests
+                $room_adults = (int)$value['adults'];
+                $room_childs = (int)$value['childs'];
+                
+                // Skip if this option doesn't meet the capacity requirements
+                if ($room_adults < $adults || $room_childs < $childs) {
+                    continue;
+                }
+        
+                $option_price = $value['price'] * $rate[0]['rate'];
+                //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
+        
+                $option_price_markup_room = markup_price($module_id[0]['id'], $option_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
+                $markup_room_option_price = $option_price_markup_room['price'];
+                $option_markup_type = $option_price_markup_room['markup_type'];
+                $option_markup_value = $option_price_markup_room['markup_value'];
+                $option_markup_amount = $option_price_markup_room['markup_amount'];
+        
+                $financials = calculateBookingFinancials(
+                    $markup_room_option_price, 
+                    $option_price, 
+                    (int)$days, 
+                    (int)$no_of_rooms,
+                    14
                 );
-                $options = [];
-                foreach ($room_options as $key => $value) {
-                    if (!empty($room_price)) {
-                        $option_price = $value['price'] * $rate[0]['rate'];
-                        //THIS FUNCTION GETS THE REQUIRED PARAMETERS AND RETURNS THE MARKUP PRICE
-
-                        $option_price_markup_room = markup_price($module_id[0]['id'], $option_price, array(0 => $checkin, 1 => $checkout), $locations[0]['city'], $user_id);
-                        $markup_room_option_price = $option_price_markup_room['price'];
-                        $option_markup_type = $option_price_markup_room['markup_type'];
-                        $option_markup_value = $option_price_markup_room['markup_value'];
-                        $option_markup_amount = $option_price_markup_room['markup_amount'];
-                    }
-
-                    if ($value['price'] != 0) {
-
-                        $financials = calculateBookingFinancials(
-                            $markup_room_option_price, 
-                            $option_price, 
-                            (int)$days, 
-                            (int)$no_of_rooms,
-                            14
-                        );
-                        
-                        $options[] = [
-                            "id" => (string) $value['room_id'],
-                            "currency" => $rate[0]['name'],
-                            "price" => number_format($option_price * $days * $no_of_rooms, 2),
-                            "per_day" => number_format($option_price, 2),
-                            "markup_price" => number_format($markup_room_option_price * $days * $no_of_rooms, 2),
-                            "markup_price_per_night" => number_format($markup_room_option_price, 2),
-                            "service_fee" => 10,
-                            "quantity" => $value['quantity'],
-                            "adults" => $value['adults'],
-                            "child" => $value['childs'],
-                            "children_ages" => $child_age,
-                            "bookingurl" => "",
-                            "booking_data" => "",
-                            "extrabeds_quantity" => $rooms[0]['extra_bed'],
-                            "extrabed_price" => $rooms[0]['extra_bed_charges'],
-                            "cancellation" => $value['cancellation'],
-                            "breakfast" => $value['breakfast'],
-                            "dinner" => "",
-                            "board" => "",
-                            "markup_type" => $option_markup_type,
-                            "markup_percentage" => $option_markup_value,
-                            "markup_amount" => number_format($option_markup_amount * $days, 2),
-                            "room_booked" => false,
-                            "subtotal" => number_format($financials['subtotal'], 2),
-                            "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
-                            "cc_fee" => number_format($financials['cc_fee'], 2),
-                            "net_profit" => number_format($financials['net_profit'], 2),
-                        ];
-                    } else {
-                        $options = "NO OPTIONS AVAILABLE";
-                    }
-                }
-
-                isset($details[0]['refundable']) ? $refundable = $details[0]['refundable'] : $refundable = "";
-
-                $room_amenitie = [];
-                $room_amenities = $db->select("rooms_amenties_fk", ['amenity_id'], ["room_id" => $index['id']]);
-                if (!empty($room_amenities[0]['amenity_id'])) {
-                    foreach ($room_amenities as $values) {
-                        $room_amenities_array = $db->select("hotels_settings", ['name'], ["id" => $values['amenity_id']]);
-                        $room_amenitie[] = $room_amenities_array[0]['name'];
-                    }
-                } else {
-                    $room_amenitie = [];
-                }
-
-                //MAKING OBJECT OF ROOMS
-                $room_details[] = (object) [
-                    "id" => (string) $index['id'],
-                    "name" => $index['name'],
-                    "actual_price" => number_format($actual_room_price * $days * $rooms, 2),
-                    "actual_price_per_night" => number_format($actual_room_price, 2),
-                    "markup_price" => number_format($markup_price * $days * $rooms, 2),
-                    "markup_price_per_night" => number_format($markup_price, 2),
-                    "markup_type" => $markup_type,
-                    "markup_percentage" => $markup_value,
-                    "markup_amount" => number_format($markup_amount * $days * $rooms, 2),
-                    "service_fee" => 0,
-                    "currency" => $currency,
-                    "refundable" => $refundable,
-                    "refundable_date" => "",
-                    "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : "https://toptiertravel.vip/assets/img/hotel.jpg",
-                    "amenities" => $room_amenitie,
-                    "options" => $options
+                
+                $options[] = [
+                    "id" => (string) $value['room_id'],
+                    "currency" => $rate[0]['name'],
+                    "price" => number_format($option_price * $days * $no_of_rooms, 2),
+                    "per_day" => number_format($option_price, 2),
+                    "markup_price" => number_format($markup_room_option_price * $days * $no_of_rooms, 2),
+                    "markup_price_per_night" => number_format($markup_room_option_price, 2),
+                    "service_fee" => 10,
+                    "quantity" => $value['quantity'],
+                    "adults" => $value['adults'],
+                    "child" => $value['childs'],
+                    "children_ages" => $child_age,
+                    "bookingurl" => "",
+                    "booking_data" => "",
+                    "extrabeds_quantity" => $rooms[0]['extra_bed'],
+                    "extrabed_price" => $rooms[0]['extra_bed_charges'],
+                    "cancellation" => $value['cancellation'],
+                    "breakfast" => $value['breakfast'],
+                    "dinner" => "",
+                    "board" => "",
+                    "markup_type" => $option_markup_type,
+                    "markup_percentage" => $option_markup_value,
+                    "markup_amount" => number_format($option_markup_amount * $days, 2),
+                    "room_booked" => false,
+                    "subtotal" => number_format($financials['subtotal'], 2),
+                    "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
+                    "cc_fee" => number_format($financials['cc_fee'], 2),
+                    "net_profit" => number_format($financials['net_profit'], 2),
                 ];
             }
+            
+            // If no suitable options found after filtering, skip this room
+            if (empty($options)) {
+                continue;
+            }
+        
+            isset($details[0]['refundable']) ? $refundable = $details[0]['refundable'] : $refundable = "";
+        
+            $room_amenitie = [];
+            $room_amenities = $db->select("rooms_amenties_fk", ['amenity_id'], ["room_id" => $index['id']]);
+            if (!empty($room_amenities[0]['amenity_id'])) {
+                foreach ($room_amenities as $values) {
+                    $room_amenities_array = $db->select("hotels_settings", ['name'], ["id" => $values['amenity_id']]);
+                    $room_amenitie[] = $room_amenities_array[0]['name'];
+                }
+            } else {
+                $room_amenitie = [];
+            }
+        
+            //MAKING OBJECT OF ROOMS
+            $room_details[] = (object) [
+                "id" => (string) $index['id'],
+                "name" => $index['name'],
+                "actual_price" => number_format($actual_room_price * $days * $no_of_rooms, 2),
+                "actual_price_per_night" => number_format($actual_room_price, 2),
+                "markup_price" => number_format($markup_price * $days * $no_of_rooms, 2),
+                "markup_price_per_night" => number_format($markup_price, 2),
+                "markup_type" => $markup_type,
+                "markup_percentage" => $markup_value,
+                "markup_amount" => number_format($markup_amount * $days * $no_of_rooms, 2),
+                "service_fee" => 0,
+                "currency" => $currency,
+                "refundable" => $refundable,
+                "refundable_date" => "",
+                "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : "https://toptiertravel.vip/assets/img/hotel.jpg",
+                "amenities" => $room_amenitie,
+                "options" => $options
+            ];
         }
+
         $lang = $_POST['language'];
         $language_id = $db->select("languages", "*", array('language_code' => strtolower($lang)));
         $hotel_translation = $db->select("hotels_translations", "*", array("hotel_id" => $details[0]['id'],'language_id'=>$language_id[0]['id']));

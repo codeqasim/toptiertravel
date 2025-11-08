@@ -591,14 +591,12 @@ $router->post('user_bookings', function () {
         }
         
         // Sort FILTERED bookings by booking_date DESC
-        usort($allBookings, function ($a, $b) use ($type) {
-            $ad = ($type == "customer") ? $a['booking_date'] : $a['date'];
-            $bd = ($type == "customer") ? $b['booking_date'] : $b['date'];
-            $at = $ad ? strtotime($ad) : 0;
-            $bt = $bd ? strtotime($bd) : 0;
+        usort($allBookings, function ($a, $b) {
+            $aid = isset($a['booking_id']) ? (int)$a['booking_id'] : 0;
+            $bid = isset($b['booking_id']) ? (int)$b['booking_id'] : 0;
         
-            if ($at === $bt) return 0;
-            return ($at > $bt) ? -1 : 1;
+            if ($aid === $bid) return 0;
+            return ($aid > $bid) ? -1 : 1;   // Descending (latest first)
         });
 
         $total_records = count($allBookings);
