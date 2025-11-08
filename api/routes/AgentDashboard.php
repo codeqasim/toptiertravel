@@ -761,6 +761,10 @@ $router->post('agent/dashboard/bookings/recent', function () {
                 $hotel_sales_to_use = $all_records;
             }
 
+            usort($hotel_sales_to_use, function($a, $b) {
+                return strtotime($b['booking_date']) - strtotime($a['booking_date']);
+            });
+
             // Apply pagination to filtered results
             $total_records = count($hotel_sales_to_use);
             $hotel_sales = array_slice($hotel_sales_to_use, $offset, $limit);

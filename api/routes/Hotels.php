@@ -241,6 +241,13 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
 }
 
 function calculateBookingFinancials($markupPrice, $actualPrice, $days, $rooms, $taxPercent = 14) {
+    
+    $markupPrice = (float) $markupPrice;
+    $actualPrice = (float) $actualPrice;
+    $days        = (int) $days;
+    $rooms       = (int) $rooms;
+    $taxPercent  = (float) $taxPercent;
+    
     // Calculate totals
     $totalMarkupPrice = $markupPrice * $days * $rooms;
     $totalActualPrice = $actualPrice * $days * $rooms;
@@ -792,11 +799,11 @@ $router->post('hotel_details', function () {
                         $financials = calculateBookingFinancials(
                             $markup_room_option_price, 
                             $option_price, 
-                            $days, 
-                            $rooms,
-                            2 // tax percentage - get from database or response
+                            (int)$days, 
+                            (int)$no_of_rooms,
+                            14
                         );
-                        dd($financials);
+                        
                         $options[] = [
                             "id" => (string) $value['room_id'],
                             "currency" => $rate[0]['name'],
@@ -974,15 +981,15 @@ $router->post('hotel_details', function () {
                     $markup_type = $option_price_markup_room['markup_type'];
                     $markup_value = $option_price_markup_room['markup_value'];
                     $markup_amount = $option_price_markup_room['markup_amount'];
-                    
+                   
                     $financials = calculateBookingFinancials(
                         number_format($markup_room_option_price / $days, 2), 
                         number_format($actual_option_price / $days, 2), 
-                        $days, 
-                        $no_of_rooms,
-                        2 // tax percentage
+                        (int)$days, 
+                        (int)$no_of_rooms,
+                        14
                     );
-
+                    
                     $options[] = [
                         "id" => $values->id,
                         "currency" => $param['currency'],
