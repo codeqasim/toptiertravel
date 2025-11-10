@@ -71,14 +71,15 @@ include "_header.php";
 include('./xcrud/xcrud.php');
 $xcrud = Xcrud::get_instance();
 $xcrud->table('hotels_bookings');
-$xcrud->columns('agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
-$xcrud->fields('agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
+$xcrud->columns('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
+$xcrud->fields('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
 
 $xcrud->change_type('subtotal', 'hidden');
 // $xcrud->column_callback('agent_fee','agent_fee_cal');
 $xcrud->column_pattern('agent_fee', '<strong>{value} USD</strong>');
 
 $xcrud->relation('agent_id', 'users', 'user_id', array('first_name', 'last_name', 'email'));
+$xcrud->label('booking_ref_no', 'Booking No');
 $xcrud->label('agent_id', 'Agent');
 $xcrud->label('agent_fee', 'Agent Commission');
 $xcrud->unset_title();
@@ -87,7 +88,7 @@ $xcrud->unset_add();
 $xcrud->unset_remove(); 
 $xcrud->order_by('booking_id', 'desc');
 
-$filter_conditions = "1=1";
+$filter_conditions = "1=1 AND agent_fee > 0";
 $filter_status = $_GET['agent_payment_status'] ?? 'all';
 if ($filter_status !== 'all' && !empty($filter_status)) {
     $filter_conditions .= " AND agent_payment_status = '{$filter_status}'";

@@ -1037,7 +1037,7 @@
                   </small>
                   <div class="form-floating">
                         <div class="input-group">
-                           <input type="number" step="any" min="0" class="form-control rounded-0" id="" name="tax"
+                           <input type="number" step="any" class="form-control rounded-0" id="" name="tax"
                               value="14" required>
                            <span class="input-group-text text-white bg-primary">%</span>
                         </div>

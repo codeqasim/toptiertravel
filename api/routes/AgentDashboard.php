@@ -544,10 +544,11 @@ $router->post('agent/dashboard', function () {
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
                     // FETCH ALL BOOKINGS FOR THIS AGENT
-                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id, "payment_status" => "paid"]);
+                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id]);
                     
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
+                    $total_sales_revenue = 0;
                     $total_commission = 0;
                     $total_partner_commission = 0;
                     $total_bookings = 0;
@@ -569,7 +570,7 @@ $router->post('agent/dashboard', function () {
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
                     if(isset($partners) && !empty($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id'], "payment_status" => "paid"]);
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id']]);
                             if(isset($hotels_bookings) && !empty($hotels_bookings)){
                                 foreach ($hotels_bookings as $hotel_booking) {
                                     // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
@@ -609,6 +610,7 @@ $router->post('agent/dashboard', function () {
 
                         // ADD TO TOTAL SALES AND COMMISSION
                         $total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                        $total_sales_revenue += isset($hotel_sale['net_profit']) && is_numeric($hotel_sale['net_profit']) ? $hotel_sale['net_profit'] : 0;
                         $total_commission += $commission;
 
                         // CHECK IF COMMISSION IS PAID OR PENDING AND ADD TO RESPECTIVE TOTAL
@@ -620,13 +622,13 @@ $router->post('agent/dashboard', function () {
 
                         // CHECK IF BOOKING IS IN CURRENT MONTH AND ADD TO CURRENT TOTALS
                         if ($booking_date >= $current_month_start && $booking_date <= $current_month_end) {
-                            $current_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $current_total_sales += isset($hotel_sale['net_profit']) && is_numeric($hotel_sale['net_profit']) ? $hotel_sale['net_profit'] : 0;
                             $current_total_commissions += $commission;
                         }
 
                         // CHECK IF BOOKING IS IN LAST MONTH AND ADD TO LAST MONTH TOTALS
                         if ($booking_date >= $last_month_start && $booking_date <= $last_month_end) {
-                            $last_total_sales += isset($hotel_sale['price_markup']) && is_numeric($hotel_sale['price_markup']) ? $hotel_sale['price_markup'] : 0;
+                            $last_total_sales += isset($hotel_sale['net_profit']) && is_numeric($hotel_sale['net_profit']) ? $hotel_sale['net_profit'] : 0;
                             $last_total_commissions += $commission;
                         }
 
@@ -655,7 +657,7 @@ $router->post('agent/dashboard', function () {
                     $data = [
                         'user' => $user,
                         'notifications' => $notifications,
-                        'total_sales' => $total_sales,
+                        'total_sales' => $total_sales_revenue,
                         'sales_change_percent' => $sales_change,
                         'total_commissions' => $total_commission,
                         'commissions_change_percent' => $commissions_change,

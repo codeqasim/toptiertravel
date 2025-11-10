@@ -138,6 +138,29 @@ function compareByTimeStamp($time1, $time2)
         <?php
         // Query for the Hotel table
         $hotel_data = $db->select("hotels_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
+        
+        $agentIds = array_unique(array_filter(array_column($hotel_data, 'agent_id')));
+        
+        $agentsMap = [];
+            
+        if (!empty($agentIds)) {
+            $agents = $db->select("users", [
+                "user_id",
+                "first_name",
+                "last_name"
+            ], [
+                "user_id" => $agentIds
+            ]);
+            
+            foreach ($agents as $a) {
+                $agentsMap[$a['user_id']] = trim($a['first_name'] . ' ' . $a['last_name']);
+            }
+        }
+        
+        foreach ($hotel_data as $k => $h) {
+            $hotel_data[$k]['agent_name'] = (!empty($h['agent_id']) && isset($agentsMap[$h['agent_id']])) ? $agentsMap[$h['agent_id']]: "";
+        }
+            
         $flight_data = $db->select("flights_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
         $cars_data = $db->select("cars_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
         $tours_data = $db->select("tours_bookings", "*", ["ORDER" => ["booking_id" => "DESC"]]);
@@ -163,6 +186,32 @@ function compareByTimeStamp($time1, $time2)
             }
 
             $hotel_data = $db->select("hotels_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
+            
+            $agentIds = array_unique(array_filter(array_column($hotel_data, 'agent_id')));
+
+            $agentsMap = [];
+            
+            if (!empty($agentIds)) {
+                $agents = $db->select("users", [
+                    "id",
+                    "first_name",
+                    "last_name"
+                ], [
+                    "id" => $agentIds
+                ]);
+            
+                foreach ($agents as $a) {
+                    $agentsMap[$a['id']] = trim($a['first_name'] . ' ' . $a['last_name']);
+                }
+            }
+            
+            foreach ($hotel_data as $k => $h) {
+                $hotel_data[$k]['agent_name'] =
+                    (!empty($h['agent_id']) && isset($agentsMap[$h['agent_id']]))
+                    ? $agentsMap[$h['agent_id']]
+                    : "";
+            }
+            
             $flight_data = $db->select("flights_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
             $cars_data = $db->select("cars_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
             $tours_data = $db->select("tours_bookings", "*", array_merge($parm, ["ORDER" => ["booking_id" => "DESC"]]));
@@ -213,6 +262,11 @@ function compareByTimeStamp($time1, $time2)
                                 <span> <?=T::hotels_checkin?> <br /> <strong><?=$value['checkin']?></strong></span>
                                 <span> <?=T::hotels_checkout?> <br /> <strong><?=$value['checkout']?></strong></span>
                                 <span> <?=T::listing?> <br /> <strong><?=$value['hotel_name']?></strong></span>
+                            <?php } ?>
+                            
+                            <?php if($value['module_type'] == 'hotels' && isset($value['agent_id']) && !empty($value['agent_id'])){?>
+                                <span> <?=T::agent?> <br /> <strong><?=$value['agent_name']?></strong></span>
+                                <span> <?=T::commission?> <br /> <strong><?=$value['currency_markup']." ".number_format($value['agent_fee'],2)?></strong></span>
                             <?php } ?>
 
                             <?php if($value['module_type'] == 'flights'){?>
