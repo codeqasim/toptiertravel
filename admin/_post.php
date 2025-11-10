@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // NOTIFICATION
     if (isset($_POST['notification'])) {
-        $db->insert("notifications", [ "name" => $_POST['name'], "date" =>  date('Y-m-d H:i:s') ]);
+        $db->insert("notifications", [ "name" => $_POST['name'],"description" => $_POST['description'], "date" =>  date('Y-m-d H:i:s') ]);
         die;
     }
 

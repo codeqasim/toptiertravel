@@ -843,7 +843,6 @@ AGENT NOTIFICATIONS API
 ==================*/
 $router->post('agent/dashboard/notifications', function () {
     include "./config.php";
-    session_start();
 
     $response = [
         "status"  => false,

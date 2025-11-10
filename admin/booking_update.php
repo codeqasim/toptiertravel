@@ -940,7 +940,7 @@ include "_header.php";
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
-                            <input type="number" class="form-control" id="net_profit" name="net_profit" step="any" min="0"
+                            <input type="number" class="form-control" id="net_profit" name="net_profit" step="any"
                                 value="<?= $data[0]['net_profit'] ?? '' ?>" required
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
@@ -1112,7 +1112,7 @@ include "_header.php";
                     const totalSubtotal = subtotalPerNight * days * roomQuantity;
 
                     // Agent commission calculation (based on total subtotal)
-                    const agentCommissionAmount = (totalSubtotal * agentCommissionPercent) / 100;
+                    const agentCommissionAmount = agentCommissionPercent;
 
                     // Net Profit Calculation:
                     // Total revenue - supplier cost - agent commission + IATA benefit - CC fee

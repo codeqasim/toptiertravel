@@ -67,12 +67,14 @@ if ($url_name != "profile" && $url_name != "flights" && $url_name != "hotels" &&
 <script src="<?=root?>assets/js/toast-alerts.js"></script>
 <!--<script src="<?=root?>assets/js/bootstrap.bundle.min.js"></script>-->
 <script src="<?=root?>assets/js/bootstrap-select.js"></script>
+<script src="https://js.pusher.com/8.2/pusher.min.js"></script>
 
 <script>
 
 Pusher.logToConsole = true;
-var pusher = new Pusher('be4840bf63594e1468bb', { cluster: 'us2' });
-var channel = pusher.subscribe('<?=$_SERVER['SERVER_NAME']?>');
+var pusher = new Pusher('de441f2de3ea4cc57f04', { cluster: 'ap2' });
+<?php $channel = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $_SERVER['SERVER_NAME']); ?>
+var channel = pusher.subscribe('<?=$channel?>');
 channel.bind('event', function(data) {
 // alert(JSON.stringify(data));
 // console.log(JSON.stringify(data.message1))
@@ -89,7 +91,13 @@ vt.success(data.message2, {
 // SEND NOTIFICATION TO DATABASE
 var form = new FormData();
 form.append("notification", "");
-form.append("name", data.message1+' '+data.message2);
+if(data.message1 === "Hotel_hotel_booking"){
+    form.append("name", "New Hotel Booking");
+    form.append("description", data.message2);
+}else[
+    form.append("name", data.message1+' '+data.message2);
+    form.append("description", "");
+]
 
 var settings = {
   "url": "./_post.php",
