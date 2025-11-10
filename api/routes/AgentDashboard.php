@@ -154,6 +154,8 @@ $router->post('agent/dashboard/signup', function () {
         $db->update("users", ["ref_id" => $_POST['ref_id']], ["id" => $user_id]);
     }
 
+    $db->insert('settings',['user_id' => $user_id]);
+
     // GET UPDATED USER INFO
     $user_info = $db->get("users", "*", ["id" => $user_id]);
 
