@@ -242,7 +242,10 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
 
 function calculateBookingFinancials($markupPrice, $actualPrice, $days, $rooms, $taxPercent = 14) {
     
+    $markupPrice = str_replace(',', '', $markupPrice);
     $markupPrice = (float) $markupPrice;
+
+    $actualPrice = str_replace(',', '', $actualPrice);
     $actualPrice = (float) $actualPrice;
     $days        = (int) $days;
     $rooms       = (int) $rooms;
@@ -1140,7 +1143,7 @@ $router->post('hotel_details', function () {
                 "booking_age_requirement" => $hotel_details->booking_age_requirement,
                 "policy" => $hotel_details->policy,
                 "cancellation" => $hotel_details->cancellation,
-                "tax_percentage" => $hotel_details->tax_percentage ?? 14,
+                "tax_percentage" => isset($hotel_details->tax_percentage) && !empty($hotel_details->tax_percentage) ? $hotel_details->tax_percentage : 14,
                 "hotel_phone" => $hotel_details->hotel_phone,
                 "hotel_email" => $hotel_details->hotel_email,
                 "hotel_website" => $hotel_details->hotel_website,

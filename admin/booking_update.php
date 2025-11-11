@@ -556,13 +556,13 @@ include "_header.php";
                     <div class="card-body p-3">
                         <div class="row g-3">
                             <?php
-                            $suppliers = $db->select('users', '*', [
-                            'user_type' => 'supplier',  
-                            'status' => 1
-                        ]);
+                            $suppliers = $db->select('modules', ['name','id'], [
+                                'type' => 'hotels',  
+                                'status' => 1
+                            ]);
 
-                        $selectedsupplierId = $data[0]['supplier_id'] ?? null;
-                    ?>
+                            $selectedsupplierId = $data[0]['supplier_id'] ?? null;
+                            ?>
 
                             <div class="col-md-4">
                                 <div class="form-floating">
@@ -572,9 +572,9 @@ include "_header.php";
                                             <?=T::supplier?>
                                         </option>
                                         <?php foreach ($suppliers as $supplier): ?>
-                                        <option value="<?= $supplier['user_id'] ?>"
-                                            <?=($selectedsupplierId==$supplier['user_id']) ? "selected" : "" ; ?>>
-                                            <?= htmlspecialchars($supplier['first_name'] . ' ' . $supplier['last_name']) ?>
+                                        <option value="<?= $supplier['id'] ?>"
+                                            <?=($selectedsupplierId==$supplier['id']) ? "selected" : "" ; ?>>
+                                            <?= ucfirst(htmlspecialchars($supplier['name'] . ' Supplier')) ?>
                                         </option>
                                         <?php endforeach; ?>
                                     </select>

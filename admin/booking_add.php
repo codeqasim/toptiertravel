@@ -603,12 +603,15 @@
                                  <?=T::select_supplier?>
                               </option>
                               <?php 
-                                    $agents = $db->select("users", "*", ["user_type" => "supplier"]);
+                                    $agents = $db->select('modules', ['name','id'], [
+                                                'type' => 'hotels',  
+                                                'status' => 1
+                                            ]);
                                     foreach ($agents as $agent) {
                                     ?>
 
-                              <option value="<?= $agent['user_id']?>">
-                                 <?= $agent['first_name'] . ' ' . $agent['last_name'] ?>
+                              <option value="<?= $agent['id']?>">
+                                 <?= ucfirst(htmlspecialchars($agent['name'] . ' Supplier'))?>
                               </option>
                               <?php } ?>
                            </select>
