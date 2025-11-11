@@ -47,7 +47,7 @@ $router->post('agent/dashboard/commission', function () {
                     $last_month_start = date('Y-m-01', strtotime('first day of last month'));
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
-                    $conditions = ["agent_id" => $user_id];
+                    $conditions = ["agent_id" => $user_id,'booking_status' => 'confirmed'];
 
                     if (isset($interval) && $interval != null) {
                         $today = date('Y-m-d');
@@ -221,7 +221,8 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [
-        "agent_id" => $user_id
+        "agent_id" => $user_id,
+        'booking_status' => 'confirmed'
     ];
 
     // BOOKING STATUS FILTER
@@ -414,6 +415,7 @@ $router->post('agent/dashboard/commissions/bookings/active', function () {
                 'commission'    => $hotel_sale['agent_fee'] ?? 0,
                 'commission_rate' => round($commission_percentage, 2),
                 'payment_status'=> $hotel_sale['agent_payment_status'],
+                'booking_status'=> $hotel_sale['booking_status'],
                 'payment_type'  => $hotel_sale['agent_payment_type'],
                 'payment_date'  => isset($hotel_sale['agent_payment_date']) && $hotel_sale['agent_payment_date'] != null ? date('Y-m-d',strtotime($hotel_sale['agent_payment_date'])) : null,
             ];
@@ -491,7 +493,8 @@ $router->post('agent/dashboard/commissions/top_bookings', function () {
 
     $conditions = [
         'agent_id'   => $user_id,
-        'agent_fee[!]' => null
+        'agent_fee[!]' => null,
+        'booking_status' => 'confirmed'
     ];
 
     $today = date('Y-m-d');
@@ -615,7 +618,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
         case 'all_time':
             $earliest = $db->get("hotels_bookings", "booking_date", [
                 "agent_id" => $user_id,
-                "ORDER"    => ["booking_date" => "ASC"]
+                "ORDER"    => ["booking_date" => "ASC"],
+                'booking_status' => 'confirmed'
             ]);
             $start_date = $earliest ?: $today;
             $days_count = (strtotime($today) - strtotime($start_date)) / (60*60*24) + 1;
@@ -638,7 +642,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     $current_conditions = [
         "agent_id"         => $user_id,
         "booking_date[>=]" => $start_date,
-        "booking_date[<=]" => $end_date
+        "booking_date[<=]" => $end_date,
+        'booking_status' => 'confirmed'
     ];
     $current_sales = $db->select("hotels_bookings", '*', $current_conditions);
 
@@ -646,7 +651,8 @@ $router->post('agent/dashboard/commissions/status_graph', function () {
     $previous_month_conditions = [
         "agent_id"         => $user_id,
         "booking_date[>=]" => $prev_month_start,
-        "booking_date[<=]" => $prev_month_end
+        "booking_date[<=]" => $prev_month_end,
+        'booking_status' => 'confirmed'
     ];
     $previous_month_sales = $db->select("hotels_bookings", '*', $previous_month_conditions);
 

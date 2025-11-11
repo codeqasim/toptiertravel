@@ -37,7 +37,7 @@ $router->post('agent/dashboard/reservations', function () {
     }
         if(isset($user[0])){
             $user_data = (object)$user[0];
-            $conditions = ["agent_id" => $user_id];
+            $conditions = ["agent_id" => $user_id,'booking_status' => 'confirmed'];
 
             // FETCH ALL BOOKINGS FOR THIS AGENT WITH CONDITIONS
             $hotel_sales = $db->select("hotels_bookings", "*", $conditions);
@@ -167,7 +167,7 @@ $router->post('agent/dashboard/reservations/calender', function () {
         return;
     }
 
-    $conditions = ["agent_id" => $user_id];
+    $conditions = ["agent_id" => $user_id,'booking_status' => 'confirmed'];
 
     // Default to current month/year if not provided
     if (empty($month) || empty($year)) {
@@ -291,7 +291,8 @@ $router->post('agent/dashboard/reservations/recent', function () {
 
     // BASE CONDITIONS FOR QUERY
     $conditions = [
-        "agent_id" => $user_id
+        "agent_id" => $user_id,
+        'booking_status' => 'confirmed'
     ];
 
     // BOOKING STATUS FILTER

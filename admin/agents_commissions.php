@@ -71,17 +71,19 @@ include "_header.php";
 include('./xcrud/xcrud.php');
 $xcrud = Xcrud::get_instance();
 $xcrud->table('hotels_bookings');
-$xcrud->columns('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
-$xcrud->fields('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_fee,subtotal');
 
+$xcrud->columns('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_payment_date,agent_fee,subtotal');
+$xcrud->fields('booking_ref_no,agent_id,agent_payment_status,agent_payment_type,agent_payment_date,agent_fee,subtotal');
+
+$xcrud->change_type('agent_payment_date', 'date'); // or datetime
 $xcrud->change_type('subtotal', 'hidden');
-// $xcrud->column_callback('agent_fee','agent_fee_cal');
 $xcrud->column_pattern('agent_fee', '<strong>{value} USD</strong>');
 
 $xcrud->relation('agent_id', 'users', 'user_id', array('first_name', 'last_name', 'email'));
 $xcrud->label('booking_ref_no', 'Booking No');
 $xcrud->label('agent_id', 'Agent');
 $xcrud->label('agent_fee', 'Agent Commission');
+$xcrud->label('agent_payment_date', 'Payment Date');
 $xcrud->unset_title();
 $xcrud->unset_csv(); 
 $xcrud->unset_add();
@@ -118,9 +120,9 @@ $total_fee_query = $db->query("
 $total_fee = $total_fee_query['total_fee'] ?? 0;
 ?>
 
-<div class="container mt-3">
+<!-- <div class="container mt-3">
     <div class="bg-primary text-center">
         <h4 class="py-2">Total Commission<strong><?= number_format($total_fee, 2) ?> USD</strong></h4>
     </div>
-</div>
+</div> -->
 <?php include "_footer.php" ?>

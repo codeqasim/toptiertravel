@@ -88,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     'homepage_text' => $_POST['homepage_text'],
     'newsletter_title' => $_POST['title'],
     'newsletter_description' => $_POST['description'],
+    'booking_tax' => $_POST['booking_tax'],
     );
 
     $id = 1;
@@ -330,6 +331,12 @@ $settings = GET('settings',$params)[0];
         <script>
             $("[name='agent_registration']").val(<?=$settings->agent_registration?>)
         </script>
+        <div class="row form-group mb-3">
+          <label class="col-md-3 control-label text-left pt-2"><?=T::booking_tax?></label>
+          <div class="col-md-9">
+          <input type="text" name="booking_tax" class="form-control" value="<?=$settings->booking_tax?>">
+          </div>
+        </div>
         <div class="text-end">
         <?php if (isset($permission_edit)){ ?>
           <button class="btn-block btn btn-primary" type="submit"> <?=T::updating_settings?></button>

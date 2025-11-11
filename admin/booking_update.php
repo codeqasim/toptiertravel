@@ -212,30 +212,41 @@ include "_header.php";
             $days = max(1, $checkin_date->diff($checkout_date)->days);
 
             // --- 2. Get UPDATED pricing inputs from $_GET ---
-            $room_price_per_night = floatval($_GET['room_price'] ?? 0);          // markup price per night
-            $actual_room_price_per_night = floatval($_GET['actual_room_price'] ?? 0); // actual/supplier price per night
-            $room_quantity = floatval($_GET['room_quantity'] ?? ($existing['booking_nights'] > 0 ? 1 : 1)); // fallback to 1
+            $room_price_per_night = floatval($_GET['room_price'] ?? 0);          // TAX EXCLUSIVE markup price per night
+            $actual_room_price_per_night = floatval($_GET['actual_room_price'] ?? 0); // Supplier price per night
+            $room_quantity = floatval($_GET['room_quantity'] ?? ($existing['booking_nights'] > 0 ? 1 : 1));
 
-            // Recalculate totals
-            $total_markup_price = $room_price_per_night * $days * $room_quantity;
-            $total_actual_price = $actual_room_price_per_night * $days * $room_quantity;
-            $cc_fee = ($total_markup_price * 0.029) + 0.3;
+            // Recalculate totals to match frontend logic
+            $multiplier = $days * $room_quantity;
 
+            // Calculate base amounts (matching frontend)
+            $total_actual_price = $actual_room_price_per_night * $multiplier;      // Total supplier cost
+            $total_markup_price = $room_price_per_night * $multiplier;             // Total markup price (tax exclusive)
+
+            // Tax amount (calculated on supplier cost as per frontend)
             $tax_percent = floatval($_GET['tax'] ?? $existing['tax']);
+            $total_tax = $total_actual_price * ($tax_percent / 100);
+
+            // Total selling price (markup price + tax)
+            $total_selling_price = $total_markup_price + $total_tax;
+
+            // Credit card fee (on total selling price as per frontend)
+            $cc_fee = ($total_selling_price * 0.029) + 0.3;
+
             $agent_commission = floatval($_GET['agent_comission'] ?? $existing['agent_fee']);
-            $supplier_cost = floatval($_GET['supplier_cost'] ?? $existing['supplier_cost']);
             $iata = floatval($_GET['iata'] ?? $existing['iata']);
 
-            // Recalculate dependent fields
-            $subtotal_per_night = $tax_percent > 0 ? ($room_price_per_night / (1 + $tax_percent / 100)) : $room_price_per_night;
-            $total_subtotal = $subtotal_per_night * $days * $room_quantity;
-            $net_profit = $total_markup_price - $supplier_cost - $agent_commission + $iata - $cc_fee;
+            // Net profit calculation (matching frontend exactly)
+            $net_profit = $total_selling_price - $total_actual_price - $agent_commission + $iata - $cc_fee;
 
-            // --- 3. UPDATE room_data (only prices & totals, keep rest as-is) ---
+            // Subtotal is the markup price before tax (as per frontend)
+            $subtotal = $total_markup_price;
+
+            // --- 3. UPDATE room_data ---
             $room_data_json = $existing['room_data'];
             $room_data = json_decode($existing['room_data'], true);
-            if (!empty($room_data) && is_array($room_data)) {
-                // Update only price-related fields
+            if (!empty($room_data) && is_array($room_data) && isset($room_data[0])) {
+                // Update only the first room entry with price-related fields
                 $room_data[0]['room_price_per_night'] = $room_price_per_night;
                 $room_data[0]['room_actual_price_per_night'] = $actual_room_price_per_night;
                 $room_data[0]['room_quantity'] = $room_quantity;
@@ -246,20 +257,43 @@ include "_header.php";
                 $room_data_json = json_encode($room_data);
             }
 
-            // --- 4. UPDATE booking_data (only prices & totals) ---
-            $booking_data_json = $existing['booking_data'];
-            $booking_data = json_decode($existing['booking_data'], true);
-            if (!empty($booking_data) && is_array($booking_data)) {
-                $booking_data['price'] = number_format($total_actual_price, 2, '.', '');
-                $booking_data['per_day'] = number_format($actual_room_price_per_night, 2, '.', '');
-                $booking_data['markup_price'] = number_format($total_markup_price, 2, '.', '');
-                $booking_data['markup_price_per_night'] = number_format($room_price_per_night, 2, '.', '');
-                $booking_data['service_fee'] = number_format($cc_fee, 2, '.', '');
-                $booking_data['quantity'] = $room_quantity;
-                $booking_data_json = json_encode($booking_data);
-            }
+            // --- 4. UPDATE booking_data ---
+            $existing_booking_data = json_decode($existing['booking_data'], true) ?: [];
 
-            // --- 5. Prepare update data (only change price-related + statuses) ---
+            // Create clean booking_data structure
+            $booking_data = [
+                'id' => $existing_booking_data['id'] ?? $room_data[0]['room_id'] ?? '22',
+                'currency' => $existing_booking_data['currency'] ?? 'USD',
+                'price' => number_format($total_actual_price, 2, '.', ''),
+                'per_day' => number_format($actual_room_price_per_night, 2, '.', ''),
+                'markup_price' => number_format($total_selling_price, 2, '.', ''),
+                'markup_price_per_night' => number_format($room_price_per_night, 2, '.', ''),
+                'service_fee' => number_format($cc_fee, 2, '.', ''),
+                'quantity' => $room_quantity,
+                'adults' => $existing_booking_data['adults'] ?? 2,
+                'child' => $existing_booking_data['child'] ?? 0,
+                'children_ages' => $existing_booking_data['children_ages'] ?? '[]',
+                'bookingurl' => $existing_booking_data['bookingurl'] ?? '',
+                'booking_data' => $existing_booking_data['booking_data'] ?? '',
+                'extrabeds_quantity' => $existing_booking_data['extrabeds_quantity'] ?? 0,
+                'extrabed_price' => $existing_booking_data['extrabed_price'] ?? 0,
+                'cancellation' => $existing_booking_data['cancellation'] ?? '',
+                'breakfast' => $existing_booking_data['breakfast'] ?? '',
+                'dinner' => $existing_booking_data['dinner'] ?? '',
+                'board' => $existing_booking_data['board'] ?? '',
+                'markup_type' => $existing_booking_data['markup_type'] ?? 'b2c_default',
+                'markup_percentage' => $existing_booking_data['markup_percentage'] ?? 10,
+                'markup_amount' => $existing_booking_data['markup_amount'] ?? '5.00',
+                'room_booked' => $existing_booking_data['room_booked'] ?? false,
+                'subtotal' => number_format($subtotal, 2, '.', ''),
+                'subtotal_per_night' => number_format($room_price_per_night, 2, '.', ''),
+                'cc_fee' => number_format($cc_fee, 2, '.', ''),
+                'net_profit' => number_format($net_profit, 2, '.', '')
+            ];
+
+            $booking_data_json = json_encode($booking_data);
+
+            // --- 5. Prepare update data ---
             $update_data = [
                 'booking_status' => $_GET['booking_status'],
                 'payment_status' => $_GET['payment_status'],
@@ -267,15 +301,15 @@ include "_header.php";
                 'checkout' => $checkout,
                 'booking_nights' => $days,
 
-                // Pricing fields
+                // Pricing fields - using recalculated values
                 'price_original' => $total_actual_price,
-                'price_markup' => $total_markup_price,
+                'price_markup' => $total_selling_price,
                 'net_profit' => $net_profit,
                 'tax' => $tax_percent,
                 'agent_fee' => $agent_commission,
-                'supplier_cost' => $supplier_cost,
+                'supplier_cost' => $total_actual_price,
                 'iata' => $iata,
-                'subtotal' => number_format($total_subtotal,2),
+                'subtotal' => number_format($subtotal, 2),
 
                 // Status & payment fields
                 'agent_id' => $_GET['agent_id'] ?? $existing['agent_id'],
@@ -414,33 +448,6 @@ include "_header.php";
             <div class="col-md-3">
                 <div class="form-floating">
                     <input type="text" class="form-control" name="customer_payment_type" value="stripe" readonly>
-                    <!-- <select class="form-select select2" id="customer_payment_type" name="customer_payment_type" required>
-                        <option disabled selected value=""><?=T::select?> <?=T::payment?> <?=T::type?></option>
-                        <option value="stripe" <?=($data[0]['customer_payment_type'] ?? '' )==="stripe"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::stripe?>
-                        </option>
-                        <option value="wire" <?=($data[0]['customer_payment_type'] ?? '' )==="wire"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::wire?>
-                        </option>
-                        <option value="zelle" <?=($data[0]['customer_payment_type'] ?? '' )==="zelle"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::zelle?>
-                        </option>
-                        <option value="venmo" <?=($data[0]['customer_payment_type'] ?? '' )==="venmo"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::venmo?>
-                        </option>
-                        <option value="paypal" <?=($data[0]['customer_payment_type'] ?? '' )==="paypal"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::paypal?>
-                        </option>
-                        <option value="cash" <?=($data[0]['customer_payment_type'] ?? '' )==="cash"
-                                            ? "selected" : "" ;?>>
-                                            <?=T::cash?>
-                        </option>
-                    </select> -->
                     <label for="customer_payment_type"><?=T::customer?> <?=T::payment?> <?=T::type?></label>
                 </div>
             </div>
@@ -662,7 +669,7 @@ include "_header.php";
                                         <div class="form-floating">
                                             <input type="number" class="form-control" id="supplier_cost" step="any" min="0"
                                                 name="supplier_cost" value="<?= $data[0]['supplier_cost'] ?? '' ?>"
-                                                required
+                                                required readonly
                                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                                             <label for="">
                                                 <?=T::supplier?>
@@ -759,7 +766,6 @@ include "_header.php";
                             </div>
 
                             
-                            <!-- <div class="col-md-5"></div> -->
                             <!-- Agent Commission -->
                             <div class="col-md-3">
                                 <div class="input-group">
@@ -909,11 +915,9 @@ include "_header.php";
                         </div>
                         <span class="input-group-text text-white bg-primary">
                             %
-
                         </span>
                     </div>
                 </div>
-
             </div>
 
             <div class="col-md-2">
@@ -921,19 +925,17 @@ include "_header.php";
                     <div class="input-group">
                         <div class="form-floating">
                             <input type="number" class="form-control" id="subtotal" name="subtotal" step="any" min="0"
-                                value="<?= $data[0]['subtotal'] ?? '' ?>" required
+                                value="<?= $data[0]['subtotal'] ?? '' ?>" required readonly
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
                                 <?=T::sub?> <?=T::total?>
                             </label>
                         </div>
                         <span class="input-group-text text-white bg-primary">
-                            %
-
+                            <?= $curreny[0]['name']?>
                         </span>
                     </div>
                 </div>
-
             </div>
 
             <div class="col-md-2">
@@ -941,7 +943,7 @@ include "_header.php";
                     <div class="input-group">
                         <div class="form-floating">
                             <input type="number" class="form-control" id="net_profit" name="net_profit" step="any"
-                                value="<?= $data[0]['net_profit'] ?? '' ?>" required
+                                value="<?= $data[0]['net_profit'] ?? '' ?>" required readonly
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label for="">
                                 <?=T::net_profit?>
@@ -950,20 +952,16 @@ include "_header.php";
                         <span class="input-group-text text-white bg-primary">
                             <?= $curreny[0]['name']?>
                         </span>
-
                     </div>
-                    <!-- <label for="">Room Price</label> -->
                 </div>
             </div>
-
-
 
             <div class="col-md-4">
                 <div class="form-floating">
                     <div class="input-group">
                         <div class="form-floating">
                             <input type="number" class="form-control text-dark" id="bookingPrice" step="any" min="0"
-                                value="<?= $data[0]['price_markup'] ?? '' ?>" name="price" required
+                                value="<?= $data[0]['price_markup'] ?? '' ?>" name="price" required readonly
                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                             <label class="text-dark" for="">
                                 <?=T::total?>
@@ -1065,69 +1063,71 @@ include "_header.php";
                     // Get total days from flatpickr instances
                     const checkinDate = flatpickrInstance.checkin?.selectedDates[0];
                     const checkoutDate = flatpickrInstance.checkout?.selectedDates[0];
-                    
+
                     let days = 0;
                     if (checkinDate && checkoutDate) {
                         const diffTime = checkoutDate - checkinDate;
                         days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     }
 
-                    // If no days, don't calculate
+                    // If no days, clear fields
                     if (days === 0) {
                         $('#bookingPrice').val("0.00");
                         $('#subtotal').val("0.00");
                         $('#net_profit').val("0.00");
-                        $('#agent_comission').val("0.00");
+                        $('#agent_comission_amount').val("0.00");
+                        $('#supplier_cost').val("0.00");
                         return;
                     }
 
-                    // Get input values
-                    const roomPricePerNight = getInputValue("room_price"); // Markup price per night
-                    const actualRoomPricePerNight = getInputValue("actual_room_price"); // Actual price per night
+                    // Input values
+                    const roomPricePerNight = getInputValue("room_price");              // TAX EXCLUSIVE markup price per night
+                    const actualRoomPricePerNight = getInputValue("actual_room_price"); // Supplier cost per night
                     const roomQuantity = getInputValue("room_quantity") || 1;
-                    const agentCommissionPercent = getInputValue("agent_comission");
+                    const agentCommissionAmount = getInputValue("agent_comission");     // FIXED AMOUNT
                     const taxPercent = getInputValue("tax");
-                    const supplierCost = getInputValue("supplier_cost"); // Total supplier cost
                     const iata = getInputValue("iata");
 
                     if (roomPricePerNight === 0) {
                         $('#bookingPrice').val("0.00");
                         $('#subtotal').val("0.00");
                         $('#net_profit').val("0.00");
-                        $('#agent_comission').val("0.00");
+                        $('#agent_comission_amount').val("0.00");
+                        $('#supplier_cost').val("0.00");
                         return;
                     }
 
-                    // Calculate total prices (per night × days × quantity)
-                    const totalMarkupPrice = roomPricePerNight * days * roomQuantity;
-                    const totalActualPrice = actualRoomPricePerNight * days * roomQuantity;
+                    const multiplier = days * roomQuantity;
 
-                    // Calculate Credit Card Fee (based on total markup price)
-                    const ccFee = (totalMarkupPrice * 0.029) + 0.3;
+                    // 1. Calculate base amounts
+                    const totalActualPrice = actualRoomPricePerNight * multiplier;      // Total supplier cost
+                    const totalMarkupPrice = roomPricePerNight * multiplier;            // Total markup price (tax exclusive)
 
-                    // Subtotal calculation: PER-NIGHT price without tax
-                    const subtotalPerNight = roomPricePerNight / (1 + taxPercent / 100);
-                    
-                    // Total subtotal (subtotal per night × days × quantity)
-                    const totalSubtotal = subtotalPerNight * days * roomQuantity;
+                    // 2. Tax amount (calculated on supplier cost)
+                    const totalTax = totalActualPrice * (taxPercent / 100);
 
-                    // Agent commission calculation (based on total subtotal)
-                    const agentCommissionAmount = agentCommissionPercent;
+                    // 3. Total selling price (markup price + tax)
+                    const totalSellingPrice = totalMarkupPrice + totalTax;
 
-                    // Net Profit Calculation:
-                    // Total revenue - supplier cost - agent commission + IATA benefit - CC fee
-                    const netProfit = totalMarkupPrice - supplierCost - agentCommissionAmount + iata - ccFee;
+                    // 4. Subtotal (markup price before tax)
+                    const subtotal = totalMarkupPrice;
 
-                    // Set calculated values in respective input fields
-                    $('#bookingPrice').val(totalMarkupPrice.toFixed(2));
-                    $('#subtotal').val(totalSubtotal.toFixed(2));
+                    // 5. Credit card fee (on total selling price)
+                    const ccFee = (totalSellingPrice * 0.029) + 0.3;
+
+                    // 6. Net profit
+                    const netProfit = totalSellingPrice - totalActualPrice - agentCommissionAmount + iata - ccFee;
+
+                    // OUTPUT
+                    $('#bookingPrice').val(totalSellingPrice.toFixed(2));               // Final price customer pays
+                    $('#subtotal').val(subtotal.toFixed(2));                            // Markup price before tax
+                    $('#agent_comission_amount').val(agentCommissionAmount.toFixed(2)); // Fixed commission amount
                     $('#net_profit').val(netProfit.toFixed(2));
-                    $('#supplier_cost').val(totalActualPrice.toFixed(2));
-                    // Note: agent_comission field shows percentage, not amount
+                    $('#supplier_cost').val(totalActualPrice.toFixed(2));               // Update supplier cost field
                 }
 
                 // Event listeners for input fields that should trigger recalculation
-                $('#room_price, #actual_room_price, #room_quantity, #agent_comission, #tax, #supplier_cost, #iata').on('input', calculateTotalPrice);
+                $('#room_price, #actual_room_price, #room_quantity, #agent_comission, #tax, #iata').on('input', calculateTotalPrice);
 
                 // Handle agent selection change to auto-fill commission percentage
                 $('#agent_id').on('change', function () {
@@ -1294,8 +1294,8 @@ include "_header.php";
                     var bookingnote = $("#bookingnote").val();
                     var agent_id = $("#agent_id").val() ?? '';
                     var room_price = $("#room_price").val();
-                    var actual_room_price = $("#actual_room_price").val(); // ADD THIS
-                    var room_quantity = $("#room_quantity").val(); // ADD THIS
+                    var actual_room_price = $("#actual_room_price").val();
+                    var room_quantity = $("#room_quantity").val();
                     var net_profit = $("#net_profit").val();
                     var tax = $("#tax").val();
                     var agent_comission = $("#agent_comission").val();
@@ -1315,39 +1315,39 @@ include "_header.php";
 
                     // Build URL with all parameters
                     var url = "<?=$root?>booking_update.php?" +
-                        "booking_id=" + booking_id +
-                        "&module=" + module +
-                        "&booking_date=" + booking_date +
-                        "&booking_status=" + booking_status +
-                        "&payment_status=" + payment_status +
-                        "&checkin=" + checkin +
-                        "&checkout=" + checkout +
-                        "&hotel_id=" + hotel_id +
-                        "&first_name=" + first_name +
-                        "&last_name=" + last_name +
-                        "&email=" + email +
-                        "&phone=" + phone +
-                        "&room_price=" + room_price +
-                        "&actual_room_price=" + actual_room_price + // ADD THIS
-                        "&room_quantity=" + room_quantity + // ADD THIS
-                        "&net_profit=" + net_profit +
-                        "&tax=" + tax +
-                        "&agent_comission=" + agent_comission +
-                        "&bookingPrice=" + bookingPrice +
-                        "&bookingnote=" + bookingnote +
-                        "&agent_id=" + agent_id +
-                        "&room_select=" + room_select +
-                        "&supplier_payment_status=" + supplier_payment_status +
-                        "&supplier_due_date=" + supplier_due_date +
-                        "&cancellation_terms=" + cancellation_terms +
-                        "&supplier_cost=" + supplier_cost +
-                        "&supplier_id=" + supplier_id +
-                        "&supplier_payment_type=" + supplier_payment_type +
-                        "&customer_payment_type=" + customer_payment_type +
-                        "&iata=" + iata +
-                        "&subtotal=" + subtotal +
-                        "&agent_payment_type=" + agent_payment_type +
-                        "&agent_payment_status=" + agent_payment_status;
+                        "booking_id=" + encodeURIComponent(booking_id) +
+                        "&module=" + encodeURIComponent(module) +
+                        "&booking_date=" + encodeURIComponent(booking_date) +
+                        "&booking_status=" + encodeURIComponent(booking_status) +
+                        "&payment_status=" + encodeURIComponent(payment_status) +
+                        "&checkin=" + encodeURIComponent(checkin) +
+                        "&checkout=" + encodeURIComponent(checkout) +
+                        "&hotel_id=" + encodeURIComponent(hotel_id) +
+                        "&first_name=" + encodeURIComponent(first_name) +
+                        "&last_name=" + encodeURIComponent(last_name) +
+                        "&email=" + encodeURIComponent(email) +
+                        "&phone=" + encodeURIComponent(phone) +
+                        "&room_price=" + encodeURIComponent(room_price) +
+                        "&actual_room_price=" + encodeURIComponent(actual_room_price) +
+                        "&room_quantity=" + encodeURIComponent(room_quantity) +
+                        "&net_profit=" + encodeURIComponent(net_profit) +
+                        "&tax=" + encodeURIComponent(tax) +
+                        "&agent_comission=" + encodeURIComponent(agent_comission) +
+                        "&bookingPrice=" + encodeURIComponent(bookingPrice) +
+                        "&bookingnote=" + encodeURIComponent(bookingnote) +
+                        "&agent_id=" + encodeURIComponent(agent_id) +
+                        "&room_select=" + encodeURIComponent(room_select) +
+                        "&supplier_payment_status=" + encodeURIComponent(supplier_payment_status) +
+                        "&supplier_due_date=" + encodeURIComponent(supplier_due_date) +
+                        "&cancellation_terms=" + encodeURIComponent(cancellation_terms) +
+                        "&supplier_cost=" + encodeURIComponent(supplier_cost) +
+                        "&supplier_id=" + encodeURIComponent(supplier_id) +
+                        "&supplier_payment_type=" + encodeURIComponent(supplier_payment_type) +
+                        "&customer_payment_type=" + encodeURIComponent(customer_payment_type) +
+                        "&iata=" + encodeURIComponent(iata) +
+                        "&subtotal=" + encodeURIComponent(subtotal) +
+                        "&agent_payment_type=" + encodeURIComponent(agent_payment_type) +
+                        "&agent_payment_status=" + encodeURIComponent(agent_payment_status);
 
                     window.location.href = url;
                 }

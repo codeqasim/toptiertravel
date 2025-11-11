@@ -1030,7 +1030,9 @@
 
             <div class="d-block"></div>
             <?php
-            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+            $curreny = $db->select("currencies", "*", ["default" => 1,]);
+            $tax = $db->get("settings", "booking_tax", ["id" => 1,]);
+            ?>
             <div class="d-block"></div>
             <div class="row mb-3 g-3">
 
@@ -1041,7 +1043,7 @@
                   <div class="form-floating">
                         <div class="input-group">
                            <input type="number" step="any" class="form-control rounded-0" id="" name="tax"
-                              value="14" required>
+                              value="<?=$tax?>" required>
                            <span class="input-group-text text-white bg-primary">%</span>
                         </div>
                         <!-- <label for="">Tax</label> -->
@@ -1202,71 +1204,77 @@
       function calculateTotalPrice() {
          const getInputValue = (name) => parseFloat($(`input[name="${name}"]`).val()) || 0;
 
-         // Get total days from flatpickr instances
+         // Get total days from flatpickr
          const checkinDate = flatpickrInstance.checkin?.selectedDates[0];
          const checkoutDate = flatpickrInstance.checkout?.selectedDates[0];
-         
+
          let days = 0;
          if (checkinDate && checkoutDate) {
             const diffTime = checkoutDate - checkinDate;
             days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
          }
 
-         // If no days, don't calculate
          if (days === 0) {
-            $('#bookingPrice').val("0.00");
-            $('#actualbookingPrice').val("0.00");
-            $('#subtotal').val("0.00");
-            $('input[name="net_profit"]').val("0.00");
-            $('input[name="agent_commission_amount"]').val("0.00");
+            resetAllValuesToZero();
             return;
          }
 
-         // Get input values
-         const roomPricePerNight = getInputValue("room_price"); // Markup price per night
-         const actualRoomPricePerNight = getInputValue("actual_room_price"); // Actual price per night
+         // Inputs
+         const roomPricePerNight = getInputValue("room_price");                 // Supplier cost + markup (tax exclusive)
+         const actualRoomPricePerNight = getInputValue("actual_room_price");    // Supplier cost only (tax exclusive)
          const roomQuantity = getInputValue("room_quantity") || 1;
          const agentCommissionPercent = getInputValue("agent_comission");
          const taxPercent = getInputValue("tax");
          const iata = getInputValue("iata");
 
          if (roomPricePerNight === 0) {
-            $('#bookingPrice').val("0.00");
-            $('#actualbookingPrice').val("0.00");
-            $('#subtotal').val("0.00");
-            $('input[name="net_profit"]').val("0.00");
-            $('input[name="agent_commission_amount"]').val("0.00");
+            resetAllValuesToZero();
             return;
          }
 
-         // Calculate total prices (per night × days × quantity)
-         const totalMarkupPrice = roomPricePerNight * days * roomQuantity;
-         const totalActualPrice = actualRoomPricePerNight * days * roomQuantity;
+         // Multiplier
+         const multiplier = days * roomQuantity;
 
-         // Calculate Credit Card Fee (based on total markup price)
-         const ccFee = (totalMarkupPrice * 0.029) + 0.3;
-
-         // Subtotal calculation: PER-NIGHT price without tax
-         const subtotalPerNight = roomPricePerNight / (1 + taxPercent / 100);
+         // Calculate per night values
+         const markupPerNight = roomPricePerNight - actualRoomPricePerNight;    // Your markup amount
+         const taxAmountPerNight = actualRoomPricePerNight * (taxPercent / 100); // Tax on supplier cost
          
-         // Total subtotal (subtotal per night × days × quantity)
-         const totalSubtotal = subtotalPerNight * days * roomQuantity;
+         // Total selling price per night (markup price + tax calculated on supplier cost)
+         const totalSellingPricePerNight = roomPricePerNight + taxAmountPerNight;
 
-         // Agent commission calculation (based on total subtotal)
-         const agentCommissionAmount = (totalSubtotal * agentCommissionPercent) / 100;
+         // Calculate totals for the entire stay
+         const totalActualPrice = actualRoomPricePerNight * multiplier;         // Total supplier cost
+         const totalMarkup = markupPerNight * multiplier;                       // Total your markup
+         const totalTax = taxAmountPerNight * multiplier;                       // Total tax amount
+         const totalSellingPrice = totalSellingPricePerNight * multiplier;      // Final price customer pays
+         
+         // Credit card fee on total selling price (what customer pays)
+         const ccFee = (totalSellingPrice * 0.029) + 0.3;
 
-         // Net Profit Calculation:
-         // Total revenue - supplier cost - agent commission + IATA benefit - CC fee
-         const netProfit = totalMarkupPrice - totalActualPrice - agentCommissionAmount + iata - ccFee;
+         // Agent commission (on supplier cost only)
+         const agentCommissionAmount = (totalActualPrice * agentCommissionPercent) / 100;
 
-         // Set calculated values in respective input fields
-         $('#bookingPrice').val(totalMarkupPrice.toFixed(2));
-         $('#actualbookingPrice').val(totalActualPrice.toFixed(2));
-         $('#subtotal').val(totalSubtotal.toFixed(2));
+         // Net Profit calculation:
+         // Your markup + Tax collected - Agent commission + IATA - Credit card fees
+         // Note: You keep the tax collected since it was added to your selling price
+         const netProfit = totalMarkup + totalTax - agentCommissionAmount + iata - ccFee;
+
+         // Output
+         $('#bookingPrice').val(totalSellingPrice.toFixed(2));                  // What customer pays
+         $('#actualbookingPrice').val(totalActualPrice.toFixed(2));             // Supplier cost
+         $('#subtotal').val((totalActualPrice + totalMarkup).toFixed(2));       // Supplier cost + your markup (tax exclusive)
          $('input[name="net_profit"]').val(netProfit.toFixed(2));
          $('input[name="agent_commission_amount"]').val(agentCommissionAmount.toFixed(2));
          $('input[name="supplier_cost"]').val(totalActualPrice.toFixed(2));
-         $('input[name="supplier_cost"]').text(totalActualPrice.toFixed(2));
+      }
+
+      function resetAllValuesToZero() {
+         $('#bookingPrice').val("0.00");
+         $('#actualbookingPrice').val("0.00");
+         $('#subtotal').val("0.00");
+         $('input[name="net_profit"]').val("0.00");
+         $('input[name="agent_commission_amount"]').val("0.00");
+         $('input[name="supplier_cost"]').val("0.00");
       }
 
       // Event listeners for input fields

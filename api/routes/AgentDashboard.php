@@ -546,7 +546,7 @@ $router->post('agent/dashboard', function () {
                     $last_month_end = date('Y-m-t', strtotime('last day of last month'));
 
                     // FETCH ALL BOOKINGS FOR THIS AGENT
-                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id]);
+                    $hotel_sales = $db->select("hotels_bookings", "*", ["agent_id" => $user_id,'booking_status' => 'confirmed']);
                     
                     // INITIALIZE TOTAL VARIABLES
                     $total_sales = 0;
@@ -572,7 +572,7 @@ $router->post('agent/dashboard', function () {
                     //LOOP THROUGH ALL THE PARTNERS BOOKINGS TO CALACULATE THE PARTNER COMMISSION
                     if(isset($partners) && !empty($partners)){
                         foreach ($partners as $partner) {
-                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id']]);
+                            $hotels_bookings = $db->select("hotels_bookings", "*", ["agent_id" => $partner['user_id'],'booking_status' => 'confirmed']);
                             if(isset($hotels_bookings) && !empty($hotels_bookings)){
                                 foreach ($hotels_bookings as $hotel_booking) {
                                     // FORMAT THE BOOKING DATE TO 'Y-M-D' FOR DATE COMPARISON
@@ -717,7 +717,8 @@ $router->post('agent/dashboard/bookings/recent', function () {
 
             // Base condition (without search)
             $conditions = [
-                "agent_id" => $user_id
+                "agent_id" => $user_id,
+                'booking_status' => 'confirmed'
                 // "booking_date[>=]" => date("Y-m-d", strtotime("-15 days"))
             ];
 
@@ -1124,7 +1125,8 @@ $router->post('agent/dashboard/bookings', function () {
 
                 // Base conditions
                 $conditions = [
-                    "agent_id" => $user_id
+                    "agent_id" => $user_id,
+                    'booking_status' => 'confirmed'
                 ];
 
                 // Status filter
