@@ -877,6 +877,13 @@ $router->post('hotel_details', function () {
                     (int)$no_of_rooms,
                     14
                 );
+
+                $netProfit = (float) ($financials['net_profit'] ?? 0);
+                $markupValue = (float) ($option_markup_value ?? 0);
+
+                $net_profit = $option_markup_type === 'user_markup'
+                    ? $netProfit - $markupValue
+                    : $netProfit;
                 
                 $options[] = [
                     "id" => (string) $value['room_id'],
@@ -905,7 +912,7 @@ $router->post('hotel_details', function () {
                     "subtotal" => number_format($financials['subtotal'], 2),
                     "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                     "cc_fee" => number_format($financials['cc_fee'], 2),
-                    "net_profit" => number_format($financials['net_profit'], 2),
+                    "net_profit" => number_format($net_profit , 2),
                 ];
             }
             
@@ -1065,6 +1072,13 @@ $router->post('hotel_details', function () {
                         (int)$no_of_rooms,
                         14
                     );
+
+                    $netProfit = (float) ($financials['net_profit'] ?? 0);
+                    $markupValue = (float) ($markup_value ?? 0);
+
+                    $net_profit = $markup_type === 'user_markup'
+                        ? $netProfit - $markupValue
+                        : $netProfit;
                     
                     $options[] = [
                         "id" => $values->id,
@@ -1095,7 +1109,7 @@ $router->post('hotel_details', function () {
                         "subtotal" => number_format($financials['subtotal'], 2),
                         "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                         "cc_fee" => number_format($financials['cc_fee'], 2),
-                        "net_profit" => number_format($financials['net_profit'], 2),
+                        "net_profit" => number_format($net_profit, 2),
                     ];
                 }
 
