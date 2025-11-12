@@ -165,6 +165,24 @@ include "_header.php";
     background-color: #6c757d;
     color: #fff;
     }
+    .flatpickr-day.today {
+        border-color: transparent !important;
+        background: transparent !important;
+        color: inherit !important;
+    }
+
+    .flatpickr-day.today:hover {
+        border-color: #e6e6e6 !important;
+        background: #e6e6e6 !important;
+    }
+
+    /* Keep selected dates with your purple theme */
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+        color: white !important;
+    }
 </style>
 <div class="page_head">
     <div class="panel-heading">
@@ -342,11 +360,12 @@ include "_header.php";
         }
         if (!empty($_GET['booking']) && !empty($_GET['module'])) {
             $table_name = $_GET['module'] . "_bookings";
+            
             $parm = [
                 'booking_ref_no' => $_GET['booking'] ?? '',
             ];
             $data = $db->select($table_name, "*", $parm);
-
+            
             $user_data = json_decode($data[0]['user_data'] ?? '{}', true);
 
             $email = $user_data['email'] ?? '';
@@ -383,7 +402,7 @@ include "_header.php";
 
             <div class="col-md-2">
                 <div class="form-floating">
-                    <input type="date" class="form-control" id="booking_date" name="booking_date"
+                    <input type="text" class="form-control" id="booking_date" name="booking_date"
                         value="<?= $data[0]['booking_date'] ?? '' ?>">
                     <label for="">
                         <?=T::booking?>
@@ -493,7 +512,7 @@ include "_header.php";
                                             </label>
                                         </div>
                                         <span class="input-group-text text-white bg-primary">
-                                            <?= $curreny[0]['name']?>
+                                            <?= $data[0]['currency_markup']?>
                                         </span>
                                     </div>
                                 </div>
@@ -501,8 +520,6 @@ include "_header.php";
 
 
                             <div class="col-md-4">
-                                <?php 
-                            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
@@ -517,7 +534,7 @@ include "_header.php";
                                             </label>
                                         </div>
                                         <span class="input-group-text text-white bg-primary">
-                                            <?= $curreny[0]['name']?>
+                                            <?= $data[0]['currency_markup']?>
                                         </span>
                                     </div>
                                 </div>
@@ -526,7 +543,7 @@ include "_header.php";
 
                             <div class="col-md-4">
                                 <?php 
-                            $curreny = $db->select("currencies", "*", ["default" => 1,]);?>
+                                $curreny = $db->select("currencies", "*", ["default" => 1]);?>
                                 <div class="form-floating">
                                     <div class="input-group">
                                         <div class="form-floating">
@@ -541,7 +558,7 @@ include "_header.php";
                                             </label>
                                         </div>
                                         <span class="input-group-text text-white bg-primary">
-                                            <?= $curreny[0]['name']?>
+                                            <?= $data[0]['currency_markup']?>
                                         </span>
                                     </div>
                                 </div>
@@ -642,7 +659,7 @@ include "_header.php";
 
                             <div class="col-md-4">
                                 <div class="form-floating">
-                                    <input type="date" class="form-control" id="supplier_due_date"
+                                    <input type="text" class="form-control" id="supplier_due_date"
                                         name="supplier_due_date" autocomplete="off"
                                         value="<?=($data[0]['supplier_due_date'])?>" required>
                                     <label for="supplier_due_date">
@@ -677,7 +694,7 @@ include "_header.php";
                                             </label>
                                         </div>
                                         <span class="input-group-text text-white bg-primary">
-                                            <?= $curreny[0]['name']?>
+                                            <?= $data[0]['currency_markup']?>
                                         </span>
                                     </div>
                                 </div>
@@ -779,7 +796,7 @@ include "_header.php";
                                         </label>
                                     </div>
                                     <span class="input-group-text text-white bg-primary">
-                                     <?= $curreny[0]['name']?>
+                                     <?= $data[0]['currency_markup']?>
                                     </span>
 
                                 </div>
@@ -848,7 +865,7 @@ include "_header.php";
                         <!-- Check-in Date -->
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="text" class="checkin form-control" id="checkin" name="checkin"
+                                <input type="text" class="form-control" id="checkin" name="checkin"
                                     autocomplete="off" value="<?= $data[0]['checkin'] ?? '' ?>">
                                 <label for="checkin">
                                     <?=T::checkin?>
@@ -860,7 +877,7 @@ include "_header.php";
                         <!-- Check-out Date -->
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="text" class="checkout form-control" id="checkout" name="checkout"
+                                <input type="text" class="form-control" id="checkout" name="checkout"
                                     autocomplete="off" value="<?= $data[0]['checkout'] ?? '' ?>">
                                 <label for="checkout">
                                     <?=T::checkout?>
@@ -932,7 +949,7 @@ include "_header.php";
                             </label>
                         </div>
                         <span class="input-group-text text-white bg-primary">
-                            <?= $curreny[0]['name']?>
+                            <?= $data[0]['currency_markup']?>
                         </span>
                     </div>
                 </div>
@@ -950,7 +967,7 @@ include "_header.php";
                             </label>
                         </div>
                         <span class="input-group-text text-white bg-primary">
-                            <?= $curreny[0]['name']?>
+                            <?= $data[0]['currency_markup']?>
                         </span>
                     </div>
                 </div>
@@ -969,7 +986,7 @@ include "_header.php";
                             </label>
                         </div>
                         <span class="input-group-text text-white bg-primary">
-                            <?= $curreny[0]['name']?>
+                            <?= $data[0]['currency_markup']?>
                         </span>
                     </div>
                 </div>
@@ -1030,48 +1047,100 @@ include "_header.php";
 
                 const flatpickrInstance = {
                     checkin: null,
-                    checkout: null
+                    checkout: null,
+                    bookingDate: null,
+                    supplierDueDate: null
                 };
 
-                // Initialize checkin datepicker
+                function getMinDate(inputId, defaultMin = "today") {
+                    const val = document.querySelector(inputId)?.value;
+                    return val && new Date(val) < new Date() ? val : defaultMin;
+                }
+
+                // Get the input elements
+                const checkinInput = document.querySelector("#checkin");
+                const checkoutInput = document.querySelector("#checkout");
+                const bookingDateInput = document.querySelector("#booking_date");
+                const supplierDueDateInput = document.querySelector("#supplier_due_date");
+
+                const checkinValue = checkinInput?.value || "";
+                const checkoutValue = checkoutInput?.value || "";
+                const bookingDateValue = bookingDateInput?.value || "";
+                const supplierDueDateValue = supplierDueDateInput?.value || "";
+
+                // Initialize Booking Date Flatpickr
+                flatpickrInstance.bookingDate = flatpickr("#booking_date", {
+                    dateFormat: "Y-m-d",
+                    minDate: getMinDate("#booking_date"),
+                    defaultDate: bookingDateValue,
+                    allowInput: false
+                });
+
+                // Initialize Supplier Due Date Flatpickr
+                flatpickrInstance.supplierDueDate = flatpickr("#supplier_due_date", {
+                    dateFormat: "Y-m-d",
+                    minDate: getMinDate("#supplier_due_date"),
+                    defaultDate: supplierDueDateValue,
+                    allowInput: false
+                });
+
                 flatpickrInstance.checkin = flatpickr("#checkin", {
                     dateFormat: "Y-m-d",
-                    minDate: "today",
-                    onChange: function(selectedDates, dateStr, instance) {
+                    minDate: getMinDate("#checkin"),
+                    defaultDate: checkinValue,  // Pass string directly, not Date object
+                    allowInput: false,  // Prevent manual input
+                    onChange(selectedDates) {
                         const checkout = flatpickrInstance.checkout;
-                        if (checkout) {
+                        if (checkout && selectedDates[0]) {
                             const nextDay = new Date(selectedDates[0]);
                             nextDay.setDate(nextDay.getDate() + 1);
                             checkout.set("minDate", nextDay);
                         }
                         calculateTotalPrice();
+                    },
+                    onReady() {
+                        if (checkinValue && checkoutValue) {
+                            setTimeout(() => calculateTotalPrice(), 100);
+                        }
                     }
                 });
 
-                // Initialize checkout datepicker
                 flatpickrInstance.checkout = flatpickr("#checkout", {
                     dateFormat: "Y-m-d",
-                    minDate: new Date().fp_incr(1),
-                    onChange: function(selectedDates, dateStr, instance) {
+                    minDate: getMinDate("#checkout", new Date().fp_incr(1)),
+                    defaultDate: checkoutValue,  // Pass string directly, not Date object
+                    allowInput: false,  // Prevent manual input
+                    onChange() {
                         calculateTotalPrice();
+                    },
+                    onReady() {
+                        if (checkinValue && checkoutValue) {
+                            setTimeout(() => calculateTotalPrice(), 100);
+                        }
                     }
                 });
 
                 function calculateTotalPrice() {
                     const getInputValue = (id) => parseFloat($(`#${id}`).val()) || 0;
 
-                    // Get total days from flatpickr instances
-                    const checkinDate = flatpickrInstance.checkin?.selectedDates[0];
-                    const checkoutDate = flatpickrInstance.checkout?.selectedDates[0];
-
+                    // Get dates from input fields directly
+                    const checkinVal = document.querySelector("#checkin")?.value;
+                    const checkoutVal = document.querySelector("#checkout")?.value;
+                    
                     let days = 0;
-                    if (checkinDate && checkoutDate) {
-                        const diffTime = checkoutDate - checkinDate;
-                        days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (checkinVal && checkoutVal) {
+                        const checkinDate = new Date(checkinVal + "T00:00:00");  // Add time to ensure proper parsing
+                        const checkoutDate = new Date(checkoutVal + "T00:00:00");
+                        
+                        if (!isNaN(checkinDate) && !isNaN(checkoutDate)) {
+                            const diffTime = checkoutDate - checkinDate;
+                            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        }
                     }
 
-                    // If no days, clear fields
-                    if (days === 0) {
+                    console.log("Check-in:", checkinVal, "Check-out:", checkoutVal, "Days:", days);
+
+                    if (days <= 0) {
                         $('#bookingPrice').val("0.00");
                         $('#subtotal').val("0.00");
                         $('#net_profit').val("0.00");
@@ -1080,15 +1149,14 @@ include "_header.php";
                         return;
                     }
 
-                    // Input values
-                    const roomPricePerNight = getInputValue("room_price");              // TAX EXCLUSIVE markup price per night
-                    const actualRoomPricePerNight = getInputValue("actual_room_price"); // Supplier cost per night
+                    const roomPricePerNight = getInputValue("room_price");
+                    const actualRoomPricePerNight = getInputValue("actual_room_price");
                     const roomQuantity = getInputValue("room_quantity") || 1;
-                    const agentCommissionAmount = getInputValue("agent_comission");     // FIXED AMOUNT
+                    const agentCommissionAmount = getInputValue("agent_comission");
                     const taxPercent = getInputValue("tax");
                     const iata = getInputValue("iata");
-
-                    if (roomPricePerNight === 0) {
+                    
+                    if (roomPricePerNight == 0) {
                         $('#bookingPrice').val("0.00");
                         $('#subtotal').val("0.00");
                         $('#net_profit').val("0.00");
@@ -1098,34 +1166,20 @@ include "_header.php";
                     }
 
                     const multiplier = days * roomQuantity;
-
-                    // 1. Calculate base amounts
-                    const totalActualPrice = actualRoomPricePerNight * multiplier;      // Total supplier cost
-                    const totalMarkupPrice = roomPricePerNight * multiplier;            // Total markup price (tax exclusive)
-
-                    // 2. Tax amount (calculated on supplier cost)
+                    const totalActualPrice = actualRoomPricePerNight * multiplier;
+                    const totalMarkupPrice = roomPricePerNight * multiplier;
                     const totalTax = totalActualPrice * (taxPercent / 100);
-
-                    // 3. Total selling price (markup price + tax)
                     const totalSellingPrice = totalMarkupPrice + totalTax;
-
-                    // 4. Subtotal (markup price before tax)
                     const subtotal = totalMarkupPrice;
-
-                    // 5. Credit card fee (on total selling price)
                     const ccFee = (totalSellingPrice * 0.029) + 0.3;
-
-                    // 6. Net profit
                     const netProfit = totalSellingPrice - totalActualPrice - agentCommissionAmount + iata - ccFee;
 
-                    // OUTPUT
-                    $('#bookingPrice').val(totalSellingPrice.toFixed(2));               // Final price customer pays
-                    $('#subtotal').val(subtotal.toFixed(2));                            // Markup price before tax
-                    $('#agent_comission_amount').val(agentCommissionAmount.toFixed(2)); // Fixed commission amount
+                    $('#bookingPrice').val(totalSellingPrice.toFixed(2));
+                    $('#subtotal').val(subtotal.toFixed(2));
+                    $('#agent_comission_amount').val(agentCommissionAmount.toFixed(2));
                     $('#net_profit').val(netProfit.toFixed(2));
-                    $('#supplier_cost').val(totalActualPrice.toFixed(2));               // Update supplier cost field
+                    $('#supplier_cost').val(totalActualPrice.toFixed(2));
                 }
-
                 // Event listeners for input fields that should trigger recalculation
                 $('#room_price, #actual_room_price, #room_quantity, #agent_comission, #tax, #iata').on('input', calculateTotalPrice);
 

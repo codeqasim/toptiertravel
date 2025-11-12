@@ -42,7 +42,7 @@
     <link rel="stylesheet" href="./spruha-assets/libs/jsvectormap/css/jsvectormap.min.css">
 
     <link rel="stylesheet" href="./spruha-assets/libs/swiper/swiper-bundle.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> -->
 
     <script src="./assets/js/jquery-3.6.0.min.js"></script>
     

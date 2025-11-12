@@ -2,6 +2,24 @@
    .select2-selection__rendered {
       margin-top: 4px;
    }
+   .flatpickr-day.today {
+        border-color: transparent !important;
+        background: transparent !important;
+        color: inherit !important;
+    }
+
+    .flatpickr-day.today:hover {
+        border-color: #e6e6e6 !important;
+        background: #e6e6e6 !important;
+    }
+
+    /* Keep selected dates with your purple theme */
+    .flatpickr-day.selected,
+    .flatpickr-day.selected:hover {
+        background: #6366f1 !important;
+        border-color: #6366f1 !important;
+        color: white !important;
+    }
 </style>
 <?php
    require_once '_config.php';
@@ -1168,37 +1186,82 @@
       const hotelSelect = $('#hotelSelect');
       const roomSelect = $('#roomSelect');
       
-      /* 
-      EXPLANATION OF CALCULATIONS:
-      ================================
+      /*
+         EXPLANATION OF CALCULATIONS (accurate to calculateTotalPrice):
+         =============================================================
 
-      1. TOTAL MARKUP PRICE (Customer pays):
-         roomPricePerNight × days × roomQuantity
-         Example: $100/night × 3 nights × 2 rooms = $600
+         Variable meanings (per-night, tax-exclusive):
+         - roomPricePerNight: The selling price per night before tax (supplier cost + your markup).
+         - actualRoomPricePerNight: The supplier's cost per night (tax-exclusive).
+         - roomQuantity: Number of rooms booked.
+         - days: Number of nights (checkout - checkin).
+         - taxPercent: Tax percentage applied on the supplier cost (actualRoomPricePerNight).
+         - iata: A fixed IATA amount added to profit.
+         - agentComission (agentCommissionPercent): Commission percentage applied to the total supplier cost.
+         - multiplier = days * roomQuantity
 
-      2. TOTAL ACTUAL PRICE (Original cost):
-         actualRoomPricePerNight × days × roomQuantity
-         Example: $80/night × 3 nights × 2 rooms = $480
+         Step-by-step calculations:
+         1) MARKUP PER NIGHT
+            markupPerNight = roomPricePerNight - actualRoomPricePerNight
+            (your markup amount per room per night)
 
-      3. CREDIT CARD FEE:
-         (totalMarkupPrice × 2.9%) + $0.30
-         Example: ($600 × 0.029) + $0.30 = $17.70
+         2) TAX AMOUNT PER NIGHT
+            taxAmountPerNight = actualRoomPricePerNight * (taxPercent / 100)
+            (tax is calculated on supplier cost)
 
-      4. SUBTOTAL (Price before tax):
-         Per Night: roomPricePerNight / (1 + tax%)
-         Total: subtotalPerNight × days × roomQuantity
-         Example: $100 / 1.14 = $87.72 per night
-               $87.72 × 3 nights × 2 rooms = $526.32 total
+         3) TOTAL SELLING PRICE PER NIGHT (what customer pays per room per night, including tax)
+            totalSellingPricePerNight = roomPricePerNight + taxAmountPerNight
 
-      5. AGENT COMMISSION:
-         totalSubtotal × commission%
-         Example: $526.32 × 10% = $52.63
+         4) TOTALS FOR THE ENTIRE STAY (multiply per-night values by multiplier)
+            totalActualPrice  = actualRoomPricePerNight * multiplier     // total supplier cost
+            totalMarkup       = markupPerNight * multiplier               // total markup you charged
+            totalTax          = taxAmountPerNight * multiplier            // total tax collected
+            totalSellingPrice = totalSellingPricePerNight * multiplier   // final price customer pays (includes tax)
 
-      6. NET PROFIT:
-         totalMarkupPrice - supplierCost - agentCommission + iata - ccFee
-         Example: $600 - $480 - $52.63 + $5 - $17.70 = $54.67
+         5) CREDIT CARD FEE
+            ccFee = (totalSellingPrice * 0.029) + 0.30
+            (2.9% + $0.30 charged on the full amount customer pays)
 
-      ================================
+         6) AGENT COMMISSION
+            agentCommissionAmount = (totalActualPrice * agentCommissionPercent) / 100
+            (commission is calculated on the total supplier cost)
+
+         7) NET PROFIT (what you keep)
+            netProfit = totalMarkup + totalTax - agentCommissionAmount + iata - ccFee
+
+            Explanation:
+            - You keep the markup (difference between selling and supplier price) and the tax collected.
+            - Subtract agent commission (paid out of supplier-cost-based commission).
+            - Add any fixed IATA amount.
+            - Subtract credit card processing fees.
+
+         8) SUBTOTAL (tax-exclusive price customer is charged)
+            subtotal = totalActualPrice + totalMarkup
+            (supplier cost + your markup; tax is NOT included here)
+
+         Example (numbers):
+         - roomPricePerNight = $100    (selling price before tax)
+         - actualRoomPricePerNight = $80
+         - days = 3, roomQuantity = 2  => multiplier = 6
+         - taxPercent = 14
+         - agentCommissionPercent = 10
+         - iata = $5
+
+         markupPerNight = 100 - 80 = 20
+         taxAmountPerNight = 80 * 0.14 = 11.2
+         totalSellingPricePerNight = 100 + 11.2 = 111.2
+
+         totalActualPrice  = 80 * 6 = 480
+         totalMarkup       = 20 * 6 = 120
+         totalTax          = 11.2 * 6 = 67.2
+         totalSellingPrice = 111.2 * 6 = 667.2
+
+         ccFee = (667.2 * 0.029) + 0.30 = 19.349 + 0.30 = 19.649
+         agentCommissionAmount = (480 * 10) / 100 = 48
+
+         netProfit = 120 + 67.2 - 48 + 5 - 19.649 = 124.551 (rounded in code to 2 decimals)
+
+         =============================================================
       */
 
       function calculateTotalPrice() {
