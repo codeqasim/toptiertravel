@@ -153,7 +153,7 @@ if (isset($hook)) {
         $title = "Hotel Booked";
         $template = "hotels_booking";
         // $content = $root . '/hotels/invoice/' . $data->booking_ref_no;
-        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice' . $data->booking_ref_no;
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
         $receiver_email = ($data->email);
         $receiver_name = ($data->first_name) . ' ' . ($data->last_name);
         MAILER($template, $title, $content, $receiver_email, $receiver_name);
@@ -172,9 +172,9 @@ if (isset($hook)) {
 
         // SEND EMAIL
         $title = "Payment Completed";
-        $template = "hotels_booking";
+        $template = "hotel_booking_confirmatoin";
         // $content = $root . '/hotels/invoice/' . $data[0]['booking_ref_no'];
-        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice' . $data->booking_ref_no;
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
         $receiver_email = ($user->email);
         $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
         MAILER($template, $title, $content, $receiver_email, $receiver_name);
@@ -192,7 +192,7 @@ if (isset($hook)) {
         $title = "Booking Cancellation Confirmed";
         $template = "hotels_cancellation_confirmed";
         // $content = $root . '/hotels/invoice/' . $booking_ref_no;
-        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice' . $data->booking_ref_no;
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
         $receiver_email = ($user->email);
         $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
         MAILER($template, $title, $content, $receiver_email, $receiver_name);
@@ -211,7 +211,7 @@ if (isset($hook)) {
         $title = "Booking Cancellation Failed";
         $template = "hotels_cancellation_failed";
         // $content = $root . '/hotels/invoice/' . $booking_ref_no;
-        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice' . $data->booking_ref_no;
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
         $receiver_email = ($user->email);
         $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
         MAILER($template, $title, $content, $receiver_email, $receiver_name);
@@ -230,7 +230,7 @@ if (isset($hook)) {
         $title = "Cancellation Request";
         $template = "hotels_cancellation";
         // $content = $root . '/hotels/invoice/' . $_POST['booking_ref_no'];
-        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice' . $data->booking_ref_no;
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
         $receiver_email = ($user->email);
         $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
         MAILER($template, $title, $content, $receiver_email, $receiver_name);

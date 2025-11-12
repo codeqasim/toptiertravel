@@ -374,6 +374,9 @@ include "_header.php";
             $phone = $user_data['phone'] ?? '';
 
             $room_data = json_decode($data[0]['room_data'] ?? '{}', true);
+            $booking_data = json_decode($data[0]['booking_data'] ?? '{}', true);
+            $markup_value = $booking_data['markup_amount'];
+            $markup_type = $booking_data['markup_type'];
 
             if (!empty($room_data)) {
                 $room_id = $room_data[0]['room_id'];
@@ -546,7 +549,7 @@ include "_header.php";
                                 $curreny = $db->select("currencies", "*", ["default" => 1]);?>
                                 <div class="form-floating">
                                     <div class="input-group">
-                                        <div class="form-floating">
+                                        <div class="form-floating position-relative">
                                             <input type="number" class="form-control" id="room_price" step="any" min="0"
                                                 style="border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;"
                                                 name="room_price" value="<?= $price_markup_per_day ?? '' ?>"
@@ -556,6 +559,16 @@ include "_header.php";
                                                 <?=T::room?>
                                                 <?=T::price?>
                                             </label>
+                                            
+                                            <!-- Info Icon -->
+                                            <?php if(isset($data[0]['agent_fee']) && !empty($data[0]['agent_fee'])) {?>
+                                            <i class="fas fa-info-circle position-absolute text-primary" 
+                                            style="right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 5;"
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-placement="top" 
+                                            title="Markup Amount : <?=$markup_value?> <?= $data[0]['currency_markup']?> Markup Type : <?=ucfirst(str_replace('_',' ',$markup_type))?>">
+                                            </i>
+                                            <?php } ?>
                                         </div>
                                         <span class="input-group-text text-white bg-primary">
                                             <?= $data[0]['currency_markup']?>
