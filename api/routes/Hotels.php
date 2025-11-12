@@ -348,6 +348,8 @@ $router->post('hotel_search', function () {
     }
 
     $rate = $db->select("currencies", ['rate'], ["name" => $currency_id]); // GET RATE FROM CURRENCIES TABLE
+
+    $booking_tax = $db->get('settings',['booking_tax'],['id' => 1]);
     
     //CALULATING DAYS
     $checkin  = new DateTime($_POST['checkin']);
@@ -452,6 +454,14 @@ $router->post('hotel_search', function () {
         $markup_mprice = $mprice_markup['price'];
         $markup_value = $mprice_markup['markup_value'] ?? 0;
         $markup_amount = $mprice_markup['markup_amount'] ?? 0;
+
+        $financials = calculateBookingFinancials(
+            $markup_mprice, 
+            $actual_room_price, 
+            (int)$days, 
+            (int)$rooms,
+            $booking_tax['booking_tax'] ?? 14
+        );
         if (!empty($rate[0]['rate'])) {
             if ($actual_room_price != null && $module[0]['status'] == 1) {
 
@@ -513,8 +523,8 @@ $router->post('hotel_search', function () {
                     "longitude" => $longitude,
                     "actual_price" => number_format($actual_room_price*$days*$rooms, 2),
                     "actual_price_per_night" => number_format($actual_room_price, 2),
-                    "markup_price" => number_format($markup_mprice*$days*$rooms, 2),
-                    "markup_price_per_night" => number_format($markup_mprice, 2),
+                    "markup_price" => number_format($financials['total_markup_price'], 2),
+                    "markup_price_per_night" => number_format($financials['selling_price_per_night'], 2),
                     "markup_percentage" => $markup_value,
                     "markup_amount" => number_format($markup_amount, 2),
                     "currency" => $currency_id,
@@ -598,7 +608,7 @@ $router->post('hotel_search', function () {
         }
 
         $c_response = (array) json_decode(sendhotelRequest('POST', 'hotel_search', $param), true); // Adding true to json_decode to ensure associative array
-    
+        
         // Check if 'response' key exists and is an array
         if (!empty($c_response) && isset($c_response['response']) && is_array($c_response['response'])) {
 
@@ -611,6 +621,14 @@ $router->post('hotel_search', function () {
                 $markup_value = $cprice_markup['markup_value'] ?? 0;
                 $markup_amount = $cprice_markup['markup_amount'] ?? 0;
                 $amenities = array();
+
+                $financials = calculateBookingFinancials(
+                    $markup_cprice / $days, 
+                    $actual_price / $days, 
+                    (int)$days, 
+                    (int)$rooms,
+                    $booking_tax['booking_tax'] ?? 14
+                );
                 
                 $is_favorite = 0; // Default to not favorite
                 if ($user_id != "") { 
@@ -638,8 +656,8 @@ $router->post('hotel_search', function () {
                     "longitude" => $values['longitude'],
                     "actual_price" => number_format($actual_price * $rooms, 2),
                     "actual_price_per_night" => number_format($actual_price / $days, 2),
-                    "markup_price" => number_format($markup_cprice * $rooms, 2),
-                    "markup_price_per_day" => number_format($markup_cprice / $days, 2),
+                    "markup_price" => number_format($financials['total_markup_price'], 2),
+                    "markup_price_per_night" => number_format($financials['selling_price_per_night'], 2),
                     "markup_percentage" => $markup_value,
                     "markup_amount" => number_format($markup_amount, 2),
                     "currency" => $currency_id,
@@ -841,6 +859,14 @@ $router->post('hotel_details', function () {
             $markup_type = $price_markup['markup_type'] ?? 0; // Fixed typo: was '$markup_type'
             $markup_value = $price_markup['markup_value'] ?? 0;
             $markup_amount = $price_markup['markup_amount'] ?? 0;
+
+            $room_financials = calculateBookingFinancials(
+                    $markup_price, 
+                    $actual_room_price, 
+                    (int)$days, 
+                    (int)$no_of_rooms,
+                    $booking_tax['booking_tax'] ?? 14
+                );
             
             //GET ROOM OPTIONS FROM hotels_ROOMS_OPTIONS TABLE
             $room_options = $db->select(
@@ -895,14 +921,16 @@ $router->post('hotel_details', function () {
                 $netProfit = (float) ($financials['net_profit'] ?? 0);
                 $markupValue = (float) ($option_markup_value ?? 0);
 
-                $net_profit = $netProfit - $markupValue;
+                $net_profit = $option_markup_type === 'user_markup'
+                        ? $netProfit - $markupValue
+                        : $netProfit;
                 
                 $options[] = [
                     "id" => (string) $value['room_id'],
                     "currency" => $rate[0]['name'],
                     "price" => number_format($option_price * $days * $no_of_rooms, 2),
                     "per_day" => number_format($option_price, 2),
-                    "markup_price" => number_format($markup_room_option_price * $days * $no_of_rooms, 2),
+                    "markup_price" => number_format($financials['total_markup_price'], 2), 
                     "markup_price_per_night" => number_format($markup_room_option_price, 2),
                     "service_fee" => 10,
                     "quantity" => $value['quantity'],
@@ -925,9 +953,6 @@ $router->post('hotel_details', function () {
                     "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                     "cc_fee" => number_format($financials['cc_fee'], 2),
                     "net_profit" => number_format($net_profit , 2),
-                    "new_markup_price" => number_format($financials['total_markup_price'], 2), // Total selling price
-                    "new_markup_price_per_night" => number_format($financials['selling_price_per_night'], 2), // Selling price per night
-                    "total_tax" => number_format($financials['total_tax'], 2),
                 ];
             }
             
@@ -955,7 +980,7 @@ $router->post('hotel_details', function () {
                 "name" => $index['name'],
                 "actual_price" => number_format($actual_room_price * $days * $no_of_rooms, 2),
                 "actual_price_per_night" => number_format($actual_room_price, 2),
-                "markup_price" => number_format($markup_price * $days * $no_of_rooms, 2),
+                "markup_price" => number_format($room_financials['total_markup_price'], 2),
                 "markup_price_per_night" => number_format($markup_price, 2),
                 "markup_type" => $markup_type,
                 "markup_percentage" => $markup_value,
@@ -966,16 +991,7 @@ $router->post('hotel_details', function () {
                 "refundable_date" => "",
                 "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : "https://toptiertravel.vip/assets/img/hotel.jpg",
                 "amenities" => $room_amenitie,
-                "options" => $options,
-                // NEW FINANCIAL FIELDS FOR MAIN ROOM (ADDED)
-                "new_markup_price" => number_format($room_financials['total_markup_price'], 2), // Total selling price
-                "new_markup_price_per_night" => number_format($room_financials['selling_price_per_night'], 2), // Selling price per night
-                "subtotal" => number_format($room_financials['subtotal'], 2),
-                "subtotal_per_night" => number_format($room_financials['subtotal_per_night'], 2),
-                "cc_fee" => number_format($room_financials['cc_fee'], 2),
-                "net_profit" => number_format($room_financials['net_profit'], 2),
-                "total_tax" => number_format($room_financials['total_tax'], 2),
-                "total_markup_amount" => number_format($room_financials['total_markup'], 2),
+                "options" => $options
             ];
         }
 
@@ -1076,6 +1092,14 @@ $router->post('hotel_details', function () {
                 $room_markup_type = $price_markup['markup_type'];
                 $room_markup_value = $price_markup['markup_value'];
                 $room_markup_amount = $price_markup['markup_amount'];
+
+                $room_financials = calculateBookingFinancials(
+                        number_format($markup_price / $days, 2), 
+                        number_format($actual_price / $days, 2), 
+                        (int)$days, 
+                        (int)$no_of_rooms,
+                        $booking_tax['booking_tax'] ?? 14
+                    );
                 
                 $options = [];
                 $options_array = $value->options;
@@ -1109,7 +1133,7 @@ $router->post('hotel_details', function () {
                         "currency" => $param['currency'],
                         "price" => number_format($actual_option_price * $no_of_rooms, 2),
                         "per_day" => number_format($actual_option_price / $days, 2),
-                        "markup_price" => number_format($markup_room_option_price * $no_of_rooms, 2),
+                        "markup_price" => number_format($financials['total_markup_price'], 2), 
                         "markup_price_per_night" => number_format($markup_room_option_price / $days, 2),
                         "service_fee" => $values->service_fee,
                         "quantity" => $values->quantity,
@@ -1130,13 +1154,10 @@ $router->post('hotel_details', function () {
                         "markup_percentage" => $markup_value,
                         "markup_amount" => number_format($markup_amount * $no_of_rooms, 2),
                         "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
-                        "new_markup_price" => number_format($financials['total_markup_price'], 2), 
-                        "new_markup_price_per_night" => number_format($financials['selling_price_per_night'], 2),
                         "subtotal" => number_format($financials['subtotal'], 2),
                         "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                         "cc_fee" => number_format($financials['cc_fee'], 2),
                         "net_profit" => number_format($net_profit, 2),
-                        "total_tax" => number_format($financials['total_tax'], 2),
                     ];
                 }
 
@@ -1146,7 +1167,7 @@ $router->post('hotel_details', function () {
                         "name" => $value->name,
                         "actual_price" => number_format($actual_price * $no_of_rooms, 2),
                         "actual_price_per_night" => number_format($actual_price / $days, 2),
-                        "markup_price" => number_format($markup_price * $no_of_rooms, 2),
+                        "markup_price" => number_format($room_financials['total_markup_price'], 2),
                         "markup_price_per_night" => number_format($markup_price / $days, 2),
                         "markup_type" => $room_markup_type,
                         "markup_percentage" => $room_markup_value,
@@ -1158,13 +1179,6 @@ $router->post('hotel_details', function () {
                         "img" => $value->images,
                         "amenities" => $value->amenities,
                         "options" => $options,
-                        "new_markup_price" => number_format($room_financials['total_markup_price'], 2), // Total selling price
-                        "new_markup_price_per_night" => number_format($room_financials['selling_price_per_night'], 2), // Selling price per night
-                        "subtotal" => number_format($room_financials['subtotal'], 2),
-                        "subtotal_per_night" => number_format($room_financials['subtotal_per_night'], 2),
-                        "cc_fee" => number_format($room_financials['cc_fee'], 2),
-                        "net_profit" => number_format($room_financials['net_profit'], 2),
-                        "total_tax" => number_format($room_financials['total_tax'], 2),
                     ];
                 }
             }
