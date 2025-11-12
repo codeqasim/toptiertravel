@@ -289,21 +289,21 @@ $router->post('profile_update', function() {
     include "./config.php";
 
     required('user_id');
-    required('first_name');
-    required('last_name');
-    required('email');
-    required('phone');
-    required('phone_country_code');
-    required('country_code');
+    // required('first_name');
+    // required('last_name');
+    // required('email');
+    // required('phone');
+    // required('phone_country_code');
+    // required('country_code');
 
     // Prepare data for update
     $updateData = [
-        "first_name" => $_POST['first_name'],
-        "last_name" => $_POST['last_name'],
-        "email" => $_POST['email'],
-        "phone" => $_POST['phone'],
-        "phone_country_code" => $_POST['phone_country_code'],
-        "country_code" => $_POST['country_code'],
+        "first_name" => $_POST['first_name'] ?? '',
+        "last_name" => $_POST['last_name'] ?? '',
+        "email" => $_POST['email'] ?? '',
+        "phone" => $_POST['phone'] ?? '',
+        "phone_country_code" => $_POST['phone_country_code'] ?? '',
+        "country_code" => $_POST['country_code'] ?? '',
         "state" => $_POST['state'] ?? null,
         "city" => $_POST['city'] ?? null,
         "address1" => $_POST['address1'] ?? null,
