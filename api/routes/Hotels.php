@@ -1332,16 +1332,17 @@ $router->post('hotel_booking', function () {
         $action = "updated";
         $booking_id = $existing["booking_id"];
         
-        $data = (json_decode($_POST["user_data"]));
-        $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
-        // HOOK
-        $hook = "hotels_booking";
-        include "./hooks.php";
     } else {
         // Insert new booking (if ref doesn't exist)
         $db->insert("hotels_bookings", $param);
         $action = "created";
         $booking_id = $db->id();
+
+        $data = (json_decode($_POST["user_data"]));
+        $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
+        // HOOK
+        $hook = "hotels_booking";
+        include "./hooks.php";
     }
     
     // $data = (json_decode($_POST["user_data"]));
@@ -1450,8 +1451,8 @@ $router->post('hotels/booking_update', function () {
         ]);
 
         $user = (json_decode($data_hotel[0]['user_data']));
-            $hook = "hotels_update_booking";
-            include "./hooks.php";
+        $hook = "hotels/update_booking";
+        include "./hooks.php";
 
         if ($booking_hotel->Prn) {
             echo json_encode(array('status' => true, 'Prn' => $booking_hotel->Prn));
