@@ -1451,6 +1451,7 @@ $router->post('hotels/booking_update', function () {
         ]);
 
         $user = (json_decode($data_hotel[0]['user_data']));
+        $data = (object)array('booking_ref_no' => $param['booking_ref_no']);
         $hook = "hotels/update_booking";
         include "./hooks.php";
 

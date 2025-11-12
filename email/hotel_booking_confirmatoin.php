@@ -4,9 +4,7 @@
 <p style="margin:10px 0 0px;">We’re pleased to inform you that your payment has been successfully received.</p>
 <p style="margin:0px 0 10px;">Your hotel booking is now confirmed. You can view your booking details and download your invoice using the link below.</p>
 
-<a href="<?=$content?>" style="text-decoration:none; background:#28a745; color:#fff; padding:14px 18px; margin-top:20px; display:inline-block; border-radius:4px; font-weight:bold;">
-    View Booking Details
-</a>
+<a href="<?=$content?>" style="text-decoration:none;background: #0079ff; color: #fff; padding: 14px 18px; margin-top: 20px; display: inherit; border-radius: 4px; font-weight: bold;">View Invoice</a>
 
 <p style="margin-top:20px; color:#555;">Thank you for choosing us. We wish you a pleasant stay!</p>
 
