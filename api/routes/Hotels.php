@@ -1320,6 +1320,10 @@ $router->post('hotel_booking', function () {
         'agent_payment_date'  => null,
     );
 
+    if (empty($_POST["agent_id"])) {
+        unset($param['agent_id']);
+    }
+
     // Check if booking_ref_no is provided
     $bookingRef = trim($param['booking_ref_no']);
     
