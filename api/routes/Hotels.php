@@ -1639,4 +1639,119 @@ $router->post('hotels/cancellation', function () {
     // }
 });
 
+$router->post('financial_details', function () {
+    
+    // INCLUDE CONFIG
+    include "./config.php";
+
+    // VALIDATION
+    required('checkin');
+    required('checkout');
+    required('rooms');
+    required('user_id');
+    required('option');
+
+    // SAVING DATA GOT FROM VALIDATION
+    $checkin = $_POST["checkin"];
+    $checkout = $_POST["checkout"];
+    $rooms = $_POST["rooms"];
+    $user_id = $_POST['user_id'];
+    $option_data = json_decode($_POST['option'], true); // DECODE OPTION JSON
+
+    // Validate option data
+    if (!$option_data || !isset($option_data['id'])) {
+        $response = [
+            "status" => "error",
+            "message" => "Invalid option data"
+        ];
+        echo json_encode($response);
+        return;
+    }
+
+    $booking_tax = $db->get('settings',['booking_tax'],['id' => 1]);
+    
+    // CALCULATING DAYS
+    $checkin_date  = new DateTime($checkin);
+    $checkout_date = new DateTime($checkout);
+    $interval = $checkin_date->diff($checkout_date);
+    $days = $interval->days; 
+    $no_of_rooms = $rooms;
+
+    // Extract data from option
+    $option_id = $option_data['id'];
+    $currency = $option_data['currCode'] ?? 'USD';
+    $actual_price_per_night = floatval($option_data['price']) / $no_of_rooms; // Calculate actual price per night
+    $actual_price_total = $actual_price_per_night * $days * $no_of_rooms;
+
+    // Get currency rate
+    $rate = $db->select("currencies", ["rate", "name"], ["name" => $currency]);
+    if (empty($rate)) {
+        // Use default rate 1 if currency not found
+        $rate = [['rate' => 1, 'name' => $currency]];
+    }
+
+    // Apply markup to the actual price
+    $markup_result = markup_price('', $actual_price_per_night, array(0 => $checkin, 1 => $checkout), '', $user_id);
+    $markup_price_per_night = $markup_result['price'];
+    $markup_type = $markup_result['markup_type'] ?? '';
+    $markup_value = $markup_result['markup_value'] ?? 0;
+    $markup_amount = $markup_result['markup_amount'] ?? 0;
+
+    // Calculate financials
+    $financials = calculateBookingFinancials(
+        $markup_price_per_night, 
+        $actual_price_per_night, 
+        (int)$days, 
+        (int)$no_of_rooms,
+        $booking_tax['booking_tax'] ?? 14
+    );
+
+    $netProfit = (float) ($financials['net_profit'] ?? 0);
+    $markupValue = (float) ($markup_value ?? 0);
+
+    $net_profit = $markup_type === 'user_markup'
+        ? $netProfit - $markupValue
+        : $netProfit;
+
+    // Build updated option response
+    $updated_option = [
+        "id" => $option_id,
+        "currency" => $currency,
+        "price" => number_format($actual_price_total, 2),
+        "per_day" => number_format($actual_price_per_night, 2),
+        "markup_price" => number_format($financials['total_markup_price'], 2),
+        "markup_price_per_night" => number_format($markup_price_per_night, 2),
+        "service_fee" => $option_data['service_fee'] ?? 0,
+        "quantity" => $option_data['quantity'] ?? 1,
+        "adults" => $option_data['adults'] ?? 2,
+        "child" => $option_data['child'] ?? 0,
+        "children_ages" => $option_data['children_ages'] ?? "",
+        "bookingurl" => $option_data['bookingurl'] ?? "",
+        "booking_data" => $option_data['booking_data'] ?? [],
+        "extrabeds_quantity" => $option_data['extrabeds_quantity'] ?? 0,
+        "extrabed_price" => $option_data['extrabed_price'] ?? 0,
+        "cancellation" => $option_data['cancellation'] ?? "0",
+        "breakfast" => $option_data['breakfast'] ?? "0",
+        "dinner" => $option_data['dinner'] ?? "0",
+        "board" => $option_data['board'] ?? "Room only",
+        "room_booked" => $option_data['room_booked'] ?? false,
+        "markup_type" => $markup_type,
+        "markup_percentage" => $markup_value,
+        "markup_amount" => number_format($markup_amount * $days, 2),
+        "ratecomments" => $option_data['ratecomments'] ?? '',
+        "subtotal" => number_format($financials['subtotal'], 2),
+        "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
+        "cc_fee" => number_format($financials['cc_fee'], 2),
+        "net_profit" => number_format($net_profit, 2),
+        "total_tax" => number_format($financials['total_tax'], 2),
+        "total_markup_amount" => number_format($financials['total_markup'], 2),
+    ];
+
+    $response = [
+        "status" => "success",
+        "data" => $updated_option
+    ];
+
+    echo json_encode($response);
+});
 ?>
