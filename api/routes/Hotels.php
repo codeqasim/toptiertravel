@@ -925,6 +925,9 @@ $router->post('hotel_details', function () {
                     "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                     "cc_fee" => number_format($financials['cc_fee'], 2),
                     "net_profit" => number_format($net_profit , 2),
+                    "new_markup_price" => number_format($financials['total_markup_price'], 2), // Total selling price
+                    "new_markup_price_per_night" => number_format($financials['selling_price_per_night'], 2), // Selling price per night
+                    "total_tax" => number_format($financials['total_tax'], 2),
                 ];
             }
             
@@ -963,7 +966,16 @@ $router->post('hotel_details', function () {
                 "refundable_date" => "",
                 "img" => (!empty($index['thumb_img']) && @getimagesize(upload_url . $index['thumb_img'])) ? upload_url . $index['thumb_img'] : "https://toptiertravel.vip/assets/img/hotel.jpg",
                 "amenities" => $room_amenitie,
-                "options" => $options
+                "options" => $options,
+                // NEW FINANCIAL FIELDS FOR MAIN ROOM (ADDED)
+                "new_markup_price" => number_format($room_financials['total_markup_price'], 2), // Total selling price
+                "new_markup_price_per_night" => number_format($room_financials['selling_price_per_night'], 2), // Selling price per night
+                "subtotal" => number_format($room_financials['subtotal'], 2),
+                "subtotal_per_night" => number_format($room_financials['subtotal_per_night'], 2),
+                "cc_fee" => number_format($room_financials['cc_fee'], 2),
+                "net_profit" => number_format($room_financials['net_profit'], 2),
+                "total_tax" => number_format($room_financials['total_tax'], 2),
+                "total_markup_amount" => number_format($room_financials['total_markup'], 2),
             ];
         }
 
@@ -1118,10 +1130,13 @@ $router->post('hotel_details', function () {
                         "markup_percentage" => $markup_value,
                         "markup_amount" => number_format($markup_amount * $no_of_rooms, 2),
                         "ratecomments" => isset($values->rateComments) ? $values->rateComments : '',
+                        "new_markup_price" => number_format($financials['total_markup_price'], 2), 
+                        "new_markup_price_per_night" => number_format($financials['selling_price_per_night'], 2),
                         "subtotal" => number_format($financials['subtotal'], 2),
                         "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                         "cc_fee" => number_format($financials['cc_fee'], 2),
                         "net_profit" => number_format($net_profit, 2),
+                        "total_tax" => number_format($financials['total_tax'], 2),
                     ];
                 }
 
@@ -1143,6 +1158,13 @@ $router->post('hotel_details', function () {
                         "img" => $value->images,
                         "amenities" => $value->amenities,
                         "options" => $options,
+                        "new_markup_price" => number_format($room_financials['total_markup_price'], 2), // Total selling price
+                        "new_markup_price_per_night" => number_format($room_financials['selling_price_per_night'], 2), // Selling price per night
+                        "subtotal" => number_format($room_financials['subtotal'], 2),
+                        "subtotal_per_night" => number_format($room_financials['subtotal_per_night'], 2),
+                        "cc_fee" => number_format($room_financials['cc_fee'], 2),
+                        "net_profit" => number_format($room_financials['net_profit'], 2),
+                        "total_tax" => number_format($room_financials['total_tax'], 2),
                     ];
                 }
             }
