@@ -91,7 +91,7 @@ vt.success(data.message2, {
 // SEND NOTIFICATION TO DATABASE
 var form = new FormData();
 form.append("notification", "");
-if(data.message1 === "Hotel_hotel_booking"){
+if(data.message1 == "Hotel_hotel_booking"){
     form.append("name", "New Hotel Booking");
     form.append("description", data.message2);
 }else{

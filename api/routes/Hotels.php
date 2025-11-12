@@ -251,30 +251,43 @@ function calculateBookingFinancials($markupPrice, $actualPrice, $days, $rooms, $
     $rooms       = (int) $rooms;
     $taxPercent  = (float) $taxPercent;
     
-    // Calculate totals
-    $totalMarkupPrice = $markupPrice * $days * $rooms;
-    $totalActualPrice = $actualPrice * $days * $rooms;
+    // Multiplier for entire stay
+    $multiplier = $days * $rooms;
     
-    // Credit Card Fee: (total × 2.9%) + $0.30
-    $ccFee = ($totalMarkupPrice * 0.029) + 0.30;
+    // Calculate per night values
+    $markupPerNight = $markupPrice - $actualPrice; 
+    $taxAmountPerNight = $actualPrice * ($taxPercent / 100);
     
-    // Subtotal per night (price without tax)
-    $subtotalPerNight = $markupPrice / (1 + ($taxPercent / 100));
+    // Total selling price per night (markup price + tax calculated on supplier cost)
+    $totalSellingPricePerNight = $markupPrice + $taxAmountPerNight;
     
-    // Total subtotal
-    $totalSubtotal = $subtotalPerNight * $days * $rooms;
+    // Calculate totals for the entire stay
+    $totalActualPrice = $actualPrice * $multiplier;
+    $totalMarkup = $markupPerNight * $multiplier;
+    $totalTax = $taxAmountPerNight * $multiplier;
+    $totalSellingPrice = $totalSellingPricePerNight * $multiplier;
     
-    // Net Profit: revenue - cost - cc fee
-    // (Agent commission will be calculated separately based on agent login)
-    $netProfit = $totalMarkupPrice - $totalActualPrice - $ccFee;
+    // Credit card fee on total selling price (what customer pays)
+    $ccFee = ($totalSellingPrice * 0.029) + 0.30;
+    
+    // Net Profit calculation (matching frontend):
+    // Your markup + Tax collected - Credit card fees
+    // Note: Agent commission and IATA are excluded as they're not in parameters
+    $netProfit = $totalMarkup + $totalTax - $ccFee;
+    
+    // Subtotal (supplier cost + your markup - tax exclusive)
+    $subtotal = $totalActualPrice + $totalMarkup;
     
     return [
-        'total_markup_price' => $totalMarkupPrice,
+        'total_markup_price' => $totalSellingPrice,
         'total_actual_price' => $totalActualPrice,
-        'subtotal' => $totalSubtotal,
-        'subtotal_per_night' => $subtotalPerNight,
+        'subtotal' => $subtotal,
+        'subtotal_per_night' => $markupPrice,
         'cc_fee' => $ccFee,
-        'net_profit' => $netProfit
+        'net_profit' => $netProfit,
+        'total_tax' => $totalTax,
+        'total_markup' => $totalMarkup,
+        'selling_price_per_night' => $totalSellingPricePerNight
     ];
 }
 
@@ -697,6 +710,7 @@ $router->post('hotel_details', function () {
     $user_id = $_POST['user_id'] ?? "";
 
     $rate = $db->select("currencies", ["rate", "name"], ["name" => $currency]);
+    $booking_tax = $db->get('settings',['booking_tax'],['id' => 1]);
     
     //CALULATING DAYS
     $checkin_date  = new DateTime($_POST['checkin']);
@@ -875,15 +889,13 @@ $router->post('hotel_details', function () {
                     $option_price, 
                     (int)$days, 
                     (int)$no_of_rooms,
-                    14
+                    $booking_tax['booking_tax'] ?? 14
                 );
 
                 $netProfit = (float) ($financials['net_profit'] ?? 0);
                 $markupValue = (float) ($option_markup_value ?? 0);
 
-                $net_profit = $option_markup_type === 'user_markup'
-                    ? $netProfit - $markupValue
-                    : $netProfit;
+                $net_profit = $netProfit - $markupValue;
                 
                 $options[] = [
                     "id" => (string) $value['room_id'],
@@ -981,7 +993,7 @@ $router->post('hotel_details', function () {
             "policy" => !empty($hotel_translation[0]['policy']) ? htmlentities(strip_tags($hotel_translation[0]['policy'])) : html_entity_decode($details[0]['policy']),
             "booking_age_requirement" => $details[0]['booking_age_requirement'],
             "cancellation" => $details[0]['cancellation'],
-            "tax_percentage" => "14",
+            "tax_percentage" => $booking_tax['booking_tax'] ?? 14,
             "hotel_phone" => $details[0]['hotel_phone'],
             "hotel_email" => $details[0]['hotel_email'],
             "hotel_website" => $details[0]['hotel_website'],
@@ -1070,7 +1082,7 @@ $router->post('hotel_details', function () {
                         number_format($actual_option_price / $days, 2), 
                         (int)$days, 
                         (int)$no_of_rooms,
-                        14
+                        $booking_tax['booking_tax'] ?? 14
                     );
 
                     $netProfit = (float) ($financials['net_profit'] ?? 0);
@@ -1157,7 +1169,7 @@ $router->post('hotel_details', function () {
                 "booking_age_requirement" => $hotel_details->booking_age_requirement,
                 "policy" => $hotel_details->policy,
                 "cancellation" => $hotel_details->cancellation,
-                "tax_percentage" => isset($hotel_details->tax_percentage) && !empty($hotel_details->tax_percentage) ? $hotel_details->tax_percentage : 14,
+                "tax_percentage" => $booking_tax['booking_tax'] ?? 14,
                 "hotel_phone" => $hotel_details->hotel_phone,
                 "hotel_email" => $hotel_details->hotel_email,
                 "hotel_website" => $hotel_details->hotel_website,
@@ -1283,6 +1295,12 @@ $router->post('hotel_booking', function () {
         $db->update("hotels_bookings", $param, ["booking_ref_no" => $bookingRef]);
         $action = "updated";
         $booking_id = $existing["booking_id"];
+        
+        $data = (json_decode($_POST["user_data"]));
+        $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
+        // HOOK
+        $hook = "hotels_booking";
+        include "./hooks.php";
     } else {
         // Insert new booking (if ref doesn't exist)
         $db->insert("hotels_bookings", $param);
@@ -1290,11 +1308,11 @@ $router->post('hotel_booking', function () {
         $booking_id = $db->id();
     }
     
-    $data = (json_decode($_POST["user_data"]));
-    $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
-    // HOOK
-    $hook = "hotels_booking";
-    include "./hooks.php";
+    // $data = (json_decode($_POST["user_data"]));
+    // $data = (object) array_merge((array) $data, array('booking_ref_no' => $param['booking_ref_no'],'hotel_name' => $param['hotel_name']));
+    // // HOOK
+    // $hook = "hotels_booking";
+    // include "./hooks.php";
     echo json_encode(array('status' => true, 'id' => $booking_id, 'booking_ref_no' => $param['booking_ref_no'], 'user_email' => $param['email']));
 });
 
