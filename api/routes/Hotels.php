@@ -1509,7 +1509,7 @@ $router->post('hotels/cancellation', function () {
 
     $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
     $user = (json_decode($booking[0]['user_data']));
-    $data = (object) array('booking_ref_no' => $param['booking_ref_no']);
+    $data = (object) array('booking_ref_no' => $booking_ref_no);
     
     // HOOK for cancellation request
     $hook = "hotels/cancellation_request";
@@ -1663,7 +1663,7 @@ $router->post('hotels/cancellation/confirm', function () {
 
         $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
         $user = (json_decode($booking[0]['user_data']));
-        $data = (object) array('booking_ref_no' => $param['booking_ref_no']);
+        $data = (object) array('booking_ref_no' => $booking_ref_no);
         // HOOK for successful cancellation
         $hook = "hotels/cancellation_confirmed";
         include "./hooks.php";
