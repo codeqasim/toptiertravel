@@ -1509,7 +1509,8 @@ $router->post('hotels/cancellation', function () {
 
     $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
     $user = (json_decode($booking[0]['user_data']));
-
+    $data = (object) array('booking_ref_no' => $param['booking_ref_no']);
+    
     // HOOK for cancellation request
     $hook = "hotels/cancellation_request";
     include "./hooks.php";
@@ -1564,7 +1565,7 @@ $router->post('hotels/cancellation/confirm', function () {
 
         $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
         $user = (json_decode($booking[0]['user_data']));
-
+        $data = (object) array('booking_ref_no' => $param['booking_ref_no']);
         // HOOK for manual cancellation confirmation
         $hook = "hotels/cancellation_confirmed";
         include "./hooks.php";
@@ -1589,7 +1590,8 @@ $router->post('hotels/cancellation/confirm', function () {
     // Prepare parameters for cancellation API
     if(strtolower($data_hotel[0]['supplier']) == 'stuba'){
         $booking_response = json_decode($data_hotel[0]['booking_response'], true);
-        $booking_id = $booking_response['BookingCreateResult']['Booking']['Id'];
+        $api_booking_response = json_decode($booking_response['response'], true);
+        $booking_id = $api_booking_response['BookingCreateResult']['Booking']['Id'];
         $param = array(
             'c1' => $gethotels[0]['c1'],
             'c2' => $gethotels[0]['c2'],
@@ -1661,9 +1663,9 @@ $router->post('hotels/cancellation/confirm', function () {
 
         $booking = $db->select("hotels_bookings", '*', ["booking_ref_no" => $booking_ref_no]);
         $user = (json_decode($booking[0]['user_data']));
-
+        $data = (object) array('booking_ref_no' => $param['booking_ref_no']);
         // HOOK for successful cancellation
-        $hook = "hotels/cancellation_request";
+        $hook = "hotels/cancellation_confirmed";
         include "./hooks.php";
 
         echo json_encode(array(
