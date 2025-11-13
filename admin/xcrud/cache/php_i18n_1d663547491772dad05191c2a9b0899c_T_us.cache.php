@@ -628,7 +628,6 @@ const info_hub = 'Info Hub';
 const brand_story = 'Brand Story';
 const hotel_faqs = 'Hotel Faqs';
 const faqs = 'FAQS';
-const pusher_settings = 'Pusher Settings';
 public static function __callStatic($string, $args) {
     return vsprintf(constant("self::" . $string), $args);
 }
