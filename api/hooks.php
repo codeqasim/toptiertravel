@@ -241,6 +241,25 @@ if (isset($hook)) {
         $pusher->trigger($channel, 'event', $push_data);
 
     }
+
+    // ORIGINAL HOOK - CANCELLATION CONFIRMED
+    if ($hook == "hotels/cancellation_confirmed") {
+
+        // SEND EMAIL
+        $title = "Cancellation Confirmed";
+        $template = "cancellation_confirmed";
+        // $content = $root . '/hotels/invoice/' . $_POST['booking_ref_no'];
+        $content = 'https://toptier-tr-ef19.vercel.app/hotels/invoice/' . $data->booking_ref_no;
+        $receiver_email = ($user->email);
+        $receiver_name = ($user->first_name) . ' ' . ($user->last_name);
+        MAILER($template, $title, $content, $receiver_email, $receiver_name);
+
+        // PUSH NOTIFICATION
+        $push_data['message1'] = 'Cancellation Confirmation';
+        $push_data['message2'] = 'Hotel Booking Cancelled for invoice ' . $_POST['booking_ref_no'];
+        $pusher->trigger($channel, 'event', $push_data);
+
+    }
     // ==================================================================== TOURS BOOKING
     if ($hook == "tours_booking") {
 

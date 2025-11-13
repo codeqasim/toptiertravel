@@ -92,7 +92,7 @@ vt.success(data.message2, {
 var form = new FormData();
 form.append("notification", "");
 if(data.message1 == "Hotel_hotel_booking"){
-    form.append("name", "New Hotel Booking");
+    form.append("name", "New Hotel Booking "+ data.message2);
     form.append("description", data.message2);
 }else{
     form.append("name", data.message1+' '+data.message2);

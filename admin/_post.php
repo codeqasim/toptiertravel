@@ -4,12 +4,64 @@ require_once '../_config.php';
 require_once './_config.php';
 auth_check();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // file_put_contents("_post.log", print_r($_REQUEST, true));
+        // file_put_contents("_post.log", print_r($_REQUEST, true));
 
-    // NOTIFICATION
-    if (isset($_POST['cancellation_update'])) {
+        // NOTIFICATION
+        if (isset($_POST['cancellation_update'])) {
+        
+        // Prepare parameters
+        $params = array(
+            'booking_ref_no' => $_POST['cancellation_id']
+        );
+        
+        // Make API call to confirm cancellation if module is hotels
+        if(isset($_POST['cancellation_module']) && $_POST['cancellation_module'] == 'hotels'){
+            
+            // Build the URL
+            $url = api_url . $_POST['cancellation_module'] . '/cancellation/confirm';
+            
+            // Initialize cURL
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => http_build_query($params), // or json_encode($params) if API expects JSON
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/x-www-form-urlencoded' // Change to 'Content-Type: application/json' if using json_encode
+                ),
+            ));
+            
+            $response = curl_exec($curl);
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            
+            if (curl_errno($curl)) {
+                $error = curl_error($curl);
+                curl_close($curl);
+                echo json_encode(array('status' => false, 'message' => 'cURL error: ' . $error));
+                die;
+            }
+            
+            curl_close($curl);
+            
+            // Decode the response
+            $api_response = json_decode($response);
+            // // Check if API call was successful
+            // if (!$api_response || (isset($api_response->status) && $api_response->status === false)) {
+            //     $error_msg = isset($api_response->message) ? $api_response->message : 'Cancellation confirmation failed';
+            //     echo json_encode(array('status' => false, 'message' => $error_msg));
+            //     die;
+            // }
+        }
+        
+        // Update database
         $db->update($_POST['cancellation_module']."_bookings", [ "cancellation_status" =>  1,"booking_status" =>  "cancelled" ], ["booking_ref_no" => $_POST['cancellation_id'] ]);
         die;
     }
