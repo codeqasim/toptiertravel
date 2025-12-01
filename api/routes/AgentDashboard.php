@@ -1565,4 +1565,45 @@ $router->post('agent/dashboard/settings/save', function () {
     }
 });
 
+$router->post('agent/referallist', function() {
+
+    include "./config.php";
+
+    required('user_id');
+    $user_id = $_POST["user_id"];
+
+    // Check if user exists
+    $checkUser = $db->get("users", "user_id", [
+        "user_id" => $user_id
+    ]);
+
+    if (!$checkUser) {
+        echo json_encode(["status" => false,"message" => "User not found","data" => null]);
+        return;
+    }
+
+    try {
+
+        // Fetch all fields except token
+        $referrals = $db->select("users", ["user_id","first_name","last_name","email","phone_country_code","phone","email_code","status","country_code","address1","address2","profile_photo"], ["ref_id" => $user_id]);
+
+        // No referrals found
+        if (!$referrals || count($referrals) == 0) {
+            echo json_encode(["status" => true,"message" => "No referred users found","data" => []]);
+            return;
+        }
+
+        // Convert profile photo to full URL
+        foreach ($referrals as &$row) {
+            $row["profile_photo"] = $row["profile_photo"] ? "/assets/uploads/" . $row["profile_photo"] : null;
+        }
+
+        echo json_encode(["status" => true,"message" => "Referral list fetched successfully","data" => $referrals]);
+
+    } catch (Exception $e) {
+
+        echo json_encode(["status" => false,"message" => "Database error: " . $e->getMessage(),"data" => null]);
+    }
+});
+
 ?>
