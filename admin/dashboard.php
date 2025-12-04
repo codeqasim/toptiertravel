@@ -216,7 +216,7 @@ if(isset($user_permissions->admin->page_access)){
         </div>
     </div>
 
-    <div class="col-md-2 mb-2">
+    <div class="col-md-4 mb-2">
     <a href="<?=root?>users.php?pages=1">
     <div class="card custom-card">
         <div class="card-body">
@@ -246,7 +246,7 @@ if(isset($user_permissions->admin->page_access)){
     </a>
 </div>
 
-<div class="col-md-2 mb-2">
+<div class="col-md-4 mb-2">
     <a href="<?=root?>bookings.php">
     <div class="card custom-card">
         <div class="card-body">
@@ -293,7 +293,7 @@ $visa_cancellation = $db->select("visa_bookings", "*", $params);
 $cancelled = array_merge($flights_cancellation, $hotels_cancellation, $tours_cancellation, $cars_cancellation, $visa_cancellation);
 ?>
 
-<div class="col-md-2 mb-2">
+<div class="col-md-4 mb-2">
     <a href="<?=root?>bookings.php?booking_id=&module=&booking_status=cancelled&payment_status=&booking_date=">
     <div class="card custom-card">
         <div class="card-body">
@@ -338,7 +338,7 @@ $cars_payment = $db->select("cars_bookings", "*", $params);
 $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, $cars_payment);
 ?>
 
-<div class="col-md-2 mb-2">
+<div class="col-md-4 mb-2">
     <a href="<?=root?>bookings.php?booking_id=&module=&booking_status=&payment_status=unpaid&booking_date=">
     <div class="card custom-card">
         <div class="card-body">
@@ -367,7 +367,7 @@ $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, 
 </div>
 
 <!-- Transactions -->
-<div class="col-md-2 mb-2">
+<div class="col-md-4 mb-2">
     <div class="card custom-card">
         <div class="card-body">
             <div class="card-item">
@@ -394,7 +394,7 @@ $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, 
 </div>
 
 <!-- Unpaid IATA -->
-<div class="col-md-2 mb-2">
+<div class="col-md-4 mb-2">
     <a href="<?=root?>iata_payments.php?iata_payment_status=unpaid">
     <div class="card custom-card">
         <div class="card-body">
@@ -410,7 +410,7 @@ $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, 
                 </div>
                 <div class="card-item-title mb-2">
                     <label class="main-content-label fs-13 fw-bold mb-1">Unpaid IATA</label>
-                    <span class="d-block fs-12 mb-0 text-muted"></span>
+                    <span class="d-block fs-12 mb-0 text-muted">Total owed</span>
                 </div>
                 <div class="card-item-body">
                     <div class="card-item-stat">
