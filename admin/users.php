@@ -24,6 +24,19 @@ include "_header.php";
 <div class="container mt-3">
 
 <?php 
+
+// Check if filtering by referral agent
+if (isset($_GET['ref_agent_id'])) {
+    // Get agent details
+    $agent = $db->get('users', ['first_name', 'last_name', 'email'], ['user_id' => $_GET['ref_agent_id']]);
+    $agentName = $agent ? $agent['first_name'] . ' ' . $agent['last_name'] : $_GET['ref_agent_id'];
+    
+    echo '<div class="d-flex justify-content-between align-items-center mb-3">
+        <span><strong>Referrals for:</strong> ' . htmlspecialchars($agentName) . '</span>
+        <a href="users.php' . (isset($_GET['user_type']) ? '?user_type=' . htmlspecialchars($_GET['user_type']) : '') . '" class="btn btn-primary">Back</a>
+    </div>';
+}
+
 include('./xcrud/xcrud.php');
 $xcrud = Xcrud::get_instance();
 $xcrud->table('users');
@@ -38,14 +51,28 @@ $xcrud->relation('phone_country_code','countries','id','nicename');
 $xcrud->column_callback('email', 'format_email');
 
 // USER PERMISSIONS
-if (!isset($permission_delete)){ $xcrud->unset_remove(); }
-if (!isset($permission_add)){ $xcrud->unset_add(); }
+// Disable delete when viewing referrals OR if no permission
+if (!isset($permission_delete) || isset($_GET['ref_agent_id'])){ 
+    $xcrud->unset_remove(); 
+}
 
-if (!isset($permission_edit)){ 
+// Disable add when viewing referrals OR if no permission
+if (!isset($permission_add) || isset($_GET['ref_agent_id'])){ 
+    $xcrud->unset_add(); 
+}
+
+// Handle edit permissions
+if (!isset($permission_edit) || isset($_GET['ref_agent_id'])){ 
+    // Disable edit when viewing referrals
 } else {
     $xcrud->column_callback('status', 'create_status_icon');
     $xcrud->field_callback('status','Enable_Disable');
     $xcrud->button('./profile.php?user_id={user_id}','User Profile','<i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg></i>');
+    
+    // Only show View Referrals button when NOT already viewing referrals
+    if (!isset($_GET['ref_agent_id'])) {
+        $xcrud->button('./users.php?ref_agent_id={user_id}' . (isset($_GET['user_type']) ? '&user_type=' . htmlspecialchars($_GET['user_type']) : ''), 'View Referrals', '');
+    }
 }
 
 $rand = rand(100, 99);
@@ -69,7 +96,15 @@ $xcrud->validation_required('currency_id');
 
 $xcrud->label('currency_id','Currency');
 
-if (isset($_GET['user_type'])){ $xcrud->where('user_type', $_GET['user_type']); }
+if (isset($_GET['user_type'])){ 
+    $xcrud->where('user_type', $_GET['user_type']); 
+}
+
+// Filter by referral agent if provided
+if (isset($_GET['ref_agent_id'])) {
+    $xcrud->where('ref_id', $_GET['ref_agent_id']);
+}
+
 $xcrud->unset_title();
 $xcrud->unset_view();
 $xcrud->unset_csv();

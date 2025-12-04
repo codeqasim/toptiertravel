@@ -384,6 +384,17 @@ if (isset($user_permissions->supplier_payments->page_access)) {
 }
 ?>
 <?php
+if (isset($user_permissions->supplier_payments->page_access)) {
+?>
+<li class="slide">
+<a href="./iata_payments.php" class="side-menu__item <?php if ($url_name == 'iata_payments') { echo "active"; } ?>">
+<?= T::iata ?> <?= T::payments?>
+</a>
+</li>
+<?php
+}
+?>
+<?php
 if (isset($user_permissions->agents_commissions->page_access)) {
 ?>
 <li class="slide">
@@ -473,13 +484,13 @@ if (
         </li>
         <?php } ?>
 
-        <?php if (isset($user_permissions->pusher_settings->page_access)) { ?>
+        <!-- <?php if (isset($user_permissions->pusher_settings->page_access)) { ?>
         <li class="slide">
             <a href="./pusher_settings.php" class="side-menu__item <?= $url_name == 'pusher_settings' ? 'active' : '' ?>">
                 <?= T::pusher_settings ?>
             </a>
         </li>
-        <?php } ?>
+        <?php } ?> -->
 
 
         <!-- Locations -->
