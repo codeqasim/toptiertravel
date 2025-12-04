@@ -107,7 +107,7 @@ if(isset($user_permissions->admin->page_access)){
     <div class="row mb-0 g-2">
 
     <!-- Total Sales -->
-    <div class="col-md-3 mb-2">
+    <div class="col-md-3">
         <div class="card custom-card">
             <div class="card-body">
                 <div class="card-item">
@@ -134,7 +134,7 @@ if(isset($user_permissions->admin->page_access)){
     </div>
 
     <!-- Net Profit -->
-    <div class="col-md-3 mb-2">
+    <div class="col-md-3">
         <div class="card custom-card">
             <div class="card-body">
                 <div class="card-item">
@@ -160,7 +160,7 @@ if(isset($user_permissions->admin->page_access)){
     </div>
 
     <!-- Supplier Payments Owed -->
-    <div class="col-md-3 mb-2">
+    <div class="col-md-3">
         <a href="<?=root?>supplier_payments.php?supplier_payment_status=unpaid">
         <div class="card custom-card">
             <div class="card-body">
@@ -189,7 +189,7 @@ if(isset($user_permissions->admin->page_access)){
     </div>
 
     <!-- Commission Payments Owed -->
-    <div class="col-md-3 mb-2">
+    <div class="col-md-3">
         <div class="card custom-card">
             <div class="card-body">
                 <div class="card-item">
@@ -216,7 +216,7 @@ if(isset($user_permissions->admin->page_access)){
         </div>
     </div>
 
-    <div class="col-md-4 mb-2">
+    <div class="col-md-4">
     <a href="<?=root?>users.php?pages=1">
     <div class="card custom-card">
         <div class="card-body">
@@ -246,7 +246,7 @@ if(isset($user_permissions->admin->page_access)){
     </a>
 </div>
 
-<div class="col-md-4 mb-2">
+<div class="col-md-4">
     <a href="<?=root?>bookings.php">
     <div class="card custom-card">
         <div class="card-body">
@@ -293,7 +293,7 @@ $visa_cancellation = $db->select("visa_bookings", "*", $params);
 $cancelled = array_merge($flights_cancellation, $hotels_cancellation, $tours_cancellation, $cars_cancellation, $visa_cancellation);
 ?>
 
-<div class="col-md-4 mb-2">
+<div class="col-md-4">
     <a href="<?=root?>bookings.php?booking_id=&module=&booking_status=cancelled&payment_status=&booking_date=">
     <div class="card custom-card">
         <div class="card-body">
