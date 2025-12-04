@@ -410,11 +410,11 @@ $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, 
                 </div>
                 <div class="card-item-title mb-2">
                     <label class="main-content-label fs-13 fw-bold mb-1">Unpaid IATA</label>
-                    <span class="d-block fs-12 mb-0 text-muted">USD <?= number_format($iata_owed_amount, 2); ?></span>
+                    <span class="d-block fs-12 mb-0 text-muted"></span>
                 </div>
                 <div class="card-item-body">
                     <div class="card-item-stat">
-                        <h4 class="fw-bold" style="color: #000000ff;">USD <?= number_format($iata_owed_count,2); ?></h4>
+                        <h4 class="fw-bold" style="color: #000000ff;">USD <?= number_format($iata_owed_amount,2); ?></h4>
                     </div>
                 </div>
             </div>
