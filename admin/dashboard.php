@@ -12,7 +12,6 @@ include "_header.php";
 // dd($user_permissions);
 
 $params = array();
-$cms = $db->select("cms","*",$params);
 $flights_bookings = GET('flights_bookings',$params);
 $hotels_bookings = GET('hotels_bookings',$params);
 $tours_bookings = GET('tours_bookings',$params);
@@ -20,6 +19,69 @@ $cars_bookings = GET('cars_bookings',$params);
 $visa_bookings = GET('visa_bookings',$params);
 $users = GET('users',$params);
 $bookings = count($flights_bookings) + count($hotels_bookings) + count($tours_bookings) + count($cars_bookings) + count($visa_bookings);
+
+// Calculate Total Sales
+$total_sales = 0;
+$all_bookings = array_merge($flights_bookings, $hotels_bookings, $tours_bookings, $cars_bookings, $visa_bookings);
+foreach($all_bookings as $booking) {
+    $booking = (array)$booking;
+    if(isset($booking['subtotal']) && $booking['subtotal'] > 0) {
+        $total_sales += floatval($booking['subtotal']);
+    }
+}
+
+// Calculate Net Profit
+$net_profit = 0;
+foreach($all_bookings as $booking) {
+    $booking = (array)$booking;
+    if(isset($booking['net_profit']) && $booking['net_profit'] > 0) {
+        $net_profit += floatval($booking['net_profit']);
+    }
+}
+
+// Supplier Payments Owed
+$supplier_owed_params = array("supplier_payment_status" => "unpaid");
+$supplier_owed_hotels = $db->select("hotels_bookings", "*", $supplier_owed_params);
+$supplier_owed_amount = 0;
+foreach($supplier_owed_hotels as $booking) {
+    $booking = (array)$booking;
+    if(isset($booking['supplier_cost']) && $booking['supplier_cost'] > 0) {
+        $supplier_owed_amount += floatval($booking['supplier_cost']);
+    }
+}
+
+// Commission Payments Owed (Agent Payments)
+$agent_owed_params = array("agent_payment_status" => "pending");
+$agent_owed_hotels = $db->select("hotels_bookings", "*", $agent_owed_params);
+$commission_owed_amount = 0;
+$commission_owed_count = count($agent_owed_hotels);
+foreach($agent_owed_hotels as $booking) {
+    $booking = (array)$booking;
+    if(isset($booking['agent_fee']) && $booking['agent_fee'] > 0) {
+        $commission_owed_amount += floatval($booking['agent_fee']);
+    }
+}
+
+// Transactions (paid bookings) - excluding visa_bookings as it doesn't have payment_status
+$transactions_params = array("payment_status" => "paid");
+$transactions_flights = $db->select("flights_bookings", "*", $transactions_params);
+$transactions_hotels = $db->select("hotels_bookings", "*", $transactions_params);
+$transactions_tours = $db->select("tours_bookings", "*", $transactions_params);
+$transactions_cars = $db->select("cars_bookings", "*", $transactions_params);
+$transactions = count($transactions_flights) + count($transactions_hotels) + count($transactions_tours) + count($transactions_cars);
+
+// Unpaid IATA
+$iata_owed_params = array("iata_payment_status" => "unpaid");
+$iata_owed = $db->select("hotels_bookings", "*", $iata_owed_params);
+$iata_owed_count = 0;
+$iata_owed_amount = 0;
+foreach($iata_owed as $booking) {
+    $booking = (array)$booking;
+    if(isset($booking['iata']) && $booking['iata'] != '' && $booking['iata'] != '0' && $booking['iata'] != null) {
+        $iata_owed_count++;
+        $iata_owed_amount += floatval($booking['iata']);
+    }
+}
 
 ?>
 
@@ -44,6 +106,116 @@ if(isset($user_permissions->admin->page_access)){
 
     <div class="row mb-0 g-2">
 
+    <!-- Total Sales -->
+    <div class="col-md-3 mb-2">
+        <div class="card custom-card">
+            <div class="card-body">
+                <div class="card-item">
+                    <div class="card-item-icon card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                            viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div class="card-item-title mb-2">
+                        <label class="main-content-label fs-13 fw-bold mb-1">Total Sales</label>
+                        <span class="d-block fs-12 mb-0 text-muted">Revenue Generated</span>
+                    </div>
+                    <div class="card-item-body">
+                        <div class="card-item-stat">
+                            <h4 class="fw-bold text-black">USD <?= number_format($total_sales, 2); ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net Profit -->
+    <div class="col-md-3 mb-2">
+        <div class="card custom-card">
+            <div class="card-body">
+                <div class="card-item">
+                    <div class="card-item-icon card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                            viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="card-item-title mb-2">
+                        <label class="main-content-label fs-13 fw-bold mb-1">Net Profit</label>
+                        <span class="d-block fs-12 mb-0 text-muted">Total Earnings</span>
+                    </div>
+                    <div class="card-item-body">
+                        <div class="card-item-stat">
+                            <h4 class="fw-bold text-black">USD <?= number_format($net_profit, 2); ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Payments Owed -->
+    <div class="col-md-3 mb-2">
+        <a href="<?=root?>supplier_payments.php?supplier_payment_status=unpaid">
+        <div class="card custom-card">
+            <div class="card-body">
+                <div class="card-item">
+                    <div class="card-item-icon card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                            viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="card-item-title mb-2">
+                        <label class="main-content-label fs-13 fw-bold mb-1">Supplier Payments</label>
+                        <span class="d-block fs-12 mb-0 text-muted">Amount Owed</span>
+                    </div>
+                    <div class="card-item-body">
+                        <div class="card-item-stat">
+                            <h4 class="fw-bold text-black">USD <?= number_format($supplier_owed_amount, 2); ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </a>
+    </div>
+
+    <!-- Commission Payments Owed -->
+    <div class="col-md-3 mb-2">
+        <div class="card custom-card">
+            <div class="card-body">
+                <div class="card-item">
+                    <div class="card-item-icon card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                            viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="2" 
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div class="card-item-title mb-2">
+                        <label class="main-content-label fs-13 fw-bold mb-1">Commission Owed</label>
+                        <span class="d-block fs-12 mb-0 text-muted"><?= $commission_owed_count ?> Pending</span>
+                    </div>
+                    <div class="card-item-body">
+                        <div class="card-item-stat">
+                            <h4 class="fw-bold" style="color: #000000ff;">USD <?= number_format($commission_owed_amount, 2); ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-2 mb-2">
     <a href="<?=root?>users.php?pages=1">
     <div class="card custom-card">
@@ -66,34 +238,6 @@ if(isset($user_permissions->admin->page_access)){
                 <div class="card-item-body">
                     <div class="card-item-stat">
                         <h4 class="fw-bold"><?= count($users); ?></h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </a>
-</div>
-
-<div class="col-md-2 mb-2">
-    <a href="<?=root?>cms.php?pages=1">
-    <div class="card custom-card">
-        <div class="card-body">
-            <div class="card-item">
-                <div class="card-item-icon card-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
-                        viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5" 
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V9l-7-7z"/>
-                        <path d="M13 3v6h6"/>
-                    </svg>
-                </div>
-                <div class="card-item-title mb-2">
-                    <label class="main-content-label fs-13 fw-bold mb-1"><?= T::pages ?></label>
-                    <span class="d-block fs-12 mb-0 text-muted">Total CMS Pages</span>
-                </div>
-                <div class="card-item-body">
-                    <div class="card-item-stat">
-                        <h4 class="fw-bold"><?= count($cms); ?></h4>
                     </div>
                 </div>
             </div>
@@ -149,7 +293,7 @@ $visa_cancellation = $db->select("visa_bookings", "*", $params);
 $cancelled = array_merge($flights_cancellation, $hotels_cancellation, $tours_cancellation, $cars_cancellation, $visa_cancellation);
 ?>
 
-<div class="col-md-3 mb-2">
+<div class="col-md-2 mb-2">
     <a href="<?=root?>bookings.php?booking_id=&module=&booking_status=cancelled&payment_status=&booking_date=">
     <div class="card custom-card">
         <div class="card-body">
@@ -194,7 +338,7 @@ $cars_payment = $db->select("cars_bookings", "*", $params);
 $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, $cars_payment);
 ?>
 
-<div class="col-md-3 mb-2">
+<div class="col-md-2 mb-2">
     <a href="<?=root?>bookings.php?booking_id=&module=&booking_status=&payment_status=unpaid&booking_date=">
     <div class="card custom-card">
         <div class="card-body">
@@ -214,6 +358,63 @@ $unpaid_status = array_merge($flights_payment, $hotels_payment, $tours_payment, 
                 <div class="card-item-body">
                     <div class="card-item-stat">
                         <h4 class="fw-bold"><?= count($unpaid_status); ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </a>
+</div>
+
+<!-- Transactions -->
+<div class="col-md-2 mb-2">
+    <div class="card custom-card">
+        <div class="card-body">
+            <div class="card-item">
+                <div class="card-item-icon card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                        viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="1.5" 
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                </div>
+                <div class="card-item-title mb-2">
+                    <label class="main-content-label fs-13 fw-bold mb-1">Transactions</label>
+                    <span class="d-block fs-12 mb-0 text-muted">Completed</span>
+                </div>
+                <div class="card-item-body">
+                    <div class="card-item-stat">
+                        <h4 class="fw-bold text-black"><?= $transactions; ?></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unpaid IATA -->
+<div class="col-md-2 mb-2">
+    <a href="<?=root?>iata_payments.php?iata_payment_status=unpaid">
+    <div class="card custom-card">
+        <div class="card-body">
+            <div class="card-item">
+                <div class="card-item-icon card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+                        viewBox="0 0 24 24" fill="none" stroke="#000000ff" stroke-width="2" 
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div class="card-item-title mb-2">
+                    <label class="main-content-label fs-13 fw-bold mb-1">Unpaid IATA</label>
+                    <span class="d-block fs-12 mb-0 text-muted">USD <?= number_format($iata_owed_amount, 2); ?></span>
+                </div>
+                <div class="card-item-body">
+                    <div class="card-item-stat">
+                        <h4 class="fw-bold" style="color: #000000ff;">USD <?= number_format($iata_owed_count,2); ?></h4>
                     </div>
                 </div>
             </div>
