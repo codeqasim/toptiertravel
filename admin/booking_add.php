@@ -70,6 +70,8 @@
       $tax_percent = isset($_POST['tax']) ? floatval($_POST['tax']) : 0;
       $supplier_cost = isset($_POST['supplier_cost']) ? floatval($_POST['supplier_cost']) : 0.0;
       $iata = isset($_POST['iata']) ? floatval($_POST['iata']) : 0.0;
+      $iata_payment_status = isset($_POST['iata_payment_status']) ? $_POST['iata_payment_status'] : 'unpaid';
+      $iata_payment_date = isset($_POST['iata_payment_date']) ? $_POST['iata_payment_date'] : null;      
 
       $params = [
          "booking_ref_no" => date('Ymdhis') . rand(),
@@ -103,6 +105,8 @@
          "supplier_payment_type" => $_POST["supplier_payment_type"] ?? "",
          "customer_payment_type" => $_POST["customer_payment_type"] ?? "",
          "iata" => $iata,
+         "iata_payment_status" => $iata_payment_status,
+         "iata_payment_date" => $iata_payment_date,
          "subtotal" => $subtotal,
          "agent_payment_status" => $_POST['agent_payment_status'] ?? 'pending',
          "agent_payment_type" => $_POST['agent_payment_type'] ?? 'pending',
@@ -682,34 +686,14 @@
                         </div>
                      </div>
 
-
                      <div class="col-md-4">
                         <label for="">
-                           <?=T::supplier?>
-                           <?=T::due?>
-                           <?=T::date?>
+                           <?=T::supplier?> <?=T::due?> <?=T::date?>
                         </label>
-                        <div class="">
-                           <input type="date" class="form-control mt-2" id="supplier_due_date" name="supplier_due_date"
-                              autocomplete="off" required>
-                           <!-- <label for="supplier_due_date">Due Date</label> -->
-                        </div>
-                     </div>
-                     <!-- for IATA -->
-
-                     <div class="col-md-4">
-                        <label for="">
-                           <?=T::iata?>
-                        </label>
-                        <div class="form-floating">
-                           <div class="input-group mt-2">
-                              <input type="number" step="any" min="0" class="form-control rounded-0" id="iata"
-                                 name="iata" value="0" required>
-                              <span class="input-group-text text-white bg-primary">
-                                 <?= $curreny[0]['name']?>
-                              </span>
-                           </div>
-                           <!-- <label for="supplierCost">Supplier Cost</label> -->
+                        <div class="mt-2">
+                           <input type="text" class="form-control" id="supplier_due_date" name="supplier_due_date"
+                              autocomplete="off">
+                           <!-- <label for="supplier_due_date"><?=T::payment?> <?=T::date?> (<?=T::optional?>)</label> -->
                         </div>
                      </div>
 
@@ -728,6 +712,64 @@
                               </span>
                            </div>
                            <!-- <label for="supplierCost">Supplier Cost</label> -->
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <hr class="m-0">
+            </div>
+
+            <div class="card mb-2">
+               <div class="card-header bg-primary text-dark py-3">
+                  <strong class="">
+                     <?=T::iata?> <?=T::details?>
+                  </strong>
+               </div>
+               <div class="card-body p-4">
+                  <div class="row g-3">
+                     <!-- IATA Amount -->
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::iata?> <?=T::amount?>
+                        </label>
+                        <div class="form-floating mt-2">
+                           <div class="input-group">
+                              <input type="number" step="any" min="0" class="form-control rounded-0" id="iata"
+                                 name="iata" value="0" required>
+                              <span class="input-group-text text-white bg-primary">
+                                 <?= $curreny[0]['name']?>
+                              </span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <!-- IATA Payment Status -->
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::iata?> <?=T::payment?> <?=T::status?>
+                        </label>
+                        <div class="form-floating mt-3 rounded-2 h-100">
+                           <select class="form-select select2 pt-2" id="iata_payment_status" name="iata_payment_status">
+                              <option value="unpaid" selected>
+                                 <?=T::unpaid?>
+                              </option>
+                              <option value="paid">
+                                 <?=T::paid?>
+                              </option>
+                           </select>
+                        </div>
+                     </div>
+
+                     <!-- IATA Payment Date -->
+
+                     <div class="col-md-4">
+                        <label for="">
+                           <?=T::iata?> <?=T::payment?> <?=T::date?>
+                        </label>
+                        <div class="mt-2">
+                           <input type="text" class="form-control" id="iata_payment_date" name="iata_payment_date"
+                              autocomplete="off">
+                           <!--<label for="iata_payment_date"><?=T::payment?> <?=T::date?> (<?=T::optional?>)</label>-->
                         </div>
                      </div>
                   </div>
@@ -1136,7 +1178,9 @@
    $(document).ready(function () {
       const flatpickrInstance = {
          checkin: null,
-         checkout: null
+         checkout: null,
+         iata_payment_date: null,
+         supplier_due_date: null
       };
 
       // Initialize checkin datepicker
@@ -1164,6 +1208,18 @@
             calculateTotalPrice();
             calculateDays();
          }
+      });
+
+      flatpickrInstance.iata_payment_date = flatpickr("#supplier_due_date", {
+         dateFormat: "Y-m-d",
+         minDate: "today",
+         allowInput: true
+      });
+
+      flatpickrInstance.iata_payment_date = flatpickr("#iata_payment_date", {
+         dateFormat: "Y-m-d",
+         minDate: "today",
+         allowInput: true
       });
 
       // Function to calculate days between check-in and check-out
@@ -1463,6 +1519,30 @@
    agentAmountInput.on("input", updateFeeFromAmount);
 });
 
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+   const iataPaymentStatus = document.getElementById("iata_payment_status");
+   const iataPaymentDate = document.getElementById("iata_payment_date");
+
+   if (iataPaymentStatus && iataPaymentDate) {
+      iataPaymentStatus.addEventListener("change", function () {
+         if (this.value === "paid" && !iataPaymentDate.value) {
+            // Set to today's date if paid and no date is set
+            iataPaymentDate.value = new Date().toISOString().split('T')[0];
+         }
+      });
+
+      // Also handle select2 change event if using select2
+      if (jQuery && $.fn.select2) {
+         $('#iata_payment_status').on('select2:select', function (e) {
+            if (e.params.data.id === "paid" && !iataPaymentDate.value) {
+               iataPaymentDate.value = new Date().toISOString().split('T')[0];
+            }
+         });
+      }
+   }
+});
 </script>
 
 <script>

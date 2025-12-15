@@ -54,11 +54,22 @@ include "_header.php";
     ));
 
     // Set payment date as date picker
-    $xcrud->change_type('iata_payment_date', 'date');
+    $xcrud->column_callback(
+    'iata_payment_date',
+        function ($value, $row) {
+            if (!$value || $value === '0000-00-00') {
+                return '-';
+            }
+            return date('Y-m-d', strtotime($value));
+        }
+    );
+
+
 
     $xcrud->unset_title();
     $xcrud->unset_add();
-    $xcrud->unset_remove();
+    $xcrud->unset_edit();
+    // $xcrud->unset_remove();
 
     $xcrud->order_by('booking_id', 'desc');
     
