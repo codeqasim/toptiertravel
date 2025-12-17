@@ -65,7 +65,7 @@ $router->post('signup', function() {
         echo json_encode($respose);
 
         // $link = root.'../'.'account/activation/'.$user_id.'/'.$mail_code;
-        $link = 'https://toptier-tr-ef19.vercel.app/account/activation/'.$user_id.'/'.$mail_code;
+        $link = 'https://toptiertravel.vip/account/activation/'.$user_id.'/'.$mail_code;
 
         // HOOK
         $hook="user_signup";
