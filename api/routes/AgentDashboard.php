@@ -154,7 +154,16 @@ $router->post('agent/dashboard/signup', function () {
         $db->update("users", ["ref_id" => $_POST['ref_id']], ["id" => $user_id]);
     }
 
-    $db->insert('settings',['user_id' => $user_id]);
+    // 1. Get default settings (id = 1)
+    $defaultSettings = $db->get('settings', ['header_logo_img', 'favicon_img'], ['id' => 1]);
+
+    // 2. Insert new settings for the new user
+    $db->insert('settings', [
+        'user_id' => $user_id,
+        'header_logo_img' => $defaultSettings['header_logo_img'],
+        'favicon_img' => $defaultSettings['favicon_img']
+    ]);
+
 
     // GET UPDATED USER INFO
     $user_info = $db->get("users", "*", ["id" => $user_id]);
