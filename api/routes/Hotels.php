@@ -601,6 +601,7 @@ $router->post('hotel_search', function () {
             "rating" => $_POST['rating'],
             "price_from" => $_POST['price_from'],
             "price_to" => $_POST['price_to'],
+            "required_stars" => "('4','5')",
         );
 
         if(empty($getvalue[0]['c1'])) {
