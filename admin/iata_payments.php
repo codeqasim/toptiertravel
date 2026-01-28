@@ -53,22 +53,12 @@ include "_header.php";
         'unpaid' => 'Unpaid'
     ));
 
-    // Set payment date as date picker
-    $xcrud->column_callback(
-    'iata_payment_date',
-        function ($value, $row) {
-            if (!$value || $value === '0000-00-00') {
-                return '-';
-            }
-            return date('Y-m-d', strtotime($value));
-        }
-    );
-
-
+    // Just use regular text field for date display, date picker for editing
+    $xcrud->change_type('iata_payment_date', 'date');
 
     $xcrud->unset_title();
     $xcrud->unset_add();
-    $xcrud->unset_edit();
+    // $xcrud->unset_edit();
     // $xcrud->unset_remove();
 
     $xcrud->order_by('booking_id', 'desc');

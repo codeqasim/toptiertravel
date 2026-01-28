@@ -50,6 +50,10 @@ include "_header.php";
     // $xcrud->unset_remove();
 
     $xcrud->order_by('booking_id', 'desc');
+
+    $xcrud->where('supplier_cost !=', null);
+    $xcrud->where('supplier_cost !=', '');
+    $xcrud->where('supplier_cost !=', '0');
     
     $filter = $_GET['supplier_payment_status'] ?? 'all';
     if ($filter === 'paid') {

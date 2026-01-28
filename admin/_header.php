@@ -192,13 +192,13 @@ if (DECODE($_SESSION['phptravels_backend_user'])->backend_user_type == "Agent" |
 
             <!-- Start::main-sidebar-header -->
             <!-- <div class="main-sidebar-header"> -->
-            <div class="main-sidebar-header p-3 d-flex items-align-center justify-content-between border-bottom pb-3 mb-2">
+            <div class="slide main-sidebar-header p-3 d-flex items-align-center justify-content-between border-bottom pb-3 mb-2">
         <a href="./dashboard.php" class="loadeffect d-flex align-items-center link-light text-decoration-none gap-3">
             <img src="../uploads/global/favicon.png?v<?= rand(0, 99999999999) ?>"
                 style="max-width: 30px; border-radius:10px">
-            <span class="fw-semibold"><?= T::dashboard ?></span>
+            <span class="fw-semibold side-menu__label"><?= T::dashboard ?></span>
         </a>
-        <a href="https://toptiertravel.vip/" target="_blank">
+        <a href="https://toptiertravel.vip/" target="_blank" class="side-menu__label">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                 stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <g fill="none" fill-rule="evenodd">

@@ -84,6 +84,31 @@ include "_header.php";
 
 ?>
 
+<style>
+.permissions-row .form-check {
+    display: flex !important;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.permissions-row .form-check-input {
+    margin-top: 0;
+    margin-right: 0.5rem;
+}
+
+.permissions-row .form-check-label {
+    margin-bottom: 0;
+    padding-top: 3px;
+}
+
+.permission-separator {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    margin: 0 0.5rem;
+}
+</style>
+
 <div class="page_head">
     <div class="panel-heading">
         <div class="float-start">
@@ -171,22 +196,24 @@ $pages_data = (json_decode($data->permissions));
                                 </td>
                                 <td>
 
-                                    <div class="d-flex gap-3">
+                                    <div class="d-flex gap-2 align-items-center permissions-row flex-wrap">
 
                                     <?php if(isset($page['page_access'])){ ?>
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="<?=$i?>_page_access" name="page[<?=$i?>][page_access]" value="">
-                                            <label for="<?=$i?>_page_access"><?=T::page_access?></label>
+                                            <label class="form-check-label" for="<?=$i?>_page_access"><?=T::page_access?></label>
                                         </div>
                                     <?php } ?>
 
-                                        -
+                                        <?php if(isset($page['page_access']) && (isset($page['add']) || isset($page['edit']) || isset($page['view']) || isset($page['delete']))){ ?>
+                                        <span class="permission-separator">|</span>
+                                        <?php } ?>
 
                                         <?php if(isset($page['add'])){ ?>
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="<?=$i?>_add"
                                                 name="page[<?=$i?>][add]" value="">
-                                            <label for="<?=$i?>_add"><?=T::add?></label>
+                                            <label class="form-check-label" for="<?=$i?>_add"><?=T::add?></label>
                                         </div>
                                         <?php } ?>
 
@@ -194,7 +221,7 @@ $pages_data = (json_decode($data->permissions));
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="<?=$i?>_edit"
                                                 name="page[<?=$i?>][edit]" value="">
-                                            <label for="<?=$i?>_edit"><?=T::edit?></label>
+                                            <label class="form-check-label" for="<?=$i?>_edit"><?=T::edit?></label>
                                         </div>
                                         <?php } ?>
 
@@ -202,7 +229,7 @@ $pages_data = (json_decode($data->permissions));
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="<?=$i?>_view"
                                                 name="page[<?=$i?>][view]" value="">
-                                            <label for="<?=$i?>_view"><?=T::view?></label>
+                                            <label class="form-check-label" for="<?=$i?>_view"><?=T::view?></label>
                                         </div>
                                         <?php } ?>
 
@@ -210,7 +237,7 @@ $pages_data = (json_decode($data->permissions));
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input" id="<?=$i?>_delete"
                                                 name="page[<?=$i?>][delete]" value="">
-                                            <label for="<?=$i?>_delete"><?=T::delete?></label>
+                                            <label class="form-check-label" for="<?=$i?>_delete"><?=T::delete?></label>
                                         </div>
                                         <?php } ?>
 
@@ -282,10 +309,6 @@ $xcrud->column_width('status','5%');
 echo $xcrud->render();
 
 ?>
-
-<style>
-.form-check { display: none }
-</style>
 
 <?php } ?>
 

@@ -1321,6 +1321,11 @@ $router->post('hotel_booking', function () {
         'agent_payment_date'  => null,
     );
 
+    if(!empty($_POST["supplier"])){
+        $supplier = $db->get('user','*',['first_name' => ucfirst($_POST["supplier"])]);
+        $param['supplier_id'] = $supplier['user_id'];
+    }
+
     if (empty($_POST["agent_id"])) {
         unset($param['agent_id']);
     }
