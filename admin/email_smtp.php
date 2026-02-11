@@ -72,7 +72,7 @@
                                 <div class="form-floating">
                                     <input type="text" placeholder="" name="smtp_password"
                                         value="<?=$settings->smtp_password?>" id="password" passwod="password" class="form-control" required>
-                                    <label for="">Passord</label>
+                                    <label for="">Password</label>
                                 </div>
                             </div>
 
