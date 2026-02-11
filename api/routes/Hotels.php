@@ -183,7 +183,7 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
             'user_id' => null,
             'status' => 1
         ], $date_conditions));
-
+        
         if (!empty($markup)) {
             return $calculate_markup($price, $markup[0][$markup_field], $markup_type_label);
         }
@@ -207,8 +207,8 @@ function markup_price($module_id, $price, $date, $location, $user_id = null)
     // 5. MODULE MARKUP (no location, no date)
     if ($module_id) {
         $markup = $conn->select('markups', '*', [
-            'type' => $type,
-            'module_id' => $module_id,
+            'type' => 'hotels',
+            'module_id' => '24',
             'user_id' => null,
             'location' => null,
             'from_date' => null,
@@ -1322,15 +1322,15 @@ $router->post('hotel_booking', function () {
         'agent_payment_status' => 'pending',
         'agent_payment_date'  => null,
     );
-
+    
     if (!empty($_POST['supplier'])) {
 
         $supplierName = trim($_POST['supplier']);
     
-        $supplierId = $db->get('user', 'user_id', [
+        $supplierId = $db->get('users', 'user_id', [
             'first_name' => $supplierName
         ]);
-    
+        
         if ($supplierId !== false) {
             $param['supplier_id'] = $supplierId;
         }

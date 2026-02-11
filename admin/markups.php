@@ -86,6 +86,7 @@ $xcrud->fields('status,user_markup,user_id,type');
 $xcrud->relation('module_id','modules','id','name');
 $xcrud->relation('user_id','users','user_id','email','user_type="agent"');
 
+$xcrud->where('user_id IS NOT NULL');
 $xcrud->field_callback('user_markup','markup');
 $xcrud->column_pattern('user_markup','{value} %');
 

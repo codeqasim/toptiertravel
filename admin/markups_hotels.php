@@ -20,7 +20,9 @@ $xcrud->column_pattern('b2b_markup','{value} %');
 // SPECIFY MODULE
 $xcrud->change_type('type','hidden');  
 $xcrud->where('type=', "hotels");
+$xcrud->where('user_id IS NULL'); // Changed: Show only markups where user_id is NULL
 $xcrud->pass_default('type','hotels');
+$xcrud->pass_default('user_id', null); // Added: Set user_id to NULL by default
 
 // USER PERMISSIONS
 if (!isset($permission_delete)){ $xcrud->unset_remove(); }
