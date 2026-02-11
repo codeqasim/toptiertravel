@@ -1159,8 +1159,8 @@ $router->post('hotel_details', function () {
                         "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                         "cc_fee" => number_format($financials['cc_fee'], 2),
                         "net_profit" => number_format($net_profit, 2),
-                        "cancellation_policy" => $cancellation_policy ?? '',
-                        "additional_info" => $additional_info ?? '',
+                        "cancellation_policy" => $values->cancellation_policy ?? '',
+                        "additional_info" => $values->additional_info ?? '',
                     ];
                 }
 
