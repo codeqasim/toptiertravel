@@ -1159,6 +1159,8 @@ $router->post('hotel_details', function () {
                         "subtotal_per_night" => number_format($financials['subtotal_per_night'], 2),
                         "cc_fee" => number_format($financials['cc_fee'], 2),
                         "net_profit" => number_format($net_profit, 2),
+                        "cancellation_policy" => $cancellation_policy ?? '',
+                        "additional_info" => $additional_info ?? '',
                     ];
                 }
 
@@ -1321,9 +1323,17 @@ $router->post('hotel_booking', function () {
         'agent_payment_date'  => null,
     );
 
-    if(!empty($_POST["supplier"])){
-        $supplier = $db->get('user','*',['first_name' => ucfirst($_POST["supplier"])]);
-        $param['supplier_id'] = $supplier['user_id'];
+    if (!empty($_POST['supplier'])) {
+
+        $supplierName = trim($_POST['supplier']);
+    
+        $supplierId = $db->get('user', 'user_id', [
+            'first_name' => $supplierName
+        ]);
+    
+        if ($supplierId !== false) {
+            $param['supplier_id'] = $supplierId;
+        }
     }
 
     if (empty($_POST["agent_id"])) {
